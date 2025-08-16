@@ -95,11 +95,41 @@ app.post("/api/login", async (req, res) => {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
-      res.json({ message: "Login successful", userType, fullName: user.fullName || user.name });
+    res.json({
+  message: "Login successful",
+  id: user.id,
+  fullName: user.fullName || user.name,
+  email: user.email,
+  userType,
+  token: "dummy-token-or-generate-jwt-here"
+});
+ 
     });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.get('/developer-profile/:id', (req, res) => {
+  const { id } = req.params;
+  const query = `SELECT fullName,email FROM developers WHERE id = ?`;
+  
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ 
+        message: 'Internal server error' 
+      });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ 
+        message: 'Developer not found' 
+      });
+    }
+    res.json(results[0]);
+    
+  });
+});
+
 
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));

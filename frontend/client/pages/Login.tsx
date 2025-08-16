@@ -39,52 +39,60 @@ export default function Login() {
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    let newErrors: { [key: string]: string } = {};
-    if (!formData.userType) newErrors.userType = "Please select your user type";
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      newErrors.email = "Please enter a valid email address";
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
+  let newErrors: { [key: string]: string } = {};
+  if (!formData.userType) newErrors.userType = "Please select your user type";
+  if (!formData.email) newErrors.email = "Email is required";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+    newErrors.email = "Please enter a valid email address";
+  if (!formData.password) newErrors.password = "Password is required";
+  else if (formData.password.length < 6)
+    newErrors.password = "Password must be at least 6 characters";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const res = await fetch("http://localhost:5000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setErrors({ form: data.message });
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    // Save all user data in one object
+    const userData = {
+      id: data.id,
+      fullName: data.fullName,
+      email: data.email,
+      token: data.token,
+      userType: data.userType,
+    };
+    localStorage.setItem("userData", JSON.stringify(userData));
 
-    try {
-      const res = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrors({ form: data.message });
-        setIsLoading(false);
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-
-      // Redirect based on user type
-      if (data.userType === "developer") navigate("/developer-dashboard");
-      else if (data.userType === "entrepreneur") navigate("/entrepreneur-dashboard");
-    } catch (err) {
-      console.error(err);
-      setErrors({ form: "Server error. Try again later." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Redirect based on user type
+    if (data.userType === "developer") navigate("/developer-dashboard");
+    else if (data.userType === "entrepreneur") navigate("/entrepreneur-dashboard");
+  } catch (err) {
+    console.error(err);
+    setErrors({ form: "Server error. Try again later." });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-softgray to-white">
