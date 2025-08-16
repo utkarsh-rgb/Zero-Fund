@@ -73,7 +73,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       return;
     }
 
-    // Save all user data in one object
     const userData = {
       id: data.id,
       fullName: data.fullName,
