@@ -5,9 +5,9 @@ const db = mysql.createConnection({
   user: "root",
   password: "12345678",
   multipleStatements: true, // allow multiple queries
-   waitForConnections: true,
+  waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
 });
 
 // Connect and setup DB
@@ -37,11 +37,16 @@ db.connect((err) => {
       // Create Developers table
       db.query(
         `CREATE TABLE IF NOT EXISTS developers (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          fullName VARCHAR(255) NOT NULL,
-          email VARCHAR(255) UNIQUE NOT NULL,
-          password VARCHAR(255) NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fullName VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    bio TEXT,
+    location VARCHAR(100),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    profile_pic VARCHAR(500)
+
         )`,
         (err) => {
           if (err) console.error("❌ Error creating developers table:", err);
@@ -61,6 +66,53 @@ db.connect((err) => {
         (err) => {
           if (err) console.error("❌ Error creating entrepreneur table:", err);
           else console.log("✅ Entrepreneur table ready");
+        }
+      );
+      // Developer Skills table
+      db.query(
+        `CREATE TABLE IF NOT EXISTS developer_skills (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    developer_id INT,
+    skill VARCHAR(50),
+    FOREIGN KEY (developer_id) REFERENCES developers(id) ON DELETE CASCADE
+  )`,
+        (err) => {
+          if (err)
+            console.error("❌ Error creating developer_skills table:", err);
+          else console.log("✅ Developer skills table ready");
+        }
+      );
+
+      // Developer Links table
+      db.query(
+        `CREATE TABLE IF NOT EXISTS developer_links (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    developer_id INT,
+    platform VARCHAR(50),
+    url VARCHAR(255),
+    FOREIGN KEY (developer_id) REFERENCES developers(id) ON DELETE CASCADE
+  )`,
+        (err) => {
+          if (err)
+            console.error("❌ Error creating developer_links table:", err);
+          else console.log("✅ Developer links table ready");
+        }
+      );
+
+      // Developer Projects table
+      db.query(
+        `CREATE TABLE IF NOT EXISTS developer_projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    developer_id INT,
+    project_name VARCHAR(100),
+    project_url VARCHAR(255),
+    description TEXT,
+    FOREIGN KEY (developer_id) REFERENCES developers(id) ON DELETE CASCADE
+  )`,
+        (err) => {
+          if (err)
+            console.error("❌ Error creating developer_projects table:", err);
+          else console.log("✅ Developer projects table ready");
         }
       );
     });

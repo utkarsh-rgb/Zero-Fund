@@ -3,6 +3,7 @@ import axios from "axios";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { skillsList } from "./skills"
+import DeveloperProfilePic from "./Developer_Profile_Pic";
 
 
 interface DeveloperData {
@@ -13,6 +14,7 @@ interface DeveloperData {
   skills?: string[];
   socialLinks?: { platform: string; url: string }[];
   projects?: { project_name: string; project_url: string; description: string }[];
+  profilePicture?: string;
 }
 
 
@@ -52,6 +54,7 @@ export default function DeveloperProfile() {
     location: response.data.location || "",
     skills: response.data.skills || [],
     socialLinks: response.data.socialLinks || [],
+    profilePicture: response.data.profilePicture || "",
     projects: (response.data.projects || []).map((p: any) => ({
       project_name: p.project_name,
       project_url: p.project_url,
@@ -156,6 +159,7 @@ export default function DeveloperProfile() {
       location: data.location || "",
       skills: data.skills || [], // Array of strings
     socialLinks: data.socialLinks || [], // Array of {platform, url}
+    profilePicture: data.profilePicture || "",
     projects: data.projects?.map((p: any) => ({
       project_name: p.project_name,
       project_url: p.project_url,
@@ -213,6 +217,12 @@ export default function DeveloperProfile() {
         </button>
       </div>
 
+{/* Profile Picture Section */}
+<DeveloperProfilePic
+  currentPicture={data.profilePicture}
+  userId={routeId || JSON.parse(localStorage.getItem("userData") || "{}").id}
+  onPictureUpdate={(newUrl) => handleInputChange('profilePicture', newUrl)}
+/>
       {/* Form */}
       <div className="bg-white shadow rounded-lg p-6 space-y-6">
         {/* Basic Info */}
