@@ -5,6 +5,9 @@ const db = mysql.createConnection({
   user: "root",
   password: "12345678",
   multipleStatements: true, // allow multiple queries
+   waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // Connect and setup DB

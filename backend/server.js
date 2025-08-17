@@ -112,23 +112,130 @@ app.post("/api/login", async (req, res) => {
 
 app.get('/developer-profile/:id', (req, res) => {
   const { id } = req.params;
-  const query = `SELECT fullName,email FROM developers WHERE id = ?`;
-  
-  db.query(query, [id], (err, results) => {
+
+  console.log(`⬅️ Fetching profile for userId=${id}`);
+
+  // 1️⃣ Get main developer info
+  db.query(`SELECT id, fullName, email, bio, location FROM developers WHERE id = ?`, [id], (err, devResults) => {
     if (err) {
       console.error('Database error:', err);
-      return res.status(500).json({ 
-        message: 'Internal server error' 
-      });
+      return res.status(500).json({ message: 'Internal server error', error: err });
     }
-    if (results.length === 0) {
-      return res.status(404).json({ 
-        message: 'Developer not found' 
-      });
+
+    if (devResults.length === 0) {
+      return res.status(404).json({ message: 'Developer not found' });
     }
-    res.json(results[0]);
-    
+
+    const developer = devResults[0];
+
+    // 2️⃣ Get skills
+    db.query(`SELECT skill FROM developer_skills WHERE developer_id = ?`, [id], (err, skillResults) => {
+      if (err) return res.status(500).json({ message: 'Failed to fetch skills', error: err });
+
+      developer.skills = skillResults.map(row => row.skill);
+
+      // 3️⃣ Get social links
+      db.query(`SELECT platform, url FROM developer_links WHERE developer_id = ?`, [id], (err, linkResults) => {
+        if (err) return res.status(500).json({ message: 'Failed to fetch social links', error: err });
+
+        developer.socialLinks = linkResults.map(row => ({ platform: row.platform, url: row.url }));
+
+        // 4️⃣ Get projects
+        db.query(`SELECT project_name, project_url, description FROM developer_projects WHERE developer_id = ?`, [id], (err, projectResults) => {
+          if (err) return res.status(500).json({ message: 'Failed to fetch projects', error: err });
+
+          developer.projects = projectResults.map(row => ({
+            project_name: row.project_name,
+            project_url: row.project_url,
+            description: row.description
+          }));
+
+          console.log('✅ Profile fetched successfully:', developer);
+          res.json(developer);
+        });
+      });
+    });
   });
+});
+
+
+app.put('/developer-profile/:id', (req, res) => {
+  const { id } = req.params;
+  const { fullName, email, bio, location, skills, socialLinks, projects } = req.body;
+
+  console.log(`⬅️ Received update request for userId=${id}`);
+  console.log("Request body:", JSON.stringify(req.body, null, 2));
+
+  // 1️⃣ Update main developer info
+  const updateDeveloperQuery = `
+    UPDATE developers
+    SET fullName = ?, email = ?, bio = ?, location = ?
+    WHERE id = ?
+  `;
+
+  db.query(updateDeveloperQuery, [fullName, email, bio, location, id], (err) => {
+    if (err) {
+      console.error("❌ Error updating developer table:", err);
+      return res.status(500).json({ message: "Failed to update developer", error: err });
+    }
+    console.log("✅ Developer table updated");
+
+    // 2️⃣ Update skills
+    db.query(`DELETE FROM developer_skills WHERE developer_id = ?`, [id], (err) => {
+      if (err) return res.status(500).json({ message: "Failed to delete old skills", error: err });
+
+      if (skills && skills.length) {
+        const skillValues = skills.map(skill => [id, skill]);
+        db.query(`INSERT INTO developer_skills (developer_id, skill) VALUES ?`, [skillValues], (err) => {
+          if (err) return res.status(500).json({ message: "Failed to insert skills", error: err });
+          updateLinks();
+        });
+      } else {
+        updateLinks();
+      }
+    });
+
+    // 3️⃣ Update social links
+    function updateLinks() {
+      db.query(`DELETE FROM developer_links WHERE developer_id = ?`, [id], (err) => {
+        if (err) return res.status(500).json({ message: "Failed to delete old links", error: err });
+
+        if (socialLinks && socialLinks.length) {
+          const linkValues = socialLinks.map(link => [id, link.platform, link.url]);
+          db.query(`INSERT INTO developer_links (developer_id, platform, url) VALUES ?`, [linkValues], (err) => {
+            if (err) return res.status(500).json({ message: "Failed to insert links", error: err });
+            updateProjects();
+          });
+        } else {
+          updateProjects();
+        }
+      });
+    }
+
+    // 4️⃣ Update projects
+    function updateProjects() {
+      db.query(`DELETE FROM developer_projects WHERE developer_id = ?`, [id], (err) => {
+        if (err) return res.status(500).json({ message: "Failed to delete old projects", error: err });
+
+        if (projects && projects.length) {
+          console.log("Projects received:", projects);
+
+          const projectValues = projects.map(p => [id, p.project_name, p.project_url, p.description]);
+          db.query(
+            `INSERT INTO developer_projects (developer_id, project_name, project_url, description) VALUES ?`,
+            [projectValues],
+            (err) => {
+              if (err) return res.status(500).json({ message: "Failed to insert projects", error: err });
+              return res.json({ message: "Profile updated successfully" });
+            }
+          );
+        } else {
+          return res.json({ message: "Profile updated successfully" });
+        }
+      });
+    }
+
+  }); // end updateDeveloperQuery
 });
 
 

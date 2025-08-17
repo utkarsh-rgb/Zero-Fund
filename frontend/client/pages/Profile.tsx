@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import { skillsList } from "./skills"
+
 
 interface DeveloperData {
-  id: number;
   name: string;
   email: string;
   bio?: string;
   location?: string;
   skills?: string[];
   socialLinks?: { platform: string; url: string }[];
-  projects?: { name: string; url: string; description: string }[];
+  projects?: { project_name: string; project_url: string; description: string }[];
 }
+
 
 export default function DeveloperProfile() {
   const [data, setData] = useState<DeveloperData | null>(null);
@@ -43,16 +45,19 @@ export default function DeveloperProfile() {
       })
       .then((response) => {
         console.log("API Response:", response.data);
-        setData({
-          id: response.data.id,
-          name: response.data.fullName || response.data.name,
-          email: response.data.email,
-          bio: response.data.bio || "",
-          location: response.data.location || "",
-          skills: response.data.skills || [],
-          socialLinks: response.data.socialLinks || [],
-          projects: response.data.projects || []
-        });
+  setData({
+    name: response.data.fullName || response.data.name,
+    email: response.data.email,
+    bio: response.data.bio || "",
+    location: response.data.location || "",
+    skills: response.data.skills || [],
+    socialLinks: response.data.socialLinks || [],
+    projects: (response.data.projects || []).map((p: any) => ({
+      project_name: p.project_name,
+      project_url: p.project_url,
+      description: p.description
+    }))
+  });
       })
       .catch((err) => {
         console.error("API Error:", err);
@@ -105,7 +110,7 @@ export default function DeveloperProfile() {
   // Handle projects
   const addProject = () => {
     if (data) {
-      handleInputChange('projects', [...(data.projects || []), { name: "", url: "", description: "" }]);
+      handleInputChange('projects', [...(data.projects || []), { project_name: "", project_url: "", description: "" }]);
     }
   };
 
@@ -125,45 +130,60 @@ export default function DeveloperProfile() {
   };
 
   // Handle Update
+
+
   const handleUpdate = async () => {
-    if (!data) return;
+  if (!data) return;
 
-    setSaving(true);
-    
-    try {
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const userId = routeId || userData.id;
+  setSaving(true);
 
-      const updatePayload = {
-        fullName: data.name,
-        name: data.name,
-        email: data.email,
-        bio: data.bio,
-        location: data.location,
-        skills: data.skills,
-        socialLinks: data.socialLinks,
-        projects: data.projects
-      };
+  try {
+    // Get user ID from route or localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const userId = routeId || userData.id;
 
-      console.log("Updating profile with payload:", updatePayload);
-
-      const response = await axios.put(
-        `http://localhost:5000/developer-profile/${userId}`,
-        updatePayload,
-        { withCredentials: true }
-      );
-
-      console.log("Update response:", response.data);
-      alert("Profile updated successfully!");
-
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update profile";
-      alert(errorMessage);
-    } finally {
+    if (!userId) {
+      alert("User ID not found");
       setSaving(false);
+      return;
     }
+
+    // Prepare payload
+    const updatePayload = {
+      fullName: data.name,
+      email: data.email,
+      bio: data.bio || "",
+      location: data.location || "",
+      skills: data.skills || [], // Array of strings
+    socialLinks: data.socialLinks || [], // Array of {platform, url}
+    projects: data.projects?.map((p: any) => ({
+      project_name: p.project_name,
+      project_url: p.project_url,
+      description: p.description,
+    })) || []
   };
+
+    console.log("Updating profile with payload:", updatePayload);
+    console.log("Payload being sent:", updatePayload);
+
+
+    const response = await axios.put(
+      `http://localhost:5000/developer-profile/${userId}`,
+      updatePayload,
+      { withCredentials: true } // If backend uses cookies for auth
+    );
+
+    console.log("Update response:", response.data);
+    alert("Profile updated successfully!");
+  } catch (error: any) {
+    console.error("Failed to update profile:", error);
+    const errorMessage = error.response?.data?.message || "Failed to update profile";
+    alert(errorMessage);
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
@@ -241,41 +261,54 @@ export default function DeveloperProfile() {
         </div>
 
         {/* Skills */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Skills</h3>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {data.skills?.map((skill, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-              >
-                {skill}
-                <button
-                  onClick={() => removeSkill(skill)}
-                  className="hover:text-blue-600"
-                >
-                  <X size={14} />
-                </button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addSkill()}
-              placeholder="Add a skill..."
-              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <button
-              onClick={addSkill}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Add
-            </button>
-          </div>
-        </div>
+      
+{/* Skills */}
+<div>
+  <h3 className="text-lg font-semibold mb-4">Skills</h3>
+  
+  {/* Already Added Skills */}
+  <div className="flex flex-wrap gap-2 mb-4">
+    {data.skills?.map((skill, index) => (
+      <span
+        key={index}
+        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+      >
+        {skill}
+        <button
+          onClick={() => removeSkill(skill)}
+          className="hover:text-blue-600"
+        >
+          <X size={14} />
+        </button>
+      </span>
+    ))}
+  </div>
+
+  {/* Dropdown to add new skill */}
+  <div className="flex gap-2">
+    <select
+      value={newSkill}
+      onChange={(e) => setNewSkill(e.target.value)}
+      className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    >
+      <option value="">Select a skill</option>
+      {skillsList
+        .filter(skill => !data.skills?.includes(skill)) // prevent duplicates
+        .map((skill) => (
+          <option key={skill} value={skill}>
+            {skill}
+          </option>
+        ))}
+    </select>
+    <button
+      onClick={addSkill}
+      disabled={!newSkill}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+    >
+      Add
+    </button>
+  </div>
+</div>
 
         {/* Social Links */}
         <div>
@@ -344,15 +377,15 @@ export default function DeveloperProfile() {
                 <div className="space-y-3">
                   <input
                     type="text"
-                    value={project.name}
-                    onChange={(e) => updateProject(index, 'name', e.target.value)}
+                    value={project.project_name}
+                    onChange={(e) => updateProject(index, 'project_name', e.target.value)}
                     placeholder="Project name"
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <input
                     type="url"
-                    value={project.url}
-                    onChange={(e) => updateProject(index, 'url', e.target.value)}
+                    value={project.project_url}
+                    onChange={(e) => updateProject(index, 'project_url', e.target.value)}
                     placeholder="Project URL"
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
