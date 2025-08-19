@@ -260,12 +260,13 @@ export default function EntrepreneurDashboard() {
               >
                 <Settings className="w-5 h-5" />
               </Link>
-              <Link
-                to="/profile"
-                className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
-              >
-                PS
-              </Link>
+             <Link
+  to="/entrepreneur-profile" // updated route
+  className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
+>
+  Profile
+</Link>
+
             </div>
           </div>
         </div>
