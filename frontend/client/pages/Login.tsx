@@ -80,6 +80,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       token: data.token,
       userType: data.userType,
     };
+     localStorage.setItem("jwt_token", data.token);
     localStorage.setItem("userData", JSON.stringify(userData));
 
     // Redirect based on user type

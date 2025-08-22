@@ -2,6 +2,9 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const db = require("./db");
+const jwt = require("jsonwebtoken");
+const authenticateJWT = require("./middleware/authenticateJWT");
+require("dotenv").config();
 
 const app = express();
 app.use(
@@ -77,40 +80,46 @@ app.post("/entrepreneur/signup", async (req, res) => {
 });
 
 // Login API
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password, userType } = req.body;
 
-    if (!email || !password || !userType) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+app.post("/api/login", (req, res) => {
+  const { email, password, userType } = req.body;
 
-    const table = userType === "developer" ? "developers" : "entrepreneur";
+  if (!email || !password || !userType) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
-    db.query(`SELECT * FROM ${table} WHERE email = ?`, [email], async (err, result) => {
-      if (err) return res.status(500).json({ message: "Database error" });
-      if (result.length === 0) return res.status(400).json({ message: "User not found" });
+  const table = userType === "developer" ? "developers" : "entrepreneur";
 
+  db.query(`SELECT * FROM ${table} WHERE email = ?`, [email], async (err, result) => {
+    if (err) return res.status(500).json({ message: "Database error" });
+    if (result.length === 0) return res.status(400).json({ message: "User not found" });
+
+    try {
       const user = result[0];
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
-    res.json({
-  message: "Login successful",
-  id: user.id,
-  fullName: user.fullName || user.name,
-  email: user.email,
-  userType,
-  token: "dummy-token-or-generate-jwt-here"
-});
- 
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
+      // Generate JWT
+      const token = jwt.sign(
+        { id: user.id, email: user.email, userType },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
 
-app.get('/developer-profile/:id', (req, res) => {
+      res.json({
+        message: "Login successful",
+        id: user.id,
+        fullName: user.fullName || user.name,
+        email: user.email,
+        userType,
+        token
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+});
+app.get('/developer-profile/:id',authenticateJWT, (req, res) => {
   const { id } = req.params;
 
   console.log(`⬅️ Fetching profile for userId=${id}`);

@@ -27,6 +27,8 @@ import EntrepreneurProfile from "./pages/EntrepreneurProfile";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
+import { isLoggedIn } from "./helper/auth";
+import RedirectIfAuth from "./RedirectIfAuth";
 
 const queryClient = new QueryClient();
 
@@ -46,9 +48,19 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/entrepreneur-signup" element={<EntrepreneurSignup />} />
+            <Route
+              path="/entrepreneur-signup"
+              element={<EntrepreneurSignup />}
+            />
             <Route path="/developer-signup" element={<DeveloperSignup />} />
-            <Route path="/login" element={<Login />} />
+            <Route
+              path="/login"
+              element={
+                <RedirectIfAuth>
+                  <Login />
+                </RedirectIfAuth>
+              }
+            />
 
             {/* Dashboards */}
             <Route
@@ -91,13 +103,22 @@ export default function App() {
             <Route path="/proposal-submit" element={<ProposalSubmit />} />
             <Route path="/chat-collaboration" element={<ChatCollaboration />} />
             <Route path="/contract-review" element={<ContractReview />} />
-            <Route path="/contribution-tracker" element={<ContributionTracker />} />
+            <Route
+              path="/contribution-tracker"
+              element={<ContributionTracker />}
+            />
             <Route path="/post-idea" element={<PostIdea />} />
             <Route path="/manage-proposals" element={<ManageProposals />} />
             <Route path="/entrepreneur-chat" element={<EntrepreneurChat />} />
             <Route path="/contract-builder" element={<ContractBuilder />} />
-            <Route path="/review-contributions" element={<ReviewContributions />} />
-            <Route path="/collaboration-management" element={<CollaborationManagement />} />
+            <Route
+              path="/review-contributions"
+              element={<ReviewContributions />}
+            />
+            <Route
+              path="/collaboration-management"
+              element={<CollaborationManagement />}
+            />
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
 
