@@ -199,7 +199,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </button>
                 </div>
               </div>
-
+             
               {/* Submit Button */}
               <button
                 type="submit"
@@ -211,7 +211,16 @@ const handleSubmit = async (e: React.FormEvent) => {
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
                 <span>{isLoading ? "Signing In..." : "Continue"}</span>
               </button>
+              <a></a>
             </form>
+<Link
+  to="/forgot-password"
+  className="text-sm font-medium text-skyblue hover:underline"
+>
+  Forgot Password?
+</Link>
+            
+            
             {/* "Don't have an account?" section with theme consistency */}
 <div className="mt-6 text-center relative z-10">
   <p className="text-gray-500 mb-3 font-medium">Don't have an account?</p>

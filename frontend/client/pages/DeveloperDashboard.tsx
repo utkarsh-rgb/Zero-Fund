@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
-import axios from 'axios';
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   Code,
   Search,
@@ -163,13 +163,14 @@ const MOCK_COLLABORATIONS: Collaboration[] = [
 ];
 
 export default function DeveloperDashboard() {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const handleLogout = () => {
-    localStorage.removeItem("userData"); // remove stored user data
+    localStorage.removeItem("jwt_token"); // remove stored user data
+     localStorage.removeItem("userData"); // remove stored user data
     navigate("/login"); // redirect to login page
   };
 
@@ -258,12 +259,12 @@ export default function DeveloperDashboard() {
                 JD
               </Link>
               <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-        >
-          <LogOut className="w-5 h-5" />
-          Logout
-        </button>
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
             </div>
           </div>
         </div>

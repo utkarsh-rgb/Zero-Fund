@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
   Lightbulb,
@@ -165,10 +165,16 @@ const MOCK_COLLABORATIONS: Collaboration[] = [
 ];
 
 export default function EntrepreneurDashboard() {
+   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [ideas] = useState<Idea[]>(MOCK_IDEAS);
   const [proposals] = useState<Proposal[]>(MOCK_PROPOSALS);
   const [collaborations] = useState<Collaboration[]>(MOCK_COLLABORATIONS);
+   const handleLogout = () => {
+    localStorage.removeItem("jwt_token"); // remove stored user data
+    localStorage.removeItem("userData"); // remove stored user data
+    navigate("/login"); // redirect to login page
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -260,13 +266,40 @@ export default function EntrepreneurDashboard() {
               >
                 <Settings className="w-5 h-5" />
               </Link>
-             <Link
-  to="/entrepreneur-profile" // updated route
-  className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
->
-  Profile
-</Link>
-
+              <Link
+                to="/entrepreneur-profile" // updated route
+                className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
+              >
+                Profile
+              </Link>
+              <div className="flex items-center space-x-4">
+              <Link
+                to="/notifications"
+                className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <Bell className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+              </Link>
+              <Link
+                to="/settings"
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </Link>
+              <Link
+                to="/profile"
+                className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
+              >
+                JD
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
+            </div>
             </div>
           </div>
         </div>

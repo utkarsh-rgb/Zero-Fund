@@ -29,6 +29,7 @@ import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import { isLoggedIn } from "./helper/auth";
 import RedirectIfAuth from "./RedirectIfAuth";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,8 @@ export default function App() {
               element={<EntrepreneurSignup />}
             />
             <Route path="/developer-signup" element={<DeveloperSignup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            
             <Route
               path="/login"
               element={
