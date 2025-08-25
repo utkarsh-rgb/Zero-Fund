@@ -1,55 +1,53 @@
 const express = require("express");
-const db = require("../db");
+const dbPromise = require("../db"); // mysql2/promise pool
 const bcrypt = require("bcryptjs");
+const router = express.Router();
 
-const app = express();
-app.use(express.json());
+router.get('/reset-password/:role/:token', async (req, res) => {
+  const db = await dbPromise;  
+  const { role, token } = req.params;
+    const tableMap = { d: "developers", e: "entrepreneur" };
+    const table = tableMap[role];
+    if (!table) return res.status(400).send('Invalid role');
 
-app.post("/reset-password/:token", async (req, res) => {
-  const { token } = req.params;
-  const { role, newPassword } = req.body;
+    const [rows] = await db.query(
+        `SELECT * FROM ${table} WHERE reset_token = ? AND reset_token_expiry > NOW()`,
+        [token]
+    );
 
-  if (!token || !role || !newPassword) {
-    return res.status(400).json({ message: "Token, role, and new password are required" });
-  }
+    if (rows.length === 0) return res.status(400).send('Invalid or expired token');
 
-  // Map roles to tables
-  const tableMap = {
-    developer: "developers",
-    entrepreneur: "entrepreneur",
-  };
+    res.redirect(`http://localhost:3000/reset-password/${role}/${token}`);
+});
+
+router.post("/reset-password/:role/:token", async (req, res) => {
+    const db = await dbPromise;  
+  const { role, token } = req.params;
+  const { newPassword } = req.body;
+  const tableMap = { d: "developers", e: "entrepreneur" };
   const table = tableMap[role];
   if (!table) return res.status(400).json({ message: "Invalid role" });
 
   try {
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Check if token exists and is not expired
-    const selectQuery = `
-      SELECT * FROM ${table} 
-      WHERE reset_token = ? AND reset_token_expiry > NOW()
-    `;
-    db.query(selectQuery, [token], (err, result) => {
-      if (err) return res.status(500).json({ message: "Database error" });
-      if (result.length === 0) return res.status(400).json({ message: "Invalid or expired token" });
+    const [rows] = await db.query(
+      `SELECT * FROM ${table} WHERE reset_token = ? AND reset_token_expiry > NOW()`,
+      [token]
+    );
 
-      // Update password and clear reset token
-      const updateQuery = `
-        UPDATE ${table}
-        SET password = ?, reset_token = NULL, reset_token_expiry = NULL
-        WHERE reset_token = ?
-      `;
-      db.query(updateQuery, [hashedPassword, token], (updateErr, updateResult) => {
-        if (updateErr) return res.status(500).json({ message: "Database update error" });
+    if (rows.length === 0) return res.status(404).json({ message: "Invalid or expired token" });
 
-        res.json({ message: "Password reset successful!" });
-      });
-    });
+    await db.query(
+      `UPDATE ${table} SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE reset_token = ?`,
+      [hashedPassword, token]
+    );
+
+    res.json({ message: "Password reset successful!" });
   } catch (error) {
-    console.error("❌ Reset password error:", error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-module.exports = app;
+module.exports = router;

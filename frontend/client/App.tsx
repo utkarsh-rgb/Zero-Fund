@@ -30,7 +30,7 @@ import Notifications from "./pages/Notifications";
 import { isLoggedIn } from "./helper/auth";
 import RedirectIfAuth from "./RedirectIfAuth";
 import ForgotPassword from "./pages/ForgotPassword";
-
+import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 // Protected route helper
@@ -55,7 +55,8 @@ export default function App() {
             />
             <Route path="/developer-signup" element={<DeveloperSignup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            
+            <Route path="/reset-password/:role/:token" element={<ResetPassword />} />
+
             <Route
               path="/login"
               element={

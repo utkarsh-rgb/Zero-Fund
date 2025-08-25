@@ -1,98 +1,55 @@
 const express = require("express");
 const cors = require("cors");
-const db = require("../db");
+const dbPromise = require("../db"); // returns a promise
 const bodyParser = require("body-parser");
 const sendResetMail = require("./sendResetMail");
-const crypto = require("crypto"); // ✅ For secure tokens
+const crypto = require("crypto");
 
-const app = express();
-app.use(cors({ origin: "http://localhost:8080", credentials: true }));
-app.use(bodyParser.json());
-app.use(express.json());
+const router = express.Router();
+router.use(cors({ origin: "http://localhost:8080", credentials: true }));
+router.use(bodyParser.json());
+router.use(express.json());
 
-app.post("/forgot-password", async (req, res) => {
-  console.log("===== /forgot-password request received =====");
-  console.log("Request body:", req.body);
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const db = await dbPromise; // wait for the DB connection
+    const { role, email } = req.body;
+    if (!role || !email) return res.status(400).json({ message: "Role and email required" });
 
-  const { role, email } = req.body;
-  if (!role || !email) {
-    console.log("❌ Missing role or email in request");
-    return res.status(400).json({ message: "Role and email required" });
-  }
+    const tableMap = { developer: "developers", entrepreneur: "entrepreneur" };
+    const table = tableMap[role];
+    if (!table) return res.status(400).json({ message: "Invalid role" });
 
-  // Use a table map to avoid SQL injection
-  const tableMap = {
-    developer: "developers",
-    entrepreneur: "entrepreneur"
-  };
-  const table = tableMap[role];
-  if (!table) {
-    return res.status(400).json({ message: "Invalid role" });
-  }
+    const emailSanitized = email.trim().toLowerCase();
 
-  // Trim, lowercase, and sanitize email
-  const emailSanitized = email.trim().toLowerCase().replace(/[\u200B-\u200D\uFEFF]/g, '');
-  console.log("Role:", role, "| Table:", table, "| Email sanitized:", emailSanitized);
+    const [selectResult] = await db.execute(`SELECT * FROM ${table} WHERE email = ?`, [emailSanitized]);
+    if (selectResult.length === 0) return res.status(404).json({ message: "Email not registered" });
 
-  // Step 1: Check if email exists
-  const selectQuery = `SELECT * FROM ${table} WHERE email = ?`;
-  console.log("Executing SELECT query:", selectQuery, "| Params:", [emailSanitized]);
-
-  db.query(selectQuery, [emailSanitized], async (selectErr, selectResult) => {
-    if (selectErr) {
-      console.error("❌ Database SELECT error:", selectErr);
-      return res.status(500).json({ message: "Database error" });
-    }
-
-    console.log("Database SELECT result:", selectResult);
-
-    if (selectResult.length === 0) {
-      console.log("❌ Email not found in database");
-      return res.status(404).json({ message: "Email not registered" });
-    }
-
-    // Step 2: Generate secure token
     const token = crypto.randomBytes(32).toString("hex");
-    console.log("Generated token:", token);
 
-    // Step 3: Update DB with token and expiry (1 hour)
-    const updateQuery = `
-  UPDATE ${table} 
-  SET reset_token = ?, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
-  WHERE email = ?
-`;
+    const [updateResult] = await db.execute(
+      `UPDATE ${table} 
+       SET reset_token = ?, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 1 HOUR) 
+       WHERE email = ?`,
+      [token, emailSanitized]
+    );
 
-    console.log("Executing UPDATE query:", updateQuery, "| Params:", [token, emailSanitized]);
+    if (updateResult.affectedRows === 0) return res.status(404).json({ message: "Email not found in database" });
+let resetLink = "";
+    if (role === "developer") {
+      resetLink = `http://localhost:8080/reset-password/d/${token}`;
+    } else if (role === "entrepreneur") {
+      resetLink = `http://localhost:8080/reset-password/e/${token}`;
+    } else {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+    await sendResetMail(emailSanitized, resetLink);
 
-    db.query(updateQuery, [token, emailSanitized], async (updateErr, updateResult) => {
-      if (updateErr) {
-        console.error("❌ Database UPDATE error:", updateErr);
-        return res.status(500).json({ message: "Database update error" });
-      }
-
-      console.log("Database UPDATE result:", updateResult);
-      console.log("Update affected rows:", updateResult.affectedRows);
-
-      if (updateResult.affectedRows === 0) {
-        console.log("❌ No rows updated. Check email formatting or DB connection.");
-        return res.status(404).json({ message: "Email not found in database" });
-      }
-
-      // Step 4: Send reset email
-      const resetLink = `http://localhost:8080/reset-password/${token}`;
-      console.log("Reset link:", resetLink);
-
-      try {
-        console.log("Sending reset email...");
-        await sendResetMail(emailSanitized, resetLink);
-        console.log("✅ Reset email sent successfully");
-        res.json({ message: "Verification link sent to your email!" });
-      } catch (mailErr) {
-        console.error("❌ Failed to send reset email:", mailErr);
-        res.status(500).json({ message: "Failed to send reset email" });
-      }
-    });
-  });
+    res.json({ message: "Verification link sent to your email!" });
+  } catch (error) {
+    console.error("❌ /forgot-password error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
-module.exports = app;
+module.exports = router;

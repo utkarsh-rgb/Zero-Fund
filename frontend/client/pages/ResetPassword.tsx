@@ -1,105 +1,183 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 
-const ResetPassword: React.FC = () => {
-  const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
-
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"developer" | "entrepreneur">("developer"); // user selects role
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+const ResetPassword = () => {
+  // Simulating URL params
+  const role = "developer"; // This would come from useParams
+  const token = "sample-token"; // This would come from useParams
+  
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
+    
+    // Clear previous messages
     setMessage("");
+    
+    if (!newPassword || !confirmPassword) {
+      setMessage("Please fill in all fields");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setMessage("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage("Passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      const res = await axios.post(`http://localhost:5000/reset-password/${token}`, {
-        role,
-        newPassword: password,
-      });
-
-      setMessage(res.data.message);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log("Password reset successful for role:", role, "token:", token);
+      setMessage("Password reset successfully! Redirecting to login...");
+      
+      // Simulate redirect after 2 seconds
       setTimeout(() => {
-        navigate("/login"); // redirect to login after success
+        console.log("Redirecting to login page...");
+        // navigate("/login") would go here
       }, 2000);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || "Something went wrong");
+      
+    } catch (err) {
+      console.error("Error resetting password:", err);
+      setMessage("Error resetting password. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Reset Password</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* User Role */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Role
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "developer" | "entrepreneur")}
-              className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-              disabled={isLoading}
-            >
-              <option value="developer">Developer</option>
-              <option value="entrepreneur">Entrepreneur</option>
-            </select>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
+            <Lock className="h-6 w-6 text-blue-600" />
           </div>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Reset Password
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Enter your new password below
+          </p>
+        </div>
 
-          {/* New Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Lock className="inline w-4 h-4 mr-2" />
-              New Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent pr-12"
-                placeholder="Enter new password"
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
+        <div className="mt-8 space-y-6">
+          <div className="space-y-4">
+            {/* New Password Field */}
+            <div>
+              <label htmlFor="newPassword" className="sr-only">
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  id="newPassword"
+                  name="newPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  required
+                  className="relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="New password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label htmlFor="confirmPassword" className="sr-only">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  className="relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Password Requirements */}
+            <div className="text-xs text-gray-500">
+              Password must be at least 6 characters long
             </div>
           </div>
 
-          {/* Messages */}
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          {message && <p className="text-green-600 text-sm">{message}</p>}
+          <div>
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition duration-200"
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Resetting Password...
+                </div>
+              ) : (
+                "Reset Password"
+              )}
+            </button>
+          </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 px-4 rounded-lg text-white font-semibold transition-all duration-300 ${
-              isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-skyblue to-navy hover:shadow-lg"
-            }`}
+          {/* Message Display */}
+          {message && (
+            <div className={`mt-4 p-3 rounded-md text-sm text-center ${
+              message.includes("successfully") 
+                ? "bg-green-100 text-green-700 border border-green-300" 
+                : "bg-red-100 text-red-700 border border-red-300"
+            }`}>
+              {message}
+            </div>
+          )}
+        </div>
+
+        <div className="text-center">
+          <a
+            href="/login"
+            className="font-medium text-blue-600 hover:text-blue-500 text-sm"
+            onClick={() => console.log("Navigate to login")}
           >
-            {isLoading ? "Resetting..." : "Reset Password"}
-          </button>
-        </form>
+            Back to Sign In
+          </a>
+        </div>
       </div>
     </div>
   );

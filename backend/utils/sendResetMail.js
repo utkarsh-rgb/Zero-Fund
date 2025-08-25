@@ -18,10 +18,5 @@ async function sendResetMail(toEmail, resetLink) {
   }
 }
 
-// Test call
-const testEmail = "utkarshgupta.976274@gmail.com"; // replace with a real email
-const testLink = "https://example.com/reset?token=12345";
-
-sendResetMail(testEmail, testLink);
 
 module.exports = sendResetMail;
