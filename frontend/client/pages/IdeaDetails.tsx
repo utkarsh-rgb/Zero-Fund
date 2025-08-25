@@ -141,7 +141,7 @@ export default function IdeaDetails() {
                   <Code className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
             </div>
@@ -297,7 +297,7 @@ export default function IdeaDetails() {
               <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                 <Code className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-navy">Skill Invest</span>
+              <span className="text-xl font-bold text-navy">Zero Fund</span>
             </Link>
           </div>
         </div>
@@ -501,7 +501,7 @@ export default function IdeaDetails() {
             {/* Trust Indicators */}
             <div className="bg-skyblue/5 border border-skyblue/20 rounded-lg p-6">
               <h3 className="text-sm font-semibold text-navy mb-3">
-                Protected by Skill Invest
+                Protected by Zero Fund
               </h3>
               <div className="space-y-2 text-xs text-gray-600">
                 <div className="flex items-center space-x-2">

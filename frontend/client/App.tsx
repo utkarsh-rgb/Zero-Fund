@@ -86,7 +86,7 @@ export default function App() {
 
             {/* Profile routes */}
             <Route
-              path="/profile"
+              path="/developer-profile"
               element={
                 <ProtectedRoute>
                   <Profile />

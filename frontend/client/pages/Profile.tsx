@@ -29,7 +29,7 @@ export default function DeveloperProfile() {
 
   const { id: routeId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
+const token = localStorage.getItem("jwt_token");
   // Fetch profile data
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -43,13 +43,16 @@ export default function DeveloperProfile() {
 
     console.log("Fetching developer with id:", userId);
 
-    axios
-      .get(`http://localhost:5000/developer-profile/${userId}`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log("API Response:", response.data);
-        setData({
+   axios
+  .get(`http://localhost:5000/developer-profile/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("jwt_token")}`, // <-- send token
+    },
+    withCredentials: true,
+  })
+  .then((response) => {
+    console.log("API Response:", response.data);
+    setData({
           name: response.data.fullName || response.data.name,
           email: response.data.email,
           bio: response.data.bio || "",

@@ -225,7 +225,7 @@ export default function Notifications() {
                   )}
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
               <span className="text-gray-400">|</span>

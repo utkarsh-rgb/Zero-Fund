@@ -139,7 +139,7 @@ export default function Index() {
               <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-navy">Skill Invest</span>
+              <span className="text-xl font-bold text-navy">Zero Fund</span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
               <a
@@ -319,7 +319,7 @@ export default function Index() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-navy mb-4">
-              How Skill Invest Works
+              How Zero Fund Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               A simple, transparent process that protects both entrepreneurs and
@@ -478,10 +478,10 @@ export default function Index() {
               <div className="w-8 h-8 bg-skyblue rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">Skill Invest</span>
+              <span className="text-xl font-bold">Zero Fund</span>
             </div>
             <div className="text-sm text-gray-300">
-              © 2024 Skill Invest. Building the future of startup
+              © 2024 Zero Fund. Building the future of startup
               collaboration.
             </div>
           </div>

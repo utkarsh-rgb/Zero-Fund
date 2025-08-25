@@ -120,7 +120,7 @@ export default function EntrepreneurSignup() {
                 <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-navy">Skill Invest</span>
+                <span className="text-xl font-bold text-navy">Zero Fund</span>
               </Link>
               <button
                 onClick={() => setStep(1)}
@@ -134,7 +134,7 @@ export default function EntrepreneurSignup() {
 
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-navy mb-4">How Skill Invest Works</h1>
+            <h1 className="text-4xl font-bold text-navy mb-4">How Zero Fund Works</h1>
             <p className="text-xl text-gray-600">
               Connect with talented developers and build your startup through equity collaboration
             </p>
@@ -211,7 +211,7 @@ export default function EntrepreneurSignup() {
               <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-navy">Skill Invest</span>
+              <span className="text-xl font-bold text-navy">Zero Fund</span>
             </Link>
             
           </div>

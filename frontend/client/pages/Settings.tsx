@@ -104,7 +104,7 @@ export default function Settings() {
                   )}
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
               <span className="text-gray-400">|</span>

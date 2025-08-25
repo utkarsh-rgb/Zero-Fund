@@ -229,7 +229,7 @@ export default function EntrepreneurChat() {
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
             </div>

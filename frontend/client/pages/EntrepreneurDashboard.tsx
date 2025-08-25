@@ -165,12 +165,12 @@ const MOCK_COLLABORATIONS: Collaboration[] = [
 ];
 
 export default function EntrepreneurDashboard() {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [ideas] = useState<Idea[]>(MOCK_IDEAS);
   const [proposals] = useState<Proposal[]>(MOCK_PROPOSALS);
   const [collaborations] = useState<Collaboration[]>(MOCK_COLLABORATIONS);
-   const handleLogout = () => {
+  const handleLogout = () => {
     localStorage.removeItem("jwt_token"); // remove stored user data
     localStorage.removeItem("userData"); // remove stored user data
     navigate("/login"); // redirect to login page
@@ -238,7 +238,7 @@ export default function EntrepreneurDashboard() {
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
               <span className="text-gray-400">|</span>
@@ -246,60 +246,34 @@ export default function EntrepreneurDashboard() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <Link
-                to="/post-idea"
-                className="bg-skyblue text-white px-4 py-2 rounded-lg hover:bg-navy transition-colors font-semibold flex items-center space-x-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Post New Idea</span>
-              </Link>
-              <Link
-                to="/notifications"
-                className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </Link>
-              <Link
-                to="/settings"
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </Link>
-              <Link
-                to="/entrepreneur-profile" // updated route
-                className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
-              >
-                Profile
-              </Link>
               <div className="flex items-center space-x-4">
-              <Link
-                to="/notifications"
-                className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </Link>
-              <Link
-                to="/settings"
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </Link>
-              <Link
-                to="/profile"
-                className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
-              >
-                JD
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
-            </div>
+                <Link
+                  to="/notifications"
+                  className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                </Link>
+                <Link
+                  to="/settings"
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Settings className="w-5 h-5" />
+                </Link>
+                <Link
+                  to="/profile"
+                  className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
+                >
+                  JD
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -452,6 +426,15 @@ export default function EntrepreneurDashboard() {
                   <p className="text-gray-600">
                     Manage your startup ideas and collaborate with developers
                   </p>
+                </div>
+                <div>
+                  <Link
+                    to="/post-idea"
+                    className="bg-skyblue text-white px-4 py-2 rounded-lg hover:bg-navy transition-colors font-semibold flex items-center space-x-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Post New Idea</span>
+                  </Link>
                 </div>
 
                 {/* Stats Cards */}

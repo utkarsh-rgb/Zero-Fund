@@ -130,7 +130,7 @@ export default function ProposalSubmit() {
                   <Code className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
             </div>
@@ -215,7 +215,7 @@ export default function ProposalSubmit() {
               <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                 <Code className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-navy">Skill Invest</span>
+              <span className="text-xl font-bold text-navy">Zero Fund</span>
             </Link>
           </div>
         </div>

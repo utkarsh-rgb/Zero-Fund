@@ -231,7 +231,7 @@ export default function DeveloperDashboard() {
                   <Code className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                  Zero Fund
                 </span>
               </Link>
               <span className="text-gray-400">|</span>
@@ -253,7 +253,7 @@ export default function DeveloperDashboard() {
                 <Settings className="w-5 h-5" />
               </Link>
               <Link
-                to="/profile"
+                to="/developer-profile"
                 className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
               >
                 JD
