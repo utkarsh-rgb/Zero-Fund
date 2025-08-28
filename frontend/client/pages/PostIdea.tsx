@@ -117,6 +117,9 @@ export default function PostIdea() {
 const handlePublish = async () => {
  
   try {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const entrepreneurId = userData?.id; // optional chaining in case it's missing
+
     // Create FormData
     const data = new FormData();
     data.append("title", formData.title);
@@ -135,7 +138,8 @@ const handlePublish = async () => {
     formData.attachments.forEach((file) => {
       data.append("attachments", file);
     });
-
+  // Append entrepreneur_id
+    data.append("entrepreneur_id", entrepreneurId);
     // Log FormData contents
     console.log("FormData contents:");
     for (const [key, value] of data.entries()) {

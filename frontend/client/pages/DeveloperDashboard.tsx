@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -28,17 +28,18 @@ import {
 
 interface Idea {
   id: string;
+
   title: string;
   stage: "Idea" | "MVP" | "Beta";
-  founderName: string;
+  name: string;
   founderAvatar: string;
-  skills: string[];
-  equityRange: string;
+  required_skills: string[];
+  equity_offering: string;
   shortDescription: string;
   fullDescription?: string;
   isBookmarked: boolean;
   isNDA: boolean;
-  createdAt: string;
+  created_at: string;
   hasAcceptedNDA?: boolean;
 }
 
@@ -60,59 +61,6 @@ interface Collaboration {
   nextMilestone: string;
   equity: string;
 }
-
-const MOCK_IDEAS: Idea[] = [
-  {
-    id: "1",
-    title: "AI-Powered Education Platform",
-    stage: "Idea",
-    founderName: "Priya Sharma",
-    founderAvatar: "PS",
-    skills: ["Frontend Development", "Machine Learning"],
-    equityRange: "10-15%",
-    shortDescription:
-      "Building an AI tutoring platform for personalized learning...",
-    fullDescription:
-      "We're building an AI-powered tutoring platform that provides personalized learning experiences for students aged 6-18. The platform will use advanced machine learning algorithms to understand each student's learning style, pace, and knowledge gaps to create customized learning paths. The solution addresses the critical problem of one-size-fits-all education by providing adaptive learning algorithms, gamified experiences, and real-time progress tracking.",
-    isBookmarked: true,
-    isNDA: true,
-    createdAt: "2024-01-15",
-    hasAcceptedNDA: false,
-  },
-  {
-    id: "2",
-    title: "Sustainable Food Delivery",
-    stage: "MVP",
-    founderName: "Rahul Gupta",
-    founderAvatar: "RG",
-    skills: ["Full Stack", "Mobile Development"],
-    equityRange: "8-10%",
-    shortDescription: "Zero-waste food delivery using reusable containers...",
-    fullDescription:
-      "Revolutionary food delivery service that eliminates packaging waste through reusable container system. Customers order food which is delivered in premium reusable containers. After eating, they schedule pickup for container cleaning and reuse. Features include container tracking, sustainability impact metrics, and partnerships with eco-conscious restaurants. Initial pilot shows 85% waste reduction and high customer satisfaction.",
-    isBookmarked: false,
-    isNDA: true,
-    createdAt: "2024-01-14",
-    hasAcceptedNDA: false,
-  },
-  {
-    id: "3",
-    title: "Remote Team Collaboration Tool",
-    stage: "Beta",
-    founderName: "Anjali Patel",
-    founderAvatar: "AP",
-    skills: ["Backend Development", "DevOps"],
-    equityRange: "12-15%",
-    shortDescription:
-      "Next-gen collaboration platform for distributed teams...",
-    fullDescription:
-      "Next-generation collaboration platform designed specifically for distributed teams. Features include AI-powered meeting summaries, smart task assignment based on team member availability and expertise, timezone-aware scheduling, virtual whiteboarding, and seamless integration with existing tools. Currently in beta with 50+ companies testing. Revenue model includes SaaS subscriptions and premium features.",
-    isBookmarked: true,
-    isNDA: false,
-    createdAt: "2024-01-13",
-    hasAcceptedNDA: true,
-  },
-];
 
 const MOCK_PROPOSALS: Proposal[] = [
   {
@@ -167,26 +115,62 @@ export default function DeveloperDashboard() {
   const [activeTab, setActiveTab] = useState("feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+   const [proposals, setProposals] = useState<any[]>([]);
+  const developerData = JSON.parse(localStorage.getItem("userData") || "{}");
 
-   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
+  useEffect(() => {
+    const fetchIdeas = async () => {
+      const userData = JSON.parse(localStorage.getItem("userData") || "null");
+      if (!userData?.userType) {
+        navigate("/login");
+        return;
+      }
+      if (userData.userType !== "developer") {
+        navigate("/entrepreneur-dashboard");
+        return;
+      }
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/developer-dashboard",
+        );
+        console.log("API Response:", response.data);
+        if (response.data.success) {
+          setIdeas(response.data.data);
+          console.log("Ideas set:", response.data.data);
+        } else {
+          setError("Failed to fetch ideas");
+        }
+      } catch (err) {
+        console.error("Fetch ideas error:", err);
+        setError("Server error while fetching ideas");
+      } finally {
+        setLoading(false);
+      }
+    };
+    const fetchProposals = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/developer-proposals/${developerData.id}`
+        );
+        setProposals(response.data.proposals);
+      } catch (error) {
+        console.error("Error fetching proposals:", error);
+      }
+    };
 
-    // If no userData, redirect to login
-    if (!userData) {
-      navigate("/login");
-      return;
-    }
+    fetchProposals();
 
-    // If user is NOT entrepreneur, redirect to their dashboard
-    if (userData.userType !== "developer") {
-      navigate("/entrepreneur-dashboard");
-    }
+    fetchIdeas();
+  }, [navigate,developerData.id]);
 
-    // Otherwise, stay here
-  }, [navigate]);
+
+
   const handleLogout = () => {
     localStorage.removeItem("jwt_token"); // remove stored user data
-     localStorage.removeItem("userData"); // remove stored user data
+    localStorage.removeItem("userData"); // remove stored user data
     navigate("/login"); // redirect to login page
   };
 
@@ -246,9 +230,7 @@ export default function DeveloperDashboard() {
                 <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                   <Code className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-navy">
-                  Zero Fund
-                </span>
+                <span className="text-xl font-bold text-navy">Zero Fund</span>
               </Link>
               <span className="text-gray-400">|</span>
               <span className="text-gray-600">Developer Dashboard</span>
@@ -327,7 +309,7 @@ export default function DeveloperDashboard() {
                   <FileText className="w-5 h-5" />
                   <span>My Proposals</span>
                   <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    3
+                    {proposals.length}
                   </span>
                 </button>
 
@@ -471,7 +453,7 @@ export default function DeveloperDashboard() {
 
                 {/* Ideas Grid */}
                 <div className="grid gap-6">
-                  {MOCK_IDEAS.map((idea) => (
+                  {ideas.map((idea) => (
                     <div
                       key={idea.id}
                       className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -486,7 +468,7 @@ export default function DeveloperDashboard() {
                               {idea.title}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              by {idea.founderName}
+                              by {idea.name}
                             </p>
                           </div>
                         </div>
@@ -526,22 +508,29 @@ export default function DeveloperDashboard() {
                         </div>
                       )}
 
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {idea.skills.map((skill) => (
-                          <span
-                            key={skill}
-                            className="px-3 py-1 bg-skyblue/10 text-skyblue text-sm rounded-full"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
+                   <div className="flex flex-wrap gap-2 mb-4">
+  {idea.required_skills?.flat().map((skill, index, arr) => (
+    <span
+      key={skill}
+      className="px-3 py-1 bg-skyblue/10 text-skyblue text-sm rounded-full"
+    >
+      {skill}{index < arr.length - 1 }
+    </span>
+  ))}
+</div>
 
                       <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>Equity: {idea.equityRange}</span>
-                          <span>•</span>
-                          <span>{idea.createdAt}</span>
+                          <span>Equity: {idea.equity_offering}%</span>
+                          <span>
+                            {new Date(idea.created_at).toLocaleString("en-GB", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </div>
                         <div className="flex space-x-2">
                           <Link
@@ -585,8 +574,9 @@ export default function DeveloperDashboard() {
                 </div>
 
                 <div className="grid gap-6">
-                  {MOCK_IDEAS.filter((idea) => idea.isBookmarked).map(
-                    (idea) => (
+                  {ideas
+                    .filter((idea) => idea.isBookmarked)
+                    .map((idea) => (
                       <div
                         key={idea.id}
                         className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
@@ -601,7 +591,7 @@ export default function DeveloperDashboard() {
                                 {idea.title}
                               </h3>
                               <p className="text-sm text-gray-600">
-                                by {idea.founderName}
+                                by {idea.name}
                               </p>
                             </div>
                           </div>
@@ -627,7 +617,7 @@ export default function DeveloperDashboard() {
 
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-500">
-                            Equity: {idea.equityRange}
+                            Equity: {idea.equity_offering}
                           </span>
                           <div className="flex space-x-2">
                             <Link
@@ -653,68 +643,67 @@ export default function DeveloperDashboard() {
                           </div>
                         </div>
                       </div>
-                    ),
-                  )}
+                    ))}
                 </div>
               </div>
             )}
 
             {/* Proposals Tab */}
             {activeTab === "proposals" && (
+            <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-navy mb-2">My Proposals</h1>
+        <p className="text-gray-600">Track the status of your submitted proposals</p>
+      </div>
+
+      <div className="space-y-4">
+        {proposals.map((proposal) => (
+          <div
+            key={proposal.id}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+          >
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-navy mb-2">
-                    My Proposals
-                  </h1>
-                  <p className="text-gray-600">
-                    Track the status of your submitted proposals
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {MOCK_PROPOSALS.map((proposal) => (
-                    <div
-                      key={proposal.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold text-navy">
-                            {proposal.ideaTitle}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Founder: {proposal.founderName}
-                          </p>
-                        </div>
-                        <StatusBadge status={proposal.status} />
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">
-                            Equity Proposed:
-                          </span>
-                          <p className="font-semibold text-skyblue">
-                            {proposal.equityProposed}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Submitted:</span>
-                          <p className="font-semibold">
-                            {proposal.submittedAt}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <button className="flex items-center space-x-1 text-skyblue hover:text-navy transition-colors ml-auto">
-                            <span>View Details</span>
-                            <ChevronRight className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-lg font-semibold text-navy">
+                  {proposal.ideaTitle}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Founder: {proposal.founderName}
+                </p>
               </div>
+              <StatusBadge status={proposal.status} />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Equity Proposed:</span>
+                <p className="font-semibold text-skyblue">{proposal.equityProposed}%</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Submitted:</span>
+                <p className="font-semibold">
+  {new Date(proposal.submittedAt).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true, // Optional: shows AM/PM
+  })}
+</p>
+
+              </div>
+              <div className="text-right">
+                <button className="flex items-center space-x-1 text-skyblue hover:text-navy transition-colors ml-auto">
+                  <span>View Details</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
             )}
 
             {/* Collaborations Tab */}

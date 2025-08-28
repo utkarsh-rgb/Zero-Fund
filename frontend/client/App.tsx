@@ -31,6 +31,8 @@ import { isLoggedIn } from "./helper/auth";
 import RedirectIfAuth from "./RedirectIfAuth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import EditIdea from "./pages/EditIdea";
+
 const queryClient = new QueryClient();
 
 // Protected route helper
@@ -105,7 +107,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
+<Route
+          path="/edit-idea/:id"
+          element={
+            <ProtectedRoute>
+              <EditIdea />
+            </ProtectedRoute>
+          }
+        />
             {/* Profile routes */}
             <Route
               path="/developer-profile"

@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Code,
@@ -28,31 +29,67 @@ interface ProposalForm {
   additionalNotes: string;
 }
 
-const MOCK_IDEA = {
-  id: "1",
-  title: "AI-Powered Education Platform",
-  founderName: "Priya Sharma",
-  equityRange: "10-15%",
-  stage: "Idea",
-};
+interface Idea {
+  id: string;
+  title: string;
+  founderName: string;
+  equity_offering: string;
+  stage: string;
+}
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 export default function ProposalSubmit() {
+    const query = useQuery();
+    const ideaId = query.get("id");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [formData, setFormData] = useState<ProposalForm>({
-    scope: "",
-    milestones: [
-      {
-        id: "1",
-        title: "",
-        description: "",
-        duration: "",
-      },
-    ],
-    timeline: "",
-    equityRequested: "",
-    additionalNotes: "",
-  });
+const [formData, setFormData] = useState<ProposalForm>({
+  scope: "",
+  milestones: [
+    {
+      id: Date.now().toString(),
+      title: "",
+      description: "",
+      duration: "",
+    },
+  ],
+  timeline: "",
+  equityRequested: "",
+  additionalNotes: "",
+});
+const [idea, setIdea] = useState<Idea>({
+  id: "",
+  title: "",
+  founderName: "",
+  equity_offering: "",
+  stage: "",
+});
 
+useEffect(() => {
+  if (ideaId) {
+    const fetchIdeaData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/proposal/${ideaId}`);
+        const data = response.data;
+
+        setIdea({
+          id: data.id,
+          title: data.title,
+          founderName: data.founderName, // or data.entrepreneur_name depending on backend
+          equity_offering: data.equity_offering, // map appropriately
+          stage: data.stage,
+        });
+
+        // Do NOT set formData here; user fills it manually
+      } catch (error) {
+        console.error("Error fetching idea data:", error);
+      }
+    };
+
+    fetchIdeaData();
+  }
+}, [ideaId]);
   const handleInputChange = (
     field: keyof ProposalForm,
     value: string | Milestone[],
@@ -92,13 +129,24 @@ export default function ProposalSubmit() {
       ),
     }));
   };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Submit to backend
-    console.log("Proposal submitted:", formData);
+  try {
+    const developerData = JSON.parse(localStorage.getItem("userData") || "{}");
+
+    await axios.post("http://localhost:5000/submit-proposal", {
+      ideaId: idea.id,
+      developerId: developerData.id, // send developer id
+      ...formData,
+    });
+
     setIsSubmitted(true);
-  };
+  } catch (error) {
+    console.error("Submission error:", error);
+  }
+};
+
 
   const isFormValid = () => {
     return (
@@ -147,10 +195,10 @@ export default function ProposalSubmit() {
             <h1 className="text-3xl font-bold text-navy mb-4">
               Proposal Submitted Successfully!
             </h1>
-            <h2 className="text-xl text-gray-800 mb-6">{MOCK_IDEA.title}</h2>
+            <h2 className="text-xl text-gray-800 mb-6">{idea.title}</h2>
 
             <p className="text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Your proposal has been sent to {MOCK_IDEA.founderName}. You'll
+              Your proposal has been sent to {idea.founderName}. You'll
               receive a notification when they respond. You can track the status
               in your dashboard.
             </p>
@@ -229,14 +277,14 @@ export default function ProposalSubmit() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-gray-800">
-                  {MOCK_IDEA.title}
+                  {idea.title}
                 </h2>
-                <p className="text-gray-600">by {MOCK_IDEA.founderName}</p>
+                <p className="text-gray-600">by {idea.founderName}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-500">Available Equity</p>
+                <p className="text-sm text-gray-500">Equity</p>
                 <p className="text-lg font-semibold text-skyblue">
-                  {MOCK_IDEA.equityRange}
+                  {idea.equity_offering}%
                 </p>
               </div>
             </div>
@@ -418,7 +466,7 @@ export default function ProposalSubmit() {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Available range: {MOCK_IDEA.equityRange}
+                Available range: {idea.equity_offering}
               </p>
             </div>
           </div>

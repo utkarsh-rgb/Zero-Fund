@@ -1,5 +1,6 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   Plus,
   Lightbulb,
@@ -21,21 +22,24 @@ import {
   Star,
   Shield,
   Send,
+  Trash,
 } from "lucide-react";
 
-interface Idea {
-  id: string;
+type Idea = {
+  required_skills: any;
+  attachments: any;
+  id: number;
   title: string;
-  stage: "Idea" | "MVP" | "Beta";
-  status: "Draft" | "Published" | "In Review" | "Closed";
+  stage: string;
+  status: string;
   proposalsCount: number;
   viewsCount: number;
-  equityOffered: string;
-  createdAt: string;
+  equity_offering: string;
+  created_at: string;
   lastUpdated: string;
-  visibility: "Public" | "Invite Only" | "NDA Required";
-}
-
+  visibility: string;
+  updated_at: string;
+};
 interface Proposal {
   id: string;
   ideaTitle: string;
@@ -61,83 +65,7 @@ interface Collaboration {
   startDate: string;
 }
 
-const MOCK_IDEAS: Idea[] = [
-  {
-    id: "1",
-    title: "AI-Powered Education Platform",
-    stage: "Idea",
-    status: "Published",
-    proposalsCount: 8,
-    viewsCount: 127,
-    equityOffered: "10-15%",
-    createdAt: "2024-01-15",
-    lastUpdated: "2024-01-16",
-    visibility: "NDA Required",
-  },
-  {
-    id: "2",
-    title: "Sustainable Food Delivery App",
-    stage: "MVP",
-    status: "Published",
-    proposalsCount: 12,
-    viewsCount: 203,
-    equityOffered: "8-10%",
-    createdAt: "2024-01-10",
-    lastUpdated: "2024-01-16",
-    visibility: "Public",
-  },
-  {
-    id: "3",
-    title: "Remote Team Collaboration Tool",
-    stage: "Beta",
-    status: "Draft",
-    proposalsCount: 0,
-    viewsCount: 0,
-    equityOffered: "12-15%",
-    createdAt: "2024-01-16",
-    lastUpdated: "2024-01-16",
-    visibility: "Invite Only",
-  },
-];
 
-const MOCK_PROPOSALS: Proposal[] = [
-  {
-    id: "1",
-    ideaTitle: "AI-Powered Education Platform",
-    developerName: "John Developer",
-    developerAvatar: "JD",
-    skills: ["Frontend", "AI/ML", "Backend"],
-    equityRequested: "12%",
-    proposedTimeline: "6 months",
-    status: "Pending",
-    submittedAt: "2024-01-16",
-    rating: 4.8,
-  },
-  {
-    id: "2",
-    ideaTitle: "Sustainable Food Delivery App",
-    developerName: "Sarah Chen",
-    developerAvatar: "SC",
-    skills: ["Full Stack", "Mobile", "DevOps"],
-    equityRequested: "10%",
-    proposedTimeline: "4 months",
-    status: "Reviewed",
-    submittedAt: "2024-01-15",
-    rating: 4.9,
-  },
-  {
-    id: "3",
-    ideaTitle: "AI-Powered Education Platform",
-    developerName: "Mike Johnson",
-    developerAvatar: "MJ",
-    skills: ["Backend", "AI/ML"],
-    equityRequested: "14%",
-    proposedTimeline: "8 months",
-    status: "Pending",
-    submittedAt: "2024-01-14",
-    rating: 4.6,
-  },
-];
 
 const MOCK_COLLABORATIONS: Collaboration[] = [
   {
@@ -167,8 +95,9 @@ const MOCK_COLLABORATIONS: Collaboration[] = [
 export default function EntrepreneurDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const [ideas] = useState<Idea[]>(MOCK_IDEAS);
-  const [proposals] = useState<Proposal[]>(MOCK_PROPOSALS);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+ const [proposals, setProposals] = useState<Proposal[]>([]);
+
   const [collaborations] = useState<Collaboration[]>(MOCK_COLLABORATIONS);
   const handleLogout = () => {
     localStorage.removeItem("jwt_token"); // remove stored user data
@@ -176,22 +105,103 @@ export default function EntrepreneurDashboard() {
     navigate("/login"); // redirect to login page
   };
 
-   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
+  
+  useEffect(() => {
+    const checkUserAndFetchIdeas = async () => {
+      // 1️⃣ Check user
+      const userData = JSON.parse(localStorage.getItem("userData"));
 
-    // If no userData, redirect to login
-    if (!userData) {
-      navigate("/login");
+      if (!userData) {
+        navigate("/login");
+        return;
+      }
+
+      if (userData.userType !== "entrepreneur") {
+        navigate("/developer-dashboard");
+        return;
+      }
+
+      // 2️⃣ Fetch ideas
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/entrepreneur-dashboard",
+        );
+        setIdeas(response.data);
+      } catch (error) {
+        console.error("Error fetching ideas:", error);
+      }
+    };
+
+    checkUserAndFetchIdeas();
+  }, [navigate]);
+
+const fetchProposals = async () => {
+    // Get entrepreneurId from localStorage here
+    const userDataString = localStorage.getItem("userData");
+    const userData = userDataString ? JSON.parse(userDataString) : null;
+    const entrepreneurId = userData?.id;
+
+    if (!entrepreneurId) {
+      console.error("Entrepreneur ID not found in localStorage");
       return;
     }
 
-    // If user is NOT entrepreneur, redirect to their dashboard
-    if (userData.userType !== "entrepreneur") {
-      navigate("/developer-dashboard");
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/entrepreneur-proposals/${entrepreneurId}`
+      );
+      console.log("Proposals fetched:", response.data);
+      setProposals(response.data.proposals); // store in state
+    } catch (error: any) {
+      console.error("Failed to fetch proposals:", error);
     }
+  };
 
-    // Otherwise, stay here
-  }, [navigate]);
+  // Fetch proposals when component mounts
+  useEffect(() => {
+    fetchProposals();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this idea?",
+      );
+      if (!confirmDelete) return;
+
+      await axios.delete(
+        `http://localhost:5000/entrepreneur-dashboard/ideas/${id}`,
+      );
+
+      // Optionally, remove the idea from state so UI updates instantly
+      setIdeas((prevIdeas) => prevIdeas.filter((idea) => idea.id !== id));
+      alert("Idea deleted successfully");
+    } catch (error) {
+      console.error("Error deleting idea:", error);
+      alert("Failed to delete idea");
+    }
+  };
+
+  const handleEdit = (id: number) => {
+    navigate(`/edit-idea/${id}`);
+  };
+
+const handleProposalAction = async (proposalId: number, action: "accept" | "reject") => {
+  try {
+    const res = await axios.post(`http://localhost:5000/proposal/${proposalId}/status`, { action });
+    const updatedStatus = res.data.status;
+
+    setProposals(prev =>
+      prev.map(p =>
+        p.id === proposalId.toString() ? { ...p, status: updatedStatus } : p
+      )
+    );
+  } catch (err) {
+    console.error("Failed to update proposal:", err);
+  }
+};
+
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Published":
@@ -253,9 +263,7 @@ export default function EntrepreneurDashboard() {
                 <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-navy">
-                  Zero Fund
-                </span>
+                <span className="text-xl font-bold text-navy">Zero Fund</span>
               </Link>
               <span className="text-gray-400">|</span>
               <span className="text-gray-600">Entrepreneur Dashboard</span>
@@ -638,10 +646,12 @@ export default function EntrepreneurDashboard() {
                               {idea.title}
                             </h3>
                             <span
-                              className={`inline-flex items-center space-x-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(idea.status)}`}
+                              className={`inline-flex items-center space-x-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                idea.status || "Draft",
+                              )}`}
                             >
-                              {getStatusIcon(idea.status)}
-                              <span>{idea.status}</span>
+                              {getStatusIcon(idea.status || "Draft")}
+                              <span>{idea.status || "Draft"}</span>
                             </span>
                             <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                               {idea.stage}
@@ -653,40 +663,78 @@ export default function EntrepreneurDashboard() {
                               <span>{idea.visibility}</span>
                             </span>
                             <span>•</span>
-                            <span>Equity: {idea.equityOffered}</span>
+                            <span>Equity: {idea.equity_offering}%</span>
                             <span>•</span>
-                            <span>Created: {idea.createdAt}</span>
+                            <span>
+                              Created:{" "}
+                              {new Date(idea.updated_at).toLocaleString(
+                                "en-IN",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+
+                                  hour12: true, // optional, for AM/PM format
+                                },
+                              )}
+                            </span>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="p-2 text-gray-400 hover:text-skyblue transition-colors">
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => handleEdit(idea.id)}
+                            className="p-2 text-gray-400 hover:text-skyblue transition-colors"
+                          >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="p-2 text-gray-400 hover:text-skyblue transition-colors">
-                            <Share className="w-4 h-4" />
-                          </button>
-                          <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-                            <MoreVertical className="w-4 h-4" />
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDelete(idea.id)}
+                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-skyblue">
-                            {idea.proposalsCount}
+                          <p className="text-sm text-gray-500 mb-2">
+                            Skills Required
                           </p>
-                          <p className="text-sm text-gray-500">Proposals</p>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {idea.required_skills
+                              ?.flat()
+                              .map((skill: string, index: number) => (
+                                <span
+                                  key={index}
+                                  className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full max-w-[120px] truncate"
+                                  title={skill} // Shows full skill name on hover
+                                >
+                                  {skill}
+                                </span>
+                              ))}
+                            {!idea.required_skills?.length && (
+                              <span className="text-gray-400">
+                                No skills listed
+                              </span>
+                            )}
+                          </div>
                         </div>
+
                         <div className="text-center">
                           <p className="text-2xl font-bold text-green-600">
-                            {idea.viewsCount}
+                            {idea.attachments?.flat().length || 0}
                           </p>
-                          <p className="text-sm text-gray-500">Views</p>
+                          <p className="text-sm text-gray-500">Attachments</p>
                         </div>
                         <div className="text-center">
                           <p className="text-2xl font-bold text-purple-600">
-                            {idea.equityOffered}
+                            {idea.equity_offering}%
                           </p>
                           <p className="text-sm text-gray-500">
                             Equity Offered
@@ -696,9 +744,19 @@ export default function EntrepreneurDashboard() {
 
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-500">
-                          Last updated: {idea.lastUpdated}
+                          Last updated:{" "}
+                          {new Date(idea.updated_at).toLocaleString("en-IN", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+
+                            hour12: true,
+                          })}
                         </span>
                         <div className="flex space-x-2">
+                          {/* View Proposals */}
                           <Link
                             to={`/manage-proposals?idea=${idea.id}`}
                             className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
@@ -706,9 +764,23 @@ export default function EntrepreneurDashboard() {
                             <FileText className="w-4 h-4" />
                             <span>View Proposals</span>
                           </Link>
-                          <button className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors">
+
+                          {/* Preview Attachments */}
+                          <button
+                            onClick={() => {
+                              idea.attachments
+                                ?.flat()
+                                .forEach((file: any) =>
+                                  window.open(
+                                    `http://localhost:5000/${file.path}`,
+                                    "_blank",
+                                  ),
+                                );
+                            }}
+                            className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+                          >
                             <Eye className="w-4 h-4" />
-                            <span>Preview</span>
+                            <span>Preview Attachments</span>
                           </button>
                         </div>
                       </div>
@@ -719,123 +791,134 @@ export default function EntrepreneurDashboard() {
             )}
 
             {/* Proposals Tab */}
-            {activeTab === "proposals" && (
-              <div>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-navy mb-2">
-                    Developer Proposals
-                  </h1>
-                  <p className="text-gray-600">
-                    Review and manage proposals from talented developers
-                  </p>
-                </div>
+          {activeTab === "proposals" && (
+  <div>
+    <div className="mb-6 flex justify-between items-center">
+      <div>
+        <h1 className="text-2xl font-bold text-navy mb-2">Developer Proposals</h1>
+        <p className="text-gray-600">
+          Review and manage proposals submitted for your ideas
+        </p>
+      </div>
+      <div className="text-sm font-medium text-gray-600">
+        Total Proposals: {proposals.length}
+      </div>
+    </div>
 
-                <div className="space-y-6">
-                  {proposals.map((proposal) => (
-                    <div
-                      key={proposal.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
-                            {proposal.developerAvatar}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-navy">
-                              {proposal.developerName}
-                            </h3>
-                            <p className="text-gray-600 mb-2">
-                              Applied for: {proposal.ideaTitle}
-                            </p>
-                            <div className="flex items-center space-x-2 mb-2">
-                              {proposal.rating && (
-                                <div className="flex items-center space-x-1">
-                                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                  <span className="text-sm font-medium">
-                                    {proposal.rating}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex flex-wrap gap-1">
-                                {proposal.skills.map((skill) => (
-                                  <span
-                                    key={skill}
-                                    className="px-2 py-1 bg-skyblue/10 text-skyblue text-xs rounded-full"
-                                  >
-                                    {skill}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <span
-                          className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(proposal.status)}`}
-                        >
-                          {proposal.status}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">
-                            Equity Requested:
-                          </span>
-                          <p className="font-semibold text-skyblue">
-                            {proposal.equityRequested}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Timeline:</span>
-                          <p className="font-semibold">
-                            {proposal.proposedTimeline}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Submitted:</span>
-                          <p className="font-semibold">
-                            {proposal.submittedAt}
-                          </p>
-                        </div>
-                      </div>
-
-                      {proposal.status === "Pending" && (
-                        <div className="flex space-x-3">
-                          <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
-                            <MessageCircle className="w-4 h-4" />
-                            <span>Chat with Developer</span>
-                          </button>
-                          <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                            <CheckCircle className="w-4 h-4" />
-                            <span>Accept & Proceed</span>
-                          </button>
-                          <button className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
-                            Reject
-                          </button>
-                        </div>
-                      )}
-
-                      {proposal.status === "Reviewed" && (
-                        <div className="flex space-x-3">
-                          <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
-                            <MessageCircle className="w-4 h-4" />
-                            <span>Continue Chat</span>
-                          </button>
-                          <Link
-                            to="/contract-builder"
-                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>Generate Contract</span>
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+    <div className="space-y-6">
+      {proposals.map((proposal) => (
+        <div
+          key={proposal.id}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
+          {/* Developer Info */}
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
+                {proposal.developerName[0].toUpperCase()}
               </div>
-            )}
+              <div>
+                <h3 className="text-lg font-semibold text-navy">
+                  {proposal.developerName}
+                </h3>
+                <p className="text-gray-600 mb-2">Applied for: {proposal.ideaTitle}</p>
+
+                {/* <div className="flex flex-wrap gap-1">
+                  {proposal.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="px-2 py-1 bg-skyblue/10 text-skyblue text-xs rounded-full"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div> */}
+              </div>
+            </div>
+
+            {/* Status Badge */}
+            <span
+              className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
+                proposal.status
+              )}`}
+            >
+              {proposal.status}
+            </span>
+          </div>
+
+          {/* Proposal Details */}
+          <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+            <div>
+              <span className="text-gray-500">Equity Requested:</span>
+              <p className="font-semibold text-skyblue">{proposal.equityRequested}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Timeline:</span>
+              <p className="font-semibold">{proposal.proposedTimeline}</p>
+            </div>
+            <div>
+              <span className="text-gray-500">Submitted:</span>
+              <p className="font-semibold">
+                {new Date(proposal.submittedAt).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons for Entrepreneur */}
+          {proposal.status === "Pending" && (
+            <div className="flex space-x-3">
+              <button
+                onClick={() => handleProposalAction(Number(proposal.id), "accept")}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>Accept</span>
+              </button>
+              <button
+                onClick={() => handleProposalAction(Number(proposal.id), "reject")}
+                className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Reject
+              </button>
+              <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat</span>
+              </button>
+            </div>
+          )}
+
+          {proposal.status === "Accepted" && (
+            <div className="flex space-x-3">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat</span>
+              </button>
+              <Link
+                to="/contract-builder"
+                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Generate Contract</span>
+              </Link>
+            </div>
+          )}
+
+          {proposal.status === "Rejected" && (
+            <p className="text-red-500 font-medium">This proposal has been rejected.</p>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
             {/* Collaborations Tab */}
             {activeTab === "collaborations" && (

@@ -29,6 +29,7 @@ app.use(
 app.use(bodyParser.json());
 app.use(express.json());
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // File uploads
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -129,13 +130,18 @@ app.post("/api/login", async (req, res) => {
 // Post idea
 app.post("/post-idea", upload.array("attachments"), async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    console.log("Uploaded files:", req.files);
+ console.log("Request body:", req.body);
+console.log("Uploaded files:", req.files);
+
 
     const {
       title, overview, stage, equityOffering, visibility,
       timeline, budget, additionalRequirements, requiredSkills,
+      entrepreneur_id,
     } = req.body;
+       if (!entrepreneur_id) {
+      return res.status(400).json({ error: "Entrepreneur ID is required" });
+    }
 
     // Convert numeric fields safely
     const budgetValue = budget === "" ? null : parseFloat(budget);
@@ -149,17 +155,17 @@ const equityValue = equityOffering || null;
     // Process uploaded files
     const attachmentsArray = req.files.map((file) => ({
       name: file.originalname,
-      path: file.path,
+      path: `uploads/${file.filename}`,
     }));
 
     const sql = `
       INSERT INTO entrepreneur_idea
-      (title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (entrepreneur_id,title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
-      title, overview, stage, equityValue, visibility, timeline,
+      entrepreneur_id,title, overview, stage, equityValue, visibility, timeline,
       budgetValue, additionalRequirements,
       JSON.stringify(skillsArray), JSON.stringify(attachmentsArray),
     ];
@@ -248,5 +254,295 @@ app.put("/developer-profile/:id", async (req, res) => {
     res.status(500).json({ message: "Failed to update developer profile" });
   }
 });
+
+
+app.get("/entrepreneur-dashboard", async (req, res) => {
+  
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM entrepreneur_idea ORDER BY created_at DESC"
+    );
+
+    // convert JSON fields back to JS objects
+  const ideas = rows.map((row) => {
+  let requiredSkills = [];
+  let attachments = [];
+  
+  try {
+    requiredSkills = row.required_skills ? JSON.parse(row.required_skills) : [];
+  } catch (err) {
+    requiredSkills = row.required_skills ? [row.required_skills] : [];
+  }
+
+  try {
+    attachments = row.attachments ? JSON.parse(row.attachments) : [];
+  } catch (err) {
+    attachments = row.attachments ? [row.attachments] : [];
+  }
+
+  return {
+    ...row,
+    required_skills: requiredSkills,
+    attachments: attachments,
+  };
+});
+
+    res.json(ideas);
+  } catch (err) {
+    console.error("Error fetching ideas:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// DELETE /api/ideas/:id
+app.delete("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM entrepreneur_idea WHERE id = ?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Idea not found" });
+    }
+
+    res.json({ message: "Idea deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting idea:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+const parseJSONSafe = (data) => {
+  if (!data) return [];
+  try {
+    return JSON.parse(data);
+  } catch {
+    // If parsing fails, wrap single string in array
+    return [data];
+  }
+};
+
+app.get("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM entrepreneur_idea WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: "Idea not found" });
+
+    const idea = rows[0];
+    idea.required_skills = parseJSONSafe(idea.required_skills);
+    idea.attachments = parseJSONSafe(idea.attachments);
+
+    res.json(idea);
+  } catch (err) {
+    console.error("Error fetching idea:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+
+
+// PUT /api/ideas/:id
+app.put("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
+  const { id } = req.params;
+  const { title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      "UPDATE entrepreneur_idea SET title=?, overview=?, stage=?, equity_offering=?, visibility=?, timeline=?, budget=?, additional_requirements=?, required_skills=?, attachments=? WHERE id=?",
+      [
+        title,
+        overview,
+        stage,
+        equity_offering,
+        visibility,
+        timeline,
+        budget,
+        additional_requirements,
+        JSON.stringify(required_skills),
+        JSON.stringify(attachments),
+        id
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Idea not found" });
+    }
+
+    res.json({ message: "Idea updated successfully" });
+  } catch (err) {
+    console.error("Error updating idea:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+
+// GET /developer-dashboard
+app.get("/developer-dashboard", async (req, res) => {
+  try {
+    // Fetch all pending ideas
+    const [rows] = await pool.query(
+      `SELECT 
+      e.name,
+         ei.*
+       FROM entrepreneur_idea ei
+       JOIN entrepreneur e on ei.entrepreneur_id = e.id
+       WHERE ei.status = 0`
+    );
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching ideas",
+    });
+  }
+});
+
+app.get('/proposal/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const [results] = await pool.query('SELECT e.name AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?', [id]);
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Proposal not found' });
+    }
+    res.json(results[0]);
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post("/submit-proposal", async (req, res) => {
+  try {
+    const {
+      ideaId,
+      developerId, 
+      scope,
+      timeline,
+      equityRequested,
+      additionalNotes,
+      milestones, 
+    } = req.body;
+
+    if (!ideaId || !developerId || !scope || !timeline || !equityRequested) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // 1. Insert into proposals table
+    const [proposalResult] = await pool.execute(
+      `INSERT INTO proposals (idea_id, developer_id, scope, timeline, equity_requested, additional_notes)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [ideaId, developerId, scope, timeline, equityRequested, additionalNotes]
+    );
+
+    const proposalId = proposalResult.insertId;
+
+    // 2. Insert milestones
+    for (let m of milestones) {
+      await pool.execute(
+        `INSERT INTO milestones (proposal_id, title, description, duration)
+         VALUES (?, ?, ?, ?)`,
+        [proposalId, m.title, m.description, m.duration]
+      );
+    }
+
+    res.status(200).json({ message: "Proposal submitted successfully" });
+  } catch (error) {
+    console.error("Error submitting proposal:", error);
+    res.status(500).json({ error: "Server error", message: error.message });
+  }
+});
+
+// GET /developer-proposals
+app.get("/developer-proposals/:developerId", async (req, res) => {
+  try {
+    const { developerId } = req.params;
+
+    const [proposals] = await pool.execute(
+      `SELECT p.id, p.scope, p.timeline, p.equity_requested AS equityProposed, 
+              p.additional_notes, p.created_at AS submittedAt,
+              ei.title AS ideaTitle, e.name AS founderName, p.status,   COUNT(*) OVER() AS total_proposal_count
+       FROM proposals p
+       JOIN entrepreneur_idea ei ON p.idea_id = ei.id
+       JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+       WHERE p.developer_id = ?`,
+      [developerId]
+    );
+
+    res.status(200).json({ proposals });
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    res.status(500).json({ error: "Server error", message: error.message });
+  }
+});
+
+// Fetch proposals for an entrepreneur
+app.get("/entrepreneur-proposals/:entrepreneurId", async (req, res) => {
+  const { entrepreneurId } = req.params;
+
+  if (!entrepreneurId) {
+    return res.status(400).json({ error: "Entrepreneur ID is required" });
+  }
+
+  try {
+    const [proposals] = await pool.execute(
+      `SELECT 
+    p.id, 
+    p.scope, 
+    p.timeline, 
+    p.equity_requested AS equityRequested,
+    p.additional_notes AS additionalNotes,
+    p.status, 
+    p.created_at AS submittedAt,
+    ei.title AS ideaTitle,
+    d.fullName AS developerName,
+    d.bio AS skills
+FROM proposals p
+JOIN entrepreneur_idea ei ON p.idea_id = ei.id
+JOIN developers d ON p.developer_id = d.id
+WHERE ei.entrepreneur_id = ?
+`,
+      [entrepreneurId]
+    );
+
+    res.json({ proposals, totalProposalCount: proposals.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch proposals" });
+  }
+});
+
+
+// Update proposal status
+app.post("/proposal/:proposalId/status", async (req, res) => {
+  const { proposalId } = req.params;
+  const { action } = req.body; // 'accept' or 'reject'
+
+  try {
+    let status = "Pending";
+    if (action === "accept") status = "Approved";
+    else if (action === "reject") status = "Rejected";
+
+    await pool.execute("UPDATE proposals SET status = ? WHERE id = ?", [status, proposalId]);
+
+    res.json({ message: `Proposal ${status.toLowerCase()}`, status });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update proposal status" });
+  }
+});
+
 
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));
