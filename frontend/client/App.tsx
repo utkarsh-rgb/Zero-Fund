@@ -1,10 +1,10 @@
 import "./global.css";
-
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import EntrepreneurSignup from "./pages/EntrepreneurSignup";
@@ -34,9 +34,31 @@ import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 // Protected route helper
+
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  if (!userData?.userType) return <Navigate to="/login" />;
+  const location = useLocation();
+
+  // If no user data, redirect to login
+  if (!userData?.userType) return <Navigate to="/login" replace />;
+
+  // Prevent entrepreneur from accessing developer dashboard
+  if (
+    userData.userType === "entrepreneur" &&
+    location.pathname === "/developer-dashboard"
+  ) {
+    return <Navigate to="/entrepreneur-dashboard" replace />;
+  }
+
+  // Prevent developer from accessing entrepreneur dashboard
+  if (
+    userData.userType === "developer" &&
+    location.pathname === "/entrepreneur-dashboard"
+  ) {
+    return <Navigate to="/developer-dashboard" replace />;
+  }
+
+  // Authorized, render the children
   return children;
 };
 

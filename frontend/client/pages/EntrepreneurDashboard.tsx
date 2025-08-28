@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -176,6 +176,22 @@ export default function EntrepreneurDashboard() {
     navigate("/login"); // redirect to login page
   };
 
+   useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+
+    // If no userData, redirect to login
+    if (!userData) {
+      navigate("/login");
+      return;
+    }
+
+    // If user is NOT entrepreneur, redirect to their dashboard
+    if (userData.userType !== "entrepreneur") {
+      navigate("/developer-dashboard");
+    }
+
+    // Otherwise, stay here
+  }, [navigate]);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Published":

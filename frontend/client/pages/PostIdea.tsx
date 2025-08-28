@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   ArrowLeft,
   Lightbulb,
@@ -68,6 +69,7 @@ const PROJECT_STAGES = [
 ];
 
 export default function PostIdea() {
+   const navigate = useNavigate(); 
   const [currentStep, setCurrentStep] = useState(1);
   const [isPreview, setIsPreview] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -112,12 +114,59 @@ export default function PostIdea() {
     }));
   };
 
-  const handlePublish = () => {
-    // TODO: Submit to backend
-    console.log("Publishing idea:", formData);
-    // Redirect to dashboard
-    window.location.href = "/entrepreneur-dashboard";
-  };
+const handlePublish = async () => {
+ 
+  try {
+    // Create FormData
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("overview", formData.overview);
+    data.append("stage", formData.stage);
+    data.append("equityOffering", formData.equityOffering);
+    data.append("visibility", formData.visibility);
+    data.append("timeline", formData.timeline);
+    data.append("budget", formData.budget);
+    data.append("additionalRequirements", formData.additionalRequirements);
+
+    // Convert requiredSkills array to JSON string
+    data.append("requiredSkills", JSON.stringify(formData.requiredSkills));
+
+    // Append attachments
+    formData.attachments.forEach((file) => {
+      data.append("attachments", file);
+    });
+
+    // Log FormData contents
+    console.log("FormData contents:");
+    for (const [key, value] of data.entries()) {
+      console.log(key, value);
+    }
+
+    // Send FormData to backend using Axios
+    const response = await axios.post(
+      "http://localhost:5000/post-idea",
+      data,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    // Log full response
+    console.log("Server response details:", response);
+
+    // Show alert
+    alert("Idea submitted successfully!");
+
+    // Redirect to entrepreneur-dashboard
+    navigate("/entrepreneur-dashboard");
+  } catch (error) {
+    console.error("Error submitting idea:", error);
+    alert("Failed to submit idea. Please try again.");
+  }
+};
+
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase();
