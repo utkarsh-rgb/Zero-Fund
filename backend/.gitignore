@@ -25,3 +25,6 @@ Thumbs.db
 # Optional build output
 dist/
 build/
+
+
+/uploads/*
