@@ -47,7 +47,7 @@ interface Proposal {
   developerAvatar: string;
   skills: string[];
   equityRequested: string;
-  proposedTimeline: string;
+  timeline: string;
   status: "Pending" | "Reviewed" | "Accepted" | "Rejected";
   submittedAt: string;
   rating?: number;
@@ -850,11 +850,11 @@ const handleProposalAction = async (proposalId: number, action: "accept" | "reje
           <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
             <div>
               <span className="text-gray-500">Equity Requested:</span>
-              <p className="font-semibold text-skyblue">{proposal.equityRequested}</p>
+              <p className="font-semibold text-skyblue">{proposal.equityRequested}%</p>
             </div>
             <div>
               <span className="text-gray-500">Timeline:</span>
-              <p className="font-semibold">{proposal.proposedTimeline}</p>
+              <p className="font-semibold">{proposal.timeline}</p>
             </div>
             <div>
               <span className="text-gray-500">Submitted:</span>
