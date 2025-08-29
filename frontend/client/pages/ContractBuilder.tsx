@@ -125,35 +125,59 @@ export default function ContractBuilder() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load proposal data on component mount
-  useEffect(() => {
-    const pendingContract = localStorage.getItem("pendingContract");
-    if (pendingContract) {
-      try {
-        const proposalData = JSON.parse(pendingContract);
+useEffect(() => {
+  async function fetchProposalData(proposalId: number) {
+    try {
+      const response = await fetch(`/api/proposals/${proposalId}`);
+      const result = await response.json();
+
+      if (result.success && result.data && result.data.length > 0) {
+        const proposal = result.data[0];
+
         setContractData((prev) => ({
           ...prev,
-          developerName: proposalData.developerName || prev.developerName,
-          developerEmail: proposalData.developerEmail || prev.developerEmail,
-          projectTitle: proposalData.ideaTitle || prev.projectTitle,
-          equityPercentage:
-            proposalData.equityRequested?.replace("%", "") ||
-            prev.equityPercentage,
-          timeline: proposalData.timeline || prev.timeline,
-          scope: proposalData.scope || prev.scope,
-          milestones:
-            proposalData.milestones?.map((m: any, index: number) => ({
-              id: (index + 1).toString(),
-              title: m.title,
-              description: m.description,
-              duration: m.duration,
-              deliverables: m.deliverables || ["To be specified"],
-            })) || prev.milestones,
+          entrepreneurName: proposal.entrepreneur_name || prev.entrepreneurName,
+          entrepreneurEmail: proposal.entrepreneur_email || prev.entrepreneurEmail,
+          entrepreneurCompany: "", // no API data available
+          developerName: proposal.developer_name || prev.developerName,
+          developerEmail: proposal.developer_email || prev.developerEmail,
+          projectTitle: proposal.additional_notes || "Project Title Not Provided",
+          projectDescription: proposal.additional_notes || "",
+          scope: proposal.scope || prev.scope,
+          timeline: proposal.timeline || prev.timeline,
+          milestones: [], // no milestone data from API
+          equityPercentage: proposal.equity_requested
+            ? proposal.equity_requested.toString().replace("%", "")
+            : prev.equityPercentage,
+
+          // static defaults for missing legal terms not provided by API
+          ipOwnership: "100% owned by Entrepreneur",
+          confidentiality: "5 years",
+          terminationClause: "30 days written notice",
+          disputeResolution: "Binding arbitration in Bangalore, Karnataka, India",
+          governingLaw: "Laws of India",
+
+          additionalClauses: [],
+          revisions: "2 rounds of revisions included",
+          supportTerms: "30 days post-delivery support included",
         }));
-      } catch (error) {
-        console.error("Error loading proposal data:", error);
       }
+    } catch (error) {
+      console.error("Error fetching proposal data:", error);
     }
-  }, []);
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const proposalIdParam = urlParams.get("proposalId");
+
+  if (proposalIdParam) {
+    const proposalId = parseInt(proposalIdParam, 10);
+    if (!isNaN(proposalId)) {
+      fetchProposalData(proposalId);
+    }
+  }
+}, []);
+
 
   const handleInputChange = (
     field: keyof ContractData,

@@ -134,7 +134,8 @@ export default function App() {
             />
 
             {/* Other pages */}
-            <Route path="/idea-details" element={<IdeaDetails />} />
+            <Route path="/idea-details/:id" element={<IdeaDetails />} />
+
             <Route path="/proposal-submit" element={<ProposalSubmit />} />
             <Route path="/chat-collaboration" element={<ChatCollaboration />} />
             <Route path="/contract-review" element={<ContractReview />} />
@@ -143,7 +144,7 @@ export default function App() {
               element={<ContributionTracker />}
             />
             <Route path="/post-idea" element={<PostIdea />} />
-            <Route path="/manage-proposals" element={<ManageProposals />} />
+            <Route path="/manage-proposals/:id" element={<ManageProposals />} />
             <Route path="/entrepreneur-chat" element={<EntrepreneurChat />} />
             <Route path="/contract-builder" element={<ContractBuilder />} />
             <Route

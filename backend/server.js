@@ -167,7 +167,7 @@ const equityValue = equityOffering || null;
     const values = [
       entrepreneur_id,title, overview, stage, equityValue, visibility, timeline,
       budgetValue, additionalRequirements,
-      JSON.stringify(skillsArray), JSON.stringify(attachmentsArray),
+      JSON.stringify(requiredSkills), JSON.stringify(attachmentsArray),
     ];
 
     const [result] = await pool.execute(sql, values);
@@ -543,6 +543,109 @@ app.post("/proposal/:proposalId/status", async (req, res) => {
     res.status(500).json({ error: "Failed to update proposal status" });
   }
 });
+
+app.get('/ideas/:id', async (req, res) => {
+  const ideaId = req.params.id;
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM entrepreneur_idea WHERE id = ?',
+      [ideaId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Idea not found' });
+    }
+
+    const idea = rows[0];
+
+    // Parse required_skills safely and flatten nested arrays
+    try {
+      const parsedSkills = JSON.parse(idea.required_skills || '[]');
+      idea.required_skills = Array.isArray(parsedSkills)
+        ? parsedSkills.flat(Infinity)
+        : [];
+    } catch (err) {
+      console.error('Error parsing required_skills:', err);
+      idea.required_skills = [];
+    }
+
+    // Parse attachments safely
+    try {
+      const parsedAttachments = JSON.parse(idea.attachments || '[]');
+      idea.attachments = Array.isArray(parsedAttachments) ? parsedAttachments : [];
+    } catch (err) {
+      console.error('Error parsing attachments:', err);
+      idea.attachments = [];
+    }
+
+    // Return idea object
+    res.json({ idea });
+  } catch (error) {
+    console.error('Error fetching idea:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+
+app.put('/ideas/:id/sign-nda', async (req, res) => {
+  const ideaId = req.params.id;
+  try {
+    const [result] = await pool.execute(
+      'UPDATE entrepreneur_idea SET nda_accepted = 1 WHERE id = ?',
+      [ideaId]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Idea not found' });
+    }
+    res.json({ success: true, message: 'NDA accepted' });
+  } catch (error) {
+    console.error('Error updating NDA status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get("/manage-proposals/:ideaId", async (req, res) => {
+  const ideaId = req.params.ideaId;
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+          p.id AS proposal_id,
+          p.scope,
+          p.timeline,
+          p.equity_requested,
+          p.additional_notes,
+          p.status AS proposal_status,
+          d.fullName AS developer_name,
+          d.email AS developer_email,
+          d.bio AS developer_bio,
+          e.name AS entrepreneur_name,
+          e.email AS entrepreneur_email,
+          ei.title as ideaTitle
+      FROM proposals p
+      JOIN developers d ON p.developer_id = d.id
+      JOIN entrepreneur_idea ei ON p.idea_id = ei.id
+      JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+      WHERE p.idea_id = ?`,
+      [ideaId]
+    );
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+
 
 
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));

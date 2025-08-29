@@ -62,32 +62,32 @@ interface Collaboration {
   equity: string;
 }
 
-const MOCK_PROPOSALS: Proposal[] = [
-  {
-    id: "1",
-    ideaTitle: "AI-Powered Education Platform",
-    status: "Under Review",
-    equityProposed: "12%",
-    submittedAt: "2024-01-16",
-    founderName: "Priya Sharma",
-  },
-  {
-    id: "2",
-    ideaTitle: "FinTech for Rural India",
-    status: "Accepted",
-    equityProposed: "10%",
-    submittedAt: "2024-01-10",
-    founderName: "Vikram Singh",
-  },
-  {
-    id: "3",
-    ideaTitle: "Health Monitoring App",
-    status: "Rejected",
-    equityProposed: "14%",
-    submittedAt: "2024-01-08",
-    founderName: "Dr. Sarah Chen",
-  },
-];
+// const MOCK_PROPOSALS: Proposal[] = [
+//   {
+//     id: "1",
+//     ideaTitle: "AI-Powered Education Platform",
+//     status: "Under Review",
+//     equityProposed: "12%",
+//     submittedAt: "2024-01-16",
+//     founderName: "Priya Sharma",
+//   },
+//   {
+//     id: "2",
+//     ideaTitle: "FinTech for Rural India",
+//     status: "Accepted",
+//     equityProposed: "10%",
+//     submittedAt: "2024-01-10",
+//     founderName: "Vikram Singh",
+//   },
+//   {
+//     id: "3",
+//     ideaTitle: "Health Monitoring App",
+//     status: "Rejected",
+//     equityProposed: "14%",
+//     submittedAt: "2024-01-08",
+//     founderName: "Dr. Sarah Chen",
+//   },
+// ];
 
 const MOCK_COLLABORATIONS: Collaboration[] = [
   {
@@ -118,55 +118,57 @@ export default function DeveloperDashboard() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
-   const [proposals, setProposals] = useState<any[]>([]);
-  const developerData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const [proposals, setProposals] = useState<any[]>([]);
 
   useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+
+    if (!userData?.userType) {
+      navigate("/login");
+      return;
+    }
+    if (!userData?.id) {
+      navigate("/login");
+      return;
+    }
+    if (userData.userType !== "developer") {
+      navigate("/entrepreneur-dashboard");
+      return;
+    }
+
     const fetchIdeas = async () => {
-      const userData = JSON.parse(localStorage.getItem("userData") || "null");
-      if (!userData?.userType) {
-        navigate("/login");
-        return;
-      }
-      if (userData.userType !== "developer") {
-        navigate("/entrepreneur-dashboard");
-        return;
-      }
+      setLoading(true);
       try {
         const response = await axios.get(
           "http://localhost:5000/developer-dashboard",
         );
-        console.log("API Response:", response.data);
         if (response.data.success) {
           setIdeas(response.data.data);
-          console.log("Ideas set:", response.data.data);
         } else {
           setError("Failed to fetch ideas");
         }
       } catch (err) {
-        console.error("Fetch ideas error:", err);
+        console.error(err);
         setError("Server error while fetching ideas");
       } finally {
         setLoading(false);
       }
     };
+
     const fetchProposals = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/developer-proposals/${developerData.id}`
+          `http://localhost:5000/developer-proposals/${userData.id}`,
         );
-        setProposals(response.data.proposals);
-      } catch (error) {
-        console.error("Error fetching proposals:", error);
+        setProposals(response.data.proposals || []);
+      } catch (err) {
+        console.error(err);
       }
     };
 
-    fetchProposals();
-
     fetchIdeas();
-  }, [navigate,developerData.id]);
-
-
+    //  fetchProposals();
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("jwt_token"); // remove stored user data
@@ -373,7 +375,7 @@ export default function DeveloperDashboard() {
                   </span>
                   <span className="text-sm font-semibold text-orange-600">
                     {
-                      MOCK_PROPOSALS.filter((p) => p.status === "Under Review")
+                      proposals.filter((p) => p.status === "Under Review")
                         .length
                     }
                   </span>
@@ -404,9 +406,8 @@ export default function DeveloperDashboard() {
                   <span className="text-sm text-gray-600">Success Rate</span>
                   <span className="text-sm font-semibold text-purple-600">
                     {Math.round(
-                      (MOCK_PROPOSALS.filter((p) => p.status === "Accepted")
-                        .length /
-                        MOCK_PROPOSALS.length) *
+                      (proposals.filter((p) => p.status === "Accepted").length /
+                        proposals.length) *
                         100,
                     )}
                     %
@@ -508,16 +509,20 @@ export default function DeveloperDashboard() {
                         </div>
                       )}
 
-                   <div className="flex flex-wrap gap-2 mb-4">
-  {idea.required_skills?.flat().map((skill, index, arr) => (
-    <span
-      key={skill}
-      className="px-3 py-1 bg-skyblue/10 text-skyblue text-sm rounded-full"
-    >
-      {skill}{index < arr.length - 1 }
-    </span>
-  ))}
-</div>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {Array.isArray(idea.required_skills) &&
+                          idea.required_skills.map(
+                            (skill: string, index: number, arr: string[]) => (
+                              <span
+                                key={skill}
+                                className="px-3 py-1 bg-skyblue/10 text-skyblue text-sm rounded-full"
+                              >
+                                {skill}
+                                {index < arr.length - 1 && ", "}
+                              </span>
+                            ),
+                          )}
+                      </div>
 
                       <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -534,7 +539,7 @@ export default function DeveloperDashboard() {
                         </div>
                         <div className="flex space-x-2">
                           <Link
-                            to={`/idea-details?id=${idea.id}`}
+                            to={`/idea-details/${idea.id}`}
                             className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
                           >
                             <Eye className="w-4 h-4" />
@@ -650,60 +655,70 @@ export default function DeveloperDashboard() {
 
             {/* Proposals Tab */}
             {activeTab === "proposals" && (
-            <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-navy mb-2">My Proposals</h1>
-        <p className="text-gray-600">Track the status of your submitted proposals</p>
-      </div>
-
-      <div className="space-y-4">
-        {proposals.map((proposal) => (
-          <div
-            key={proposal.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-          >
-            <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-navy">
-                  {proposal.ideaTitle}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Founder: {proposal.founderName}
-                </p>
-              </div>
-              <StatusBadge status={proposal.status} />
-            </div>
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold text-navy mb-2">
+                    My Proposals
+                  </h1>
+                  <p className="text-gray-600">
+                    Track the status of your submitted proposals
+                  </p>
+                </div>
 
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Equity Proposed:</span>
-                <p className="font-semibold text-skyblue">{proposal.equityProposed}%</p>
-              </div>
-              <div>
-                <span className="text-gray-500">Submitted:</span>
-                <p className="font-semibold">
-  {new Date(proposal.submittedAt).toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true, // Optional: shows AM/PM
-  })}
-</p>
+                <div className="space-y-4">
+                  {proposals.map((proposal) => (
+                    <div
+                      key={proposal.id}
+                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-navy">
+                            {proposal.ideaTitle}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Founder: {proposal.founderName}
+                          </p>
+                        </div>
+                        <StatusBadge status={proposal.status} />
+                      </div>
 
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">
+                            Equity Proposed:
+                          </span>
+                          <p className="font-semibold text-skyblue">
+                            {proposal.equityProposed}%
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Submitted:</span>
+                          <p className="font-semibold">
+                            {new Date(proposal.submittedAt).toLocaleString(
+                              "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <button className="flex items-center space-x-1 text-skyblue hover:text-navy transition-colors ml-auto">
+                            <span>View Details</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="text-right">
-                <button className="flex items-center space-x-1 text-skyblue hover:text-navy transition-colors ml-auto">
-                  <span>View Details</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
             )}
 
             {/* Collaborations Tab */}

@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
 import {
   ArrowLeft,
   Code,
@@ -31,79 +32,65 @@ interface IdeaDetails {
   equityRange: string;
   fullDescription: string;
   objectives: string[];
-  techStack: string[];
+  required_skills: string[];
   attachments: { name: string; type: string; size: string }[];
-  isNDA: boolean;
+  nda_accepted: 0 | 1;
+  isNDA: boolean; 
   visibility: "Public" | "Invite Only" | "NDA Required";
   createdAt: string;
   timeline: string;
   isBookmarked: boolean;
-  hasAcceptedNDA: boolean;
-}
-
-const MOCK_IDEA: IdeaDetails = {
-  id: "1",
-  title: "AI-Powered Education Platform",
-  stage: "Idea",
-  founderName: "Priya Sharma",
-  founderAvatar: "PS",
-  founderBio:
-    "Former Education Director at Byju's with 8+ years in EdTech. MBA from IIM Bangalore, passionate about democratizing quality education through AI.",
-  founderLinkedIn: "https://linkedin.com/in/priyasharma",
-  skills: ["Frontend Development", "Machine Learning", "Backend Development"],
-  equityRange: "10-15%",
-  fullDescription: `We're building an AI-powered tutoring platform that provides personalized learning experiences for students aged 6-18. The platform will use advanced machine learning algorithms to understand each student's learning style, pace, and knowledge gaps to create customized learning paths.
-
-The solution addresses the critical problem of one-size-fits-all education by providing:
-- Adaptive learning algorithms that adjust in real-time
-- Gamified learning experiences to increase engagement  
-- Real-time progress tracking for parents and teachers
-- Multi-language support for diverse student populations
-- Affordable pricing to ensure accessibility
-
-We have initial validation through a pilot program with 3 schools in Bangalore, showing 40% improvement in learning outcomes. Looking for a technical co-founder to help scale this vision.`,
-  objectives: [
-    "Build MVP within 6 months with core AI tutoring features",
-    "Launch pilot with 10 schools by month 8",
-    "Achieve 1000+ active users by end of year 1",
-    "Secure seed funding of $500K within 12 months",
-    "Expand to 3 major Indian cities by year 2",
-  ],
-  techStack: [
-    "React/Next.js",
-    "Python/Django",
-    "TensorFlow/PyTorch",
-    "PostgreSQL",
-    "AWS/Google Cloud",
-    "Redis",
-  ],
-  attachments: [
-    { name: "Business_Plan.pdf", type: "PDF", size: "2.3 MB" },
-    { name: "Market_Research.pdf", type: "PDF", size: "1.8 MB" },
-    { name: "UI_Mockups.fig", type: "Figma", size: "4.1 MB" },
-    { name: "Financial_Projections.xlsx", type: "Excel", size: "956 KB" },
-  ],
-  isNDA: true,
-  visibility: "NDA Required",
-  createdAt: "2024-01-15",
-  timeline: "6-12 months",
-  isBookmarked: false,
-  hasAcceptedNDA: false,
-};
+  hasAcceptedNDA: boolean;}
 
 export default function IdeaDetails() {
-  const [idea] = useState<IdeaDetails>(MOCK_IDEA);
-  const [hasAcceptedNDA, setHasAcceptedNDA] = useState(idea.hasAcceptedNDA);
-  const [isBookmarked, setIsBookmarked] = useState(idea.isBookmarked);
+  const { id } = useParams();
+  const [idea, setIdea] = useState<IdeaDetails | null>(null);
+  const [hasAcceptedNDA, setHasAcceptedNDA] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [showNDAModal, setShowNDAModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+const [checkboxChecked, setCheckboxChecked] = useState(false);
 
-  const handleAcceptNDA = () => {
+  useEffect(() => {
+    async function fetchIdea() {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://localhost:5000/ideas/${id}`);
+        const fetchedIdea = response.data.idea;
+       console.log("Skills from backend:", response.data.idea.required_skills); 
+        setIdea(fetchedIdea);
+        setHasAcceptedNDA(fetchedIdea.hasAcceptedNDA);
+        setIsBookmarked(fetchedIdea.isBookmarked);
+      } catch (err) {
+        setError("Failed to fetch idea details");
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (id) {
+      fetchIdea();
+    }
+  }, [id]);
+
+ const handleAcceptNDA = async () => {
+  try {
+    await axios.put(`http://localhost:5000/ideas/${idea.id}/sign-nda`);
     setHasAcceptedNDA(true);
     setShowNDAModal(false);
-  };
+
+    // Refetch idea details to get full data after NDA accepted
+    const response = await axios.get(`http://localhost:5000/ideas/${idea.id}`);
+    setIdea(response.data.idea);
+  } catch (error) {
+    console.error("Failed to accept NDA:", error);
+    // Optionally show error UI here
+  }
+};
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
+    // TODO: Optionally update bookmark status on backend
   };
 
   const StageBadge = ({ stage }: { stage: "Idea" | "MVP" | "Beta" }) => {
@@ -121,10 +108,11 @@ export default function IdeaDetails() {
       </span>
     );
   };
+if (!idea) return <div>Loading...</div>;
 
-  if (idea.isNDA && !hasAcceptedNDA) {
-    return (
-      <div className="min-h-screen bg-gray-50">
+if (!hasAcceptedNDA && idea.nda_accepted === 0) {
+  return (
+   <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +129,7 @@ export default function IdeaDetails() {
                   <Code className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-navy">
-                  Zero Fund
+                  Skill Invest
                 </span>
               </Link>
             </div>
@@ -250,7 +238,9 @@ export default function IdeaDetails() {
               <div className="flex items-center space-x-3 mb-6">
                 <input
                   type="checkbox"
-                  id="nda-accept"
+                  checked={checkboxChecked}
+                  onChange={e => setCheckboxChecked(e.target.checked)}
+                  id="nda"
                   className="w-4 h-4 text-skyblue"
                 />
                 <label htmlFor="nda-accept" className="text-sm text-gray-700">
@@ -267,6 +257,7 @@ export default function IdeaDetails() {
                   Cancel
                 </button>
                 <button
+                disabled={!checkboxChecked}
                   onClick={handleAcceptNDA}
                   className="flex-1 px-4 py-3 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors font-semibold"
                 >
@@ -277,8 +268,8 @@ export default function IdeaDetails() {
           </div>
         )}
       </div>
-    );
-  }
+  );
+}
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -357,16 +348,17 @@ export default function IdeaDetails() {
                 Project Objectives
               </h2>
               <ul className="space-y-3">
-                {idea.objectives.map((objective, index) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-skyblue/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-semibold text-skyblue">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <span className="text-gray-700">{objective}</span>
-                  </li>
-                ))}
+               {idea.objectives?.map((objective, index) => (
+  <li key={index} className="flex items-start space-x-3">
+    <div className="w-6 h-6 bg-skyblue/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+      <span className="text-xs font-semibold text-skyblue">
+        {index + 1}
+      </span>
+    </div>
+    <span className="text-gray-700">{objective}</span>
+  </li>
+))}
+
               </ul>
             </div>
 
@@ -376,14 +368,18 @@ export default function IdeaDetails() {
                 Required Tech Stack
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {idea.techStack.map((tech) => (
-                  <div
-                    key={tech}
-                    className="px-4 py-3 bg-gray-50 rounded-lg text-center font-medium text-gray-700"
-                  >
-                    {tech}
-                  </div>
-                ))}
+              
+{idea.required_skills.map((tech: string) => (
+  <div
+    key={tech}
+    className="px-4 py-3 bg-gray-50 rounded-lg text-center font-medium text-gray-700 shadow-sm"
+  >
+    {tech}
+  </div>
+))}
+
+
+
               </div>
             </div>
 
@@ -468,15 +464,13 @@ export default function IdeaDetails() {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Required Skills</p>
                   <div className="flex flex-wrap gap-2">
-                    {idea.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-2 py-1 bg-skyblue/10 text-skyblue text-xs rounded-full"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+  {idea.skills?.map(skill => (
+    <span key={skill} className="px-2 py-1 bg-skyblue/10 text-skyblue text-xs rounded-full">
+      {skill}
+    </span>
+  ))}
+</div>
+
                 </div>
               </div>
             </div>

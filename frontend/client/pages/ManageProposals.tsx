@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link,useParams } from "react-router-dom";
+
+import axios from "axios";
 import {
   ArrowLeft,
   Lightbulb,
@@ -33,6 +35,7 @@ interface Developer {
   timezone: string;
   rating: number;
   completedProjects: number;
+
   skills: string[];
   github?: string;
   linkedin?: string;
@@ -47,7 +50,7 @@ interface Proposal {
   ideaId: string;
   ideaTitle: string;
   submittedAt: string;
-  status: "Pending" | "Reviewed" | "Accepted" | "Rejected" | "Withdrawn";
+  status: "Pending" | "Reviewed" | "Approved" | "Rejected" | "Withdrawn";
   equityRequested: string;
   proposedTimeline: string;
   scope: string;
@@ -65,159 +68,18 @@ interface Proposal {
   lastActivity: string;
 }
 
-const MOCK_PROPOSALS: Proposal[] = [
-  {
-    id: "1",
-    developer: {
-      id: "dev1",
-      name: "John Developer",
-      avatar: "JD",
-      email: "john.dev@example.com",
-      location: "Mumbai, India",
-      timezone: "UTC+5:30",
-      rating: 4.8,
-      completedProjects: 12,
-      skills: ["React", "Node.js", "Python", "AI/ML"],
-      github: "https://github.com/johndev",
-      linkedin: "https://linkedin.com/in/johndev",
-      portfolio: "https://johndev.com",
-      isVerified: true,
-      responseTime: "< 2 hours",
-    },
-    ideaId: "idea1",
-    ideaTitle: "AI-Powered Education Platform",
-    submittedAt: "2024-01-16T10:30:00Z",
-    status: "Pending",
-    equityRequested: "12%",
-    proposedTimeline: "6 months",
-    scope:
-      "I will build the complete frontend application using React and Next.js, including user authentication, dashboard interfaces, AI integration, and mobile responsiveness. I'll also handle the backend API development using Node.js and integrate with ML models.",
-    milestones: [
-      {
-        title: "User Authentication & Dashboard",
-        duration: "3 weeks",
-        description:
-          "Complete user registration, login, and basic dashboard setup",
-      },
-      {
-        title: "AI Integration & Core Features",
-        duration: "8 weeks",
-        description: "Integrate ML models and build core educational features",
-      },
-      {
-        title: "Testing & Deployment",
-        duration: "3 weeks",
-        description:
-          "Comprehensive testing, optimization, and production deployment",
-      },
-    ],
-    additionalNotes:
-      "I have previous experience building EdTech platforms and working with AI/ML integrations. Happy to provide references from past clients.",
-    attachments: [
-      { name: "portfolio_samples.pdf", type: "PDF", size: "2.1 MB" },
-      { name: "education_platform_demo.mp4", type: "Video", size: "12.5 MB" },
-    ],
-    lastActivity: "2024-01-16T15:45:00Z",
-  },
-  {
-    id: "2",
-    developer: {
-      id: "dev2",
-      name: "Sarah Chen",
-      avatar: "SC",
-      email: "sarah.chen@example.com",
-      location: "Bangalore, India",
-      timezone: "UTC+5:30",
-      rating: 4.9,
-      completedProjects: 18,
-      skills: ["Full Stack", "Mobile", "DevOps", "UI/UX"],
-      github: "https://github.com/sarahchen",
-      linkedin: "https://linkedin.com/in/sarahchen",
-      isVerified: true,
-      responseTime: "< 1 hour",
-    },
-    ideaId: "idea2",
-    ideaTitle: "Sustainable Food Delivery App",
-    submittedAt: "2024-01-15T14:20:00Z",
-    status: "Reviewed",
-    equityRequested: "10%",
-    proposedTimeline: "4 months",
-    scope:
-      "End-to-end mobile app development for both iOS and Android platforms, including real-time tracking, payment integration, and sustainability metrics dashboard.",
-    milestones: [
-      {
-        title: "MVP Mobile App",
-        duration: "6 weeks",
-        description:
-          "Core app functionality with ordering and delivery tracking",
-      },
-      {
-        title: "Sustainability Features",
-        duration: "4 weeks",
-        description:
-          "Carbon footprint tracking and eco-friendly packaging options",
-      },
-      {
-        title: "Launch & Optimization",
-        duration: "2 weeks",
-        description: "App store deployment and performance optimization",
-      },
-    ],
-    lastActivity: "2024-01-15T16:30:00Z",
-  },
-  {
-    id: "3",
-    developer: {
-      id: "dev3",
-      name: "Mike Johnson",
-      avatar: "MJ",
-      email: "mike.johnson@example.com",
-      location: "Delhi, India",
-      timezone: "UTC+5:30",
-      rating: 4.6,
-      completedProjects: 8,
-      skills: ["Backend", "AI/ML", "Data Science"],
-      github: "https://github.com/mikej",
-      isVerified: false,
-      responseTime: "< 4 hours",
-    },
-    ideaId: "idea1",
-    ideaTitle: "AI-Powered Education Platform",
-    submittedAt: "2024-01-14T09:15:00Z",
-    status: "Pending",
-    equityRequested: "14%",
-    proposedTimeline: "8 months",
-    scope:
-      "Focus on backend development and AI/ML implementation. Will build robust APIs, database architecture, and integrate advanced machine learning models for personalized learning.",
-    milestones: [
-      {
-        title: "Backend Infrastructure",
-        duration: "4 weeks",
-        description: "API development and database setup",
-      },
-      {
-        title: "ML Model Integration",
-        duration: "12 weeks",
-        description: "AI algorithms for personalized learning paths",
-      },
-      {
-        title: "Performance Optimization",
-        duration: "4 weeks",
-        description: "Scalability and optimization",
-      },
-    ],
-    lastActivity: "2024-01-14T11:20:00Z",
-  },
-];
 
 export default function ManageProposals() {
-  const [proposals, setProposals] = useState<Proposal[]>(MOCK_PROPOSALS);
+   const { id } = useParams();
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
     null,
   );
+   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -234,26 +96,89 @@ export default function ManageProposals() {
     return matchesIdea && matchesStatus && matchesSearch;
   });
 
+useEffect(() => {
+  const fetchProposals = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      // Make API call to backend
+      const response = await axios.get(
+        `http://localhost:5000/manage-proposals/${id}`
+      );
+      console.log( response.data.data);
+      if (response.data.success) {
+        
+        const fetchedProposals: Proposal[] = response.data.data.map(
+          (p: any) => ({
+            id: p.proposal_id.toString(),
+            developer: {
+              id: "dev" + p.proposal_id, // or you can use actual developer ID if available
+              name: p.developer_name,
+              email: p.developer_email,
+              avatar: "", // optional
+              location: "", // optional
+              timezone: "", // optional
+              rating: 0, // optional
+              completedProjects: 0, // optional
+              skills: [], // optional
+              github: "",
+              linkedin: "",
+              portfolio: "",
+              isVerified: true, // optional
+              responseTime: "",
+            },
+            ideaId: id,
+            ideaTitle: p.ideaTitle, // optional, or pass idea title from backend
+            submittedAt: p.created_at || new Date().toISOString(),
+            status: p.proposal_status as Proposal["status"],
+            equityRequested: p.equity_requested,
+            proposedTimeline: p.timeline,
+            scope: p.scope,
+            milestones: [], // if backend provides milestones, map them here
+            additionalNotes: p.additional_notes,
+            attachments: [], // optional
+            lastActivity: p.created_at || new Date().toISOString(),
+          })
+        );
+
+        setProposals(fetchedProposals);
+        
+      } else {
+        setError("Failed to fetch proposals.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError("An error occurred while fetching proposals.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProposals();
+}, [id]);
+
+
   const handleAcceptProposal = (proposalId: string) => {
     setProposals((prev) =>
       prev.map((p) =>
-        p.id === proposalId ? { ...p, status: "Accepted" as const } : p,
+        p.id === proposalId ? { ...p, status: "Approved" as const } : p,
       ),
     );
-    // Store accepted proposal data for contract creation
-    const acceptedProposal = proposals.find((p) => p.id === proposalId);
-    if (acceptedProposal) {
+    // Store Approved proposal data for contract creation
+    const ApprovedProposal = proposals.find((p) => p.id === proposalId);
+    if (ApprovedProposal) {
       localStorage.setItem(
         "pendingContract",
         JSON.stringify({
           proposalId,
-          developerName: acceptedProposal.developer.name,
-          developerEmail: acceptedProposal.developer.email,
-          ideaTitle: acceptedProposal.ideaTitle,
-          equityRequested: acceptedProposal.equityRequested,
-          timeline: acceptedProposal.proposedTimeline,
-          scope: acceptedProposal.scope,
-          milestones: acceptedProposal.milestones,
+          developerName: ApprovedProposal.developer.name,
+          developerEmail: ApprovedProposal.developer.email,
+          ideaTitle: ApprovedProposal.ideaTitle,
+          equityRequested: ApprovedProposal.equityRequested,
+          timeline: ApprovedProposal.proposedTimeline,
+          scope: ApprovedProposal.scope,
+          milestones: ApprovedProposal.milestones,
         }),
       );
     }
@@ -280,7 +205,7 @@ export default function ManageProposals() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Accepted":
+      case "Approved":
         return "bg-green-100 text-green-800";
       case "Rejected":
         return "bg-red-100 text-red-800";
@@ -295,7 +220,7 @@ export default function ManageProposals() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "Accepted":
+      case "Approved":
         return <CheckCircle className="w-4 h-4" />;
       case "Rejected":
         return <XCircle className="w-4 h-4" />;
@@ -383,7 +308,7 @@ export default function ManageProposals() {
                   <option value="all">All Status</option>
                   <option value="Pending">Pending</option>
                   <option value="Reviewed">Reviewed</option>
-                  <option value="Accepted">Accepted</option>
+                  <option value="Approved">Approved</option>
                   <option value="Rejected">Rejected</option>
                 </select>
               </div>
@@ -552,7 +477,7 @@ export default function ManageProposals() {
                     </div>
                   )}
 
-                  {(proposal.status === "Accepted" ||
+                  {(proposal.status === "Approved" ||
                     proposal.status === "Rejected") && (
                     <div className="flex space-x-3">
                       <button
@@ -562,7 +487,7 @@ export default function ManageProposals() {
                         <Eye className="w-4 h-4" />
                         <span>View Details</span>
                       </button>
-                      {proposal.status === "Accepted" && (
+                      {proposal.status === "Approved" && (
                         <>
                           <Link
                             to={`/contract-builder?proposalId=${proposal.id}`}
@@ -631,9 +556,9 @@ export default function ManageProposals() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Accepted</span>
+                  <span className="text-gray-600">Approved</span>
                   <span className="font-semibold text-green-600">
-                    {proposals.filter((p) => p.status === "Accepted").length}
+                    {proposals.filter((p) => p.status === "Approved").length}
                   </span>
                 </div>
                 <div className="flex justify-between">

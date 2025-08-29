@@ -758,7 +758,7 @@ const handleProposalAction = async (proposalId: number, action: "accept" | "reje
                         <div className="flex space-x-2">
                           {/* View Proposals */}
                           <Link
-                            to={`/manage-proposals?idea=${idea.id}`}
+                            to={`/manage-proposals/${idea.id}`}
                             className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
                           >
                             <FileText className="w-4 h-4" />
