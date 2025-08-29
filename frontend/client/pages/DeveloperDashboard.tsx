@@ -167,7 +167,7 @@ export default function DeveloperDashboard() {
     };
 
     fetchIdeas();
-    //  fetchProposals();
+      fetchProposals();
   }, [navigate]);
 
   const handleLogout = () => {
