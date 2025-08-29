@@ -210,6 +210,7 @@ const token = localStorage.getItem("jwt_token");
 
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+  console.log(error);
   if (!data) return <div className="p-6 text-center">No data found</div>;
 
   return (

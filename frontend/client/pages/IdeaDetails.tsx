@@ -35,12 +35,13 @@ interface IdeaDetails {
   required_skills: string[];
   attachments: { name: string; type: string; size: string }[];
   nda_accepted: 0 | 1;
-  isNDA: boolean; 
+  isNDA: boolean;
   visibility: "Public" | "Invite Only" | "NDA Required";
-  createdAt: string;
+  created_at: string;
   timeline: string;
   isBookmarked: boolean;
-  hasAcceptedNDA: boolean;}
+  hasAcceptedNDA: boolean;
+}
 
 export default function IdeaDetails() {
   const { id } = useParams();
@@ -50,7 +51,7 @@ export default function IdeaDetails() {
   const [showNDAModal, setShowNDAModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-const [checkboxChecked, setCheckboxChecked] = useState(false);
+  const [checkboxChecked, setCheckboxChecked] = useState(false);
 
   useEffect(() => {
     async function fetchIdea() {
@@ -58,7 +59,7 @@ const [checkboxChecked, setCheckboxChecked] = useState(false);
         setLoading(true);
         const response = await axios.get(`http://localhost:5000/ideas/${id}`);
         const fetchedIdea = response.data.idea;
-       console.log("Skills from backend:", response.data.idea.required_skills); 
+        console.log("Skills from backend:", response.data.idea.required_skills);
         setIdea(fetchedIdea);
         setHasAcceptedNDA(fetchedIdea.hasAcceptedNDA);
         setIsBookmarked(fetchedIdea.isBookmarked);
@@ -73,20 +74,22 @@ const [checkboxChecked, setCheckboxChecked] = useState(false);
     }
   }, [id]);
 
- const handleAcceptNDA = async () => {
-  try {
-    await axios.put(`http://localhost:5000/ideas/${idea.id}/sign-nda`);
-    setHasAcceptedNDA(true);
-    setShowNDAModal(false);
+  const handleAcceptNDA = async () => {
+    try {
+      await axios.put(`http://localhost:5000/ideas/${idea.id}/sign-nda`);
+      setHasAcceptedNDA(true);
+      setShowNDAModal(false);
 
-    // Refetch idea details to get full data after NDA accepted
-    const response = await axios.get(`http://localhost:5000/ideas/${idea.id}`);
-    setIdea(response.data.idea);
-  } catch (error) {
-    console.error("Failed to accept NDA:", error);
-    // Optionally show error UI here
-  }
-};
+      // Refetch idea details to get full data after NDA accepted
+      const response = await axios.get(
+        `http://localhost:5000/ideas/${idea.id}`,
+      );
+      setIdea(response.data.idea);
+    } catch (error) {
+      console.error("Failed to accept NDA:", error);
+      // Optionally show error UI here
+    }
+  };
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
@@ -108,11 +111,11 @@ const [checkboxChecked, setCheckboxChecked] = useState(false);
       </span>
     );
   };
-if (!idea) return <div>Loading...</div>;
+  if (!idea) return <div>Loading...</div>;
 
-if (!hasAcceptedNDA && idea.nda_accepted === 0) {
-  return (
-   <div className="min-h-screen bg-gray-50">
+  if (!hasAcceptedNDA && idea.nda_accepted === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -239,7 +242,7 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
                 <input
                   type="checkbox"
                   checked={checkboxChecked}
-                  onChange={e => setCheckboxChecked(e.target.checked)}
+                  onChange={(e) => setCheckboxChecked(e.target.checked)}
                   id="nda"
                   className="w-4 h-4 text-skyblue"
                 />
@@ -257,7 +260,7 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
                   Cancel
                 </button>
                 <button
-                disabled={!checkboxChecked}
+                  disabled={!checkboxChecked}
                   onClick={handleAcceptNDA}
                   className="flex-1 px-4 py-3 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors font-semibold"
                 >
@@ -268,8 +271,8 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
           </div>
         )}
       </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -307,10 +310,20 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
                   </h1>
                   <div className="flex items-center space-x-4">
                     <StageBadge stage={idea.stage} />
-                    <span className="text-gray-500">•</span>
+
                     <span className="text-gray-600">
-                      Posted {idea.createdAt}
+                      Posted:{" "}
+                      {new Date(idea.created_at).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: true, // set false for 24-hour format
+                      })}
                     </span>
+
                     {idea.isNDA && (
                       <>
                         <span className="text-gray-500">•</span>
@@ -348,17 +361,16 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
                 Project Objectives
               </h2>
               <ul className="space-y-3">
-               {idea.objectives?.map((objective, index) => (
-  <li key={index} className="flex items-start space-x-3">
-    <div className="w-6 h-6 bg-skyblue/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-      <span className="text-xs font-semibold text-skyblue">
-        {index + 1}
-      </span>
-    </div>
-    <span className="text-gray-700">{objective}</span>
-  </li>
-))}
-
+                {idea.objectives?.map((objective, index) => (
+                  <li key={index} className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-skyblue/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-xs font-semibold text-skyblue">
+                        {index + 1}
+                      </span>
+                    </div>
+                    <span className="text-gray-700">{objective}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -368,18 +380,14 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
                 Required Tech Stack
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              
-{idea.required_skills.map((tech: string) => (
-  <div
-    key={tech}
-    className="px-4 py-3 bg-gray-50 rounded-lg text-center font-medium text-gray-700 shadow-sm"
-  >
-    {tech}
-  </div>
-))}
-
-
-
+                {idea.required_skills.map((tech: string) => (
+                  <div
+                    key={tech}
+                    className="px-4 py-3 bg-gray-50 rounded-lg text-center font-medium text-gray-700 shadow-sm"
+                  >
+                    {tech}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -464,13 +472,15 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Required Skills</p>
                   <div className="flex flex-wrap gap-2">
-  {idea.skills?.map(skill => (
-    <span key={skill} className="px-2 py-1 bg-skyblue/10 text-skyblue text-xs rounded-full">
-      {skill}
-    </span>
-  ))}
-</div>
-
+                    {idea.skills?.map((skill) => (
+                      <span
+                        key={skill}
+                        className="px-2 py-1 bg-skyblue/10 text-skyblue text-xs rounded-full"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -479,7 +489,7 @@ if (!hasAcceptedNDA && idea.nda_accepted === 0) {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="space-y-3">
                 <Link
-                  to="/proposal-submit"
+                  to={`/proposal-submit?id=${idea.id}`}
                   className="w-full bg-skyblue text-white py-3 rounded-lg font-semibold hover:bg-navy transition-colors flex items-center justify-center space-x-2"
                 >
                   <Send className="w-5 h-5" />

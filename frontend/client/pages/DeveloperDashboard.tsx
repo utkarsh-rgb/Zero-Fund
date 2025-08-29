@@ -256,7 +256,7 @@ export default function DeveloperDashboard() {
                 to="/developer-profile"
                 className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
               >
-                JD
+                Profile
               </Link>
               <button
                 onClick={handleLogout}
@@ -509,20 +509,7 @@ export default function DeveloperDashboard() {
                         </div>
                       )}
 
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {Array.isArray(idea.required_skills) &&
-                          idea.required_skills.map(
-                            (skill: string, index: number, arr: string[]) => (
-                              <span
-                                key={skill}
-                                className="px-3 py-1 bg-skyblue/10 text-skyblue text-sm rounded-full"
-                              >
-                                {skill}
-                                {index < arr.length - 1 && ", "}
-                              </span>
-                            ),
-                          )}
-                      </div>
+    
 
                       <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
