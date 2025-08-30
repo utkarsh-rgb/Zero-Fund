@@ -62,33 +62,6 @@ interface Collaboration {
   equity: string;
 }
 
-// const MOCK_PROPOSALS: Proposal[] = [
-//   {
-//     id: "1",
-//     ideaTitle: "AI-Powered Education Platform",
-//     status: "Under Review",
-//     equityProposed: "12%",
-//     submittedAt: "2024-01-16",
-//     founderName: "Priya Sharma",
-//   },
-//   {
-//     id: "2",
-//     ideaTitle: "FinTech for Rural India",
-//     status: "Accepted",
-//     equityProposed: "10%",
-//     submittedAt: "2024-01-10",
-//     founderName: "Vikram Singh",
-//   },
-//   {
-//     id: "3",
-//     ideaTitle: "Health Monitoring App",
-//     status: "Rejected",
-//     equityProposed: "14%",
-//     submittedAt: "2024-01-08",
-//     founderName: "Dr. Sarah Chen",
-//   },
-// ];
-
 const MOCK_COLLABORATIONS: Collaboration[] = [
   {
     id: "1",
@@ -120,9 +93,12 @@ export default function DeveloperDashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [proposals, setProposals] = useState<any[]>([]);
 
+
+
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-
+    const developer_id = userData.id;
+    console.log(developer_id);
     if (!userData?.userType) {
       navigate("/login");
       return;
@@ -137,23 +113,31 @@ export default function DeveloperDashboard() {
     }
 
     const fetchIdeas = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/developer-dashboard",
-        );
-        if (response.data.success) {
-          setIdeas(response.data.data);
-        } else {
-          setError("Failed to fetch ideas");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Server error while fetching ideas");
-      } finally {
-        setLoading(false);
-      }
-    };
+  setLoading(true);
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/developer-dashboard/${developer_id}`,
+    );
+    console.log("Backend response:", response.data);
+
+    if (response.data.success) {
+      // Map backend's is_bookmarked to frontend isBookmarked
+      const ideasWithBookmark = response.data.data.map((idea: any) => ({
+        ...idea,
+        isBookmarked: idea.is_bookmarked === 1, // convert 0/1 to true/false
+      }));
+      console.log(ideasWithBookmark);
+      setIdeas(ideasWithBookmark);
+    } else {
+      setError("Failed to fetch ideas");
+    }
+  } catch (err) {
+    console.error(err);
+    setError("Server error while fetching ideas");
+  } finally {
+    setLoading(false);
+  }
+};
 
     const fetchProposals = async () => {
       try {
@@ -170,11 +154,30 @@ export default function DeveloperDashboard() {
       fetchProposals();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("jwt_token"); // remove stored user data
-    localStorage.removeItem("userData"); // remove stored user data
-    navigate("/login"); // redirect to login page
-  };
+const toggleBookmark = async (idea: Idea) => {
+  try {
+    // Optimistic UI update
+    setIdeas(prev =>
+      prev.map(i => (i.id === idea.id ? { ...i, isBookmarked: !i.isBookmarked } : i))
+    );
+
+    const toggle = !idea.isBookmarked;
+
+    await axios.post(
+      "http://localhost:5000/api/developer-dashboard/bookmarks/toggle",
+      { developer_id: 1, idea_id: idea.id, toggle }
+    );
+  } catch (err) {
+    console.error("Bookmark toggle failed:", err);
+    // rollback if error
+    setIdeas(prev =>
+      prev.map(i => (i.id === idea.id ? { ...i, isBookmarked: idea.isBookmarked } : i))
+    );
+  }
+};
+
+
+  
 
   const StatusBadge = ({
     status,
@@ -258,14 +261,7 @@ export default function DeveloperDashboard() {
               >
                 Profile
               </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
-            </div>
+                      </div>
           </div>
         </div>
       </header>
@@ -480,15 +476,16 @@ export default function DeveloperDashboard() {
                               NDA Required
                             </span>
                           )}
-                          <button className="p-2 text-gray-400 hover:text-skyblue transition-colors">
-                            <Bookmark
-                              className={`w-5 h-5 ${
-                                idea.isBookmarked
-                                  ? "fill-current text-skyblue"
-                                  : ""
-                              }`}
-                            />
-                          </button>
+                          <button
+  onClick={() => toggleBookmark(idea)}
+  className="p-2 text-gray-400 hover:text-skyblue transition-colors"
+>
+  <Bookmark
+    className={`w-5 h-5 ${idea.isBookmarked ? "fill-current text-skyblue" : ""}`}
+  />
+</button>
+
+
                         </div>
                       </div>
 

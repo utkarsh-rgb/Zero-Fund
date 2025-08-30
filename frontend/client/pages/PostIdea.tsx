@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ArrowLeft,
@@ -69,7 +69,7 @@ const PROJECT_STAGES = [
 ];
 
 export default function PostIdea() {
-   const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isPreview, setIsPreview] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -114,63 +114,61 @@ export default function PostIdea() {
     }));
   };
 
-const handlePublish = async () => {
- 
-  try {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const entrepreneurId = userData?.id; // optional chaining in case it's missing
+  const handlePublish = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const entrepreneurId = userData?.id; // optional chaining in case it's missing
 
-    // Create FormData
-    const data = new FormData();
-    data.append("title", formData.title);
-    data.append("overview", formData.overview);
-    data.append("stage", formData.stage);
-    data.append("equityOffering", formData.equityOffering);
-    data.append("visibility", formData.visibility);
-    data.append("timeline", formData.timeline);
-    data.append("budget", formData.budget);
-    data.append("additionalRequirements", formData.additionalRequirements);
+      // Create FormData
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("overview", formData.overview);
+      data.append("stage", formData.stage);
+      data.append("equityOffering", formData.equityOffering);
+      data.append("visibility", formData.visibility);
+      data.append("timeline", formData.timeline);
+      data.append("budget", formData.budget);
+      data.append("additionalRequirements", formData.additionalRequirements);
 
-    // Convert requiredSkills array to JSON string
-    data.append("requiredSkills", JSON.stringify(formData.requiredSkills));
+      // Convert requiredSkills array to JSON string
+      data.append("requiredSkills", JSON.stringify(formData.requiredSkills));
 
-    // Append attachments
-    formData.attachments.forEach((file) => {
-      data.append("attachments", file);
-    });
-  // Append entrepreneur_id
-    data.append("entrepreneur_id", entrepreneurId);
-    // Log FormData contents
-    console.log("FormData contents:");
-    for (const [key, value] of data.entries()) {
-      console.log(key, value);
-    }
-
-    // Send FormData to backend using Axios
-    const response = await axios.post(
-      "http://localhost:5000/post-idea",
-      data,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      // Append attachments
+      formData.attachments.forEach((file) => {
+        data.append("attachments", file);
+      });
+      // Append entrepreneur_id
+      data.append("entrepreneur_id", entrepreneurId);
+      // Log FormData contents
+      console.log("FormData contents:");
+      for (const [key, value] of data.entries()) {
+        console.log(key, value);
       }
-    );
 
-    // Log full response
-    console.log("Server response details:", response);
+      // Send FormData to backend using Axios
+      const response = await axios.post(
+        "http://localhost:5000/post-idea",
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-    // Show alert
-    alert("Idea submitted successfully!");
+      // Log full response
+      console.log("Server response details:", response);
 
-    // Redirect to entrepreneur-dashboard
-    navigate("/entrepreneur-dashboard");
-  } catch (error) {
-    console.error("Error submitting idea:", error);
-    alert("Failed to submit idea. Please try again.");
-  }
-};
+      // Show alert
+      alert("Idea submitted successfully!");
 
+      // Redirect to entrepreneur-dashboard
+      navigate("/entrepreneur-dashboard");
+    } catch (error) {
+      console.error("Error submitting idea:", error);
+      alert("Failed to submit idea. Please try again.");
+    }
+  };
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase();
@@ -238,9 +236,7 @@ const handlePublish = async () => {
                   <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                     <Lightbulb className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-xl font-bold text-navy">
-                    Zero Fund
-                  </span>
+                  <span className="text-xl font-bold text-navy">Zero Fund</span>
                 </Link>
               </div>
             </div>
@@ -407,9 +403,7 @@ const handlePublish = async () => {
                 <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-navy">
-                  Zero Fund
-                </span>
+                <span className="text-xl font-bold text-navy">Zero Fund</span>
               </Link>
             </div>
           </div>

@@ -65,8 +65,6 @@ interface Collaboration {
   startDate: string;
 }
 
-
-
 const MOCK_COLLABORATIONS: Collaboration[] = [
   {
     id: "1",
@@ -96,7 +94,7 @@ export default function EntrepreneurDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [ideas, setIdeas] = useState<Idea[]>([]);
- const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
 
   const [collaborations] = useState<Collaboration[]>(MOCK_COLLABORATIONS);
   const handleLogout = () => {
@@ -105,7 +103,6 @@ export default function EntrepreneurDashboard() {
     navigate("/login"); // redirect to login page
   };
 
-  
   useEffect(() => {
     const checkUserAndFetchIdeas = async () => {
       // 1️⃣ Check user
@@ -135,7 +132,7 @@ export default function EntrepreneurDashboard() {
     checkUserAndFetchIdeas();
   }, [navigate]);
 
-const fetchProposals = async () => {
+  const fetchProposals = async () => {
     // Get entrepreneurId from localStorage here
     const userDataString = localStorage.getItem("userData");
     const userData = userDataString ? JSON.parse(userDataString) : null;
@@ -148,7 +145,7 @@ const fetchProposals = async () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/entrepreneur-proposals/${entrepreneurId}`
+        `http://localhost:5000/entrepreneur-proposals/${entrepreneurId}`,
       );
       console.log("Proposals fetched:", response.data);
       setProposals(response.data.proposals); // store in state
@@ -186,21 +183,26 @@ const fetchProposals = async () => {
     navigate(`/edit-idea/${id}`);
   };
 
-const handleProposalAction = async (proposalId: number, action: "accept" | "reject") => {
-  try {
-    const res = await axios.post(`http://localhost:5000/proposal/${proposalId}/status`, { action });
-    const updatedStatus = res.data.status;
+  const handleProposalAction = async (
+    proposalId: number,
+    action: "accept" | "reject",
+  ) => {
+    try {
+      const res = await axios.post(
+        `http://localhost:5000/proposal/${proposalId}/status`,
+        { action },
+      );
+      const updatedStatus = res.data.status;
 
-    setProposals(prev =>
-      prev.map(p =>
-        p.id === proposalId.toString() ? { ...p, status: updatedStatus } : p
-      )
-    );
-  } catch (err) {
-    console.error("Failed to update proposal:", err);
-  }
-};
-
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === proposalId.toString() ? { ...p, status: updatedStatus } : p,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update proposal:", err);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -791,39 +793,43 @@ const handleProposalAction = async (proposalId: number, action: "accept" | "reje
             )}
 
             {/* Proposals Tab */}
-          {activeTab === "proposals" && (
-  <div>
-    <div className="mb-6 flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-bold text-navy mb-2">Developer Proposals</h1>
-        <p className="text-gray-600">
-          Review and manage proposals submitted for your ideas
-        </p>
-      </div>
-      <div className="text-sm font-medium text-gray-600">
-        Total Proposals: {proposals.length}
-      </div>
-    </div>
-
-    <div className="space-y-6">
-      {proposals.map((proposal) => (
-        <div
-          key={proposal.id}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-        >
-          {/* Developer Info */}
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
-                {proposal.developerName[0].toUpperCase()}
-              </div>
+            {activeTab === "proposals" && (
               <div>
-                <h3 className="text-lg font-semibold text-navy">
-                  {proposal.developerName}
-                </h3>
-                <p className="text-gray-600 mb-2">Applied for: {proposal.ideaTitle}</p>
+                <div className="mb-6 flex justify-between items-center">
+                  <div>
+                    <h1 className="text-2xl font-bold text-navy mb-2">
+                      Developer Proposals
+                    </h1>
+                    <p className="text-gray-600">
+                      Review and manage proposals submitted for your ideas
+                    </p>
+                  </div>
+                  <div className="text-sm font-medium text-gray-600">
+                    Total Proposals: {proposals.length}
+                  </div>
+                </div>
 
-                {/* <div className="flex flex-wrap gap-1">
+                <div className="space-y-6">
+                  {proposals.map((proposal) => (
+                    <div
+                      key={proposal.id}
+                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                    >
+                      {/* Developer Info */}
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
+                            {proposal.developerName[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-navy">
+                              {proposal.developerName}
+                            </h3>
+                            <p className="text-gray-600 mb-2">
+                              Applied for: {proposal.ideaTitle}
+                            </p>
+
+                            {/* <div className="flex flex-wrap gap-1">
                   {proposal.skills.map((skill) => (
                     <span
                       key={skill}
@@ -833,92 +839,110 @@ const handleProposalAction = async (proposalId: number, action: "accept" | "reje
                     </span>
                   ))}
                 </div> */}
+                          </div>
+                        </div>
+
+                        {/* Status Badge */}
+                        <span
+                          className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
+                            proposal.status,
+                          )}`}
+                        >
+                          {proposal.status}
+                        </span>
+                      </div>
+
+                      {/* Proposal Details */}
+                      <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">
+                            Equity Requested:
+                          </span>
+                          <p className="font-semibold text-skyblue">
+                            {proposal.equityRequested}%
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Timeline:</span>
+                          <p className="font-semibold">{proposal.timeline}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Submitted:</span>
+                          <p className="font-semibold">
+                            {new Date(proposal.submittedAt).toLocaleString(
+                              "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons for Entrepreneur */}
+                      {proposal.status === "Pending" && (
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() =>
+                              handleProposalAction(
+                                Number(proposal.id),
+                                "accept",
+                              )
+                            }
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Accept</span>
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleProposalAction(
+                                Number(proposal.id),
+                                "reject",
+                              )
+                            }
+                            className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Reject
+                          </button>
+                          <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
+                            <MessageCircle className="w-4 h-4" />
+                            <span>Chat</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {proposal.status === "Accepted" && (
+                        <div className="flex space-x-3">
+                          <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
+                            <MessageCircle className="w-4 h-4" />
+                            <span>Chat</span>
+                          </button>
+                          <Link
+                            to="/contract-builder"
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>Generate Contract</span>
+                          </Link>
+                        </div>
+                      )}
+
+                      {proposal.status === "Rejected" && (
+                        <p className="text-red-500 font-medium">
+                          This proposal has been rejected.
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Status Badge */}
-            <span
-              className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
-                proposal.status
-              )}`}
-            >
-              {proposal.status}
-            </span>
-          </div>
-
-          {/* Proposal Details */}
-          <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
-            <div>
-              <span className="text-gray-500">Equity Requested:</span>
-              <p className="font-semibold text-skyblue">{proposal.equityRequested}%</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Timeline:</span>
-              <p className="font-semibold">{proposal.timeline}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Submitted:</span>
-              <p className="font-semibold">
-                {new Date(proposal.submittedAt).toLocaleString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })}
-              </p>
-            </div>
-          </div>
-
-          {/* Action Buttons for Entrepreneur */}
-          {proposal.status === "Pending" && (
-            <div className="flex space-x-3">
-              <button
-                onClick={() => handleProposalAction(Number(proposal.id), "accept")}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <CheckCircle className="w-4 h-4" />
-                <span>Accept</span>
-              </button>
-              <button
-                onClick={() => handleProposalAction(Number(proposal.id), "reject")}
-                className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Reject
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat</span>
-              </button>
-            </div>
-          )}
-
-          {proposal.status === "Accepted" && (
-            <div className="flex space-x-3">
-              <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                <span>Chat</span>
-              </button>
-              <Link
-                to="/contract-builder"
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Generate Contract</span>
-              </Link>
-            </div>
-          )}
-
-          {proposal.status === "Rejected" && (
-            <p className="text-red-500 font-medium">This proposal has been rejected.</p>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
+            )}
 
             {/* Collaborations Tab */}
             {activeTab === "collaborations" && (

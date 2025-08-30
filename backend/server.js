@@ -28,6 +28,7 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // File uploads
@@ -50,7 +51,10 @@ app.post("/developers/signup", async (req, res) => {
     if (!fullName || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
 
-    const [existing] = await pool.execute("SELECT * FROM developers WHERE email = ?", [email]);
+    const [existing] = await pool.execute(
+      "SELECT * FROM developers WHERE email = ?",
+      [email]
+    );
     if (existing.length > 0)
       return res.status(400).json({ message: "Email already registered" });
 
@@ -74,7 +78,10 @@ app.post("/entrepreneur/signup", async (req, res) => {
     if (!fullName || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
 
-    const [existing] = await pool.execute("SELECT * FROM entrepreneur WHERE email = ?", [email]);
+    const [existing] = await pool.execute(
+      "SELECT * FROM entrepreneur WHERE email = ?",
+      [email]
+    );
     if (existing.length > 0)
       return res.status(400).json({ message: "Email already registered" });
 
@@ -84,7 +91,9 @@ app.post("/entrepreneur/signup", async (req, res) => {
       [fullName, email, hashedPassword]
     );
 
-    res.status(201).json({ message: "Entrepreneur account created successfully" });
+    res
+      .status(201)
+      .json({ message: "Entrepreneur account created successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -99,9 +108,13 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
 
     const table = userType === "developer" ? "developers" : "entrepreneur";
-    const [rows] = await pool.execute(`SELECT * FROM ${table} WHERE email = ?`, [email]);
+    const [rows] = await pool.execute(
+      `SELECT * FROM ${table} WHERE email = ?`,
+      [email]
+    );
 
-    if (rows.length === 0) return res.status(400).json({ message: "User not found" });
+    if (rows.length === 0)
+      return res.status(400).json({ message: "User not found" });
 
     const user = rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
@@ -130,27 +143,34 @@ app.post("/api/login", async (req, res) => {
 // Post idea
 app.post("/post-idea", upload.array("attachments"), async (req, res) => {
   try {
- console.log("Request body:", req.body);
-console.log("Uploaded files:", req.files);
-
+    console.log("Request body:", req.body);
+    console.log("Uploaded files:", req.files);
 
     const {
-      title, overview, stage, equityOffering, visibility,
-      timeline, budget, additionalRequirements, requiredSkills,
+      title,
+      overview,
+      stage,
+      equityOffering,
+      visibility,
+      timeline,
+      budget,
+      additionalRequirements,
+      requiredSkills,
       entrepreneur_id,
     } = req.body;
-       if (!entrepreneur_id) {
+    if (!entrepreneur_id) {
       return res.status(400).json({ error: "Entrepreneur ID is required" });
     }
 
     // Convert numeric fields safely
     const budgetValue = budget === "" ? null : parseFloat(budget);
-const equityValue = equityOffering || null;
+    const equityValue = equityOffering || null;
 
     // Parse requiredSkills JSON
-    const skillsArray = typeof requiredSkills === "string"
-      ? JSON.parse(requiredSkills)
-      : requiredSkills;
+    const skillsArray =
+      typeof requiredSkills === "string"
+        ? JSON.parse(requiredSkills)
+        : requiredSkills;
 
     // Process uploaded files
     const attachmentsArray = req.files.map((file) => ({
@@ -165,9 +185,17 @@ const equityValue = equityOffering || null;
     `;
 
     const values = [
-      entrepreneur_id,title, overview, stage, equityValue, visibility, timeline,
-      budgetValue, additionalRequirements,
-      JSON.stringify(requiredSkills), JSON.stringify(attachmentsArray),
+      entrepreneur_id,
+      title,
+      overview,
+      stage,
+      equityValue,
+      visibility,
+      timeline,
+      budgetValue,
+      additionalRequirements,
+      JSON.stringify(requiredSkills),
+      JSON.stringify(attachmentsArray),
     ];
 
     const [result] = await pool.execute(sql, values);
@@ -180,7 +208,9 @@ const equityValue = equityOffering || null;
     });
   } catch (error) {
     console.error("Error inserting project:", error.message);
-    res.status(500).json({ error: "Something went wrong", message: error.message });
+    res
+      .status(500)
+      .json({ error: "Something went wrong", message: error.message });
   }
 });
 
@@ -193,15 +223,25 @@ app.get("/developer-profile/:id", authenticateJWT, async (req, res) => {
       `SELECT id, fullName, email, bio, location FROM developers WHERE id = ?`,
       [id]
     );
-    if (devResults.length === 0) return res.status(404).json({ message: "Developer not found" });
+    if (devResults.length === 0)
+      return res.status(404).json({ message: "Developer not found" });
 
     const developer = devResults[0];
 
-    const [skills] = await pool.execute(`SELECT skill FROM developer_skills WHERE developer_id = ?`, [id]);
-    developer.skills = skills.map(row => row.skill);
+    const [skills] = await pool.execute(
+      `SELECT skill FROM developer_skills WHERE developer_id = ?`,
+      [id]
+    );
+    developer.skills = skills.map((row) => row.skill);
 
-    const [links] = await pool.execute(`SELECT platform, url FROM developer_links WHERE developer_id = ?`, [id]);
-    developer.socialLinks = links.map(row => ({ platform: row.platform, url: row.url }));
+    const [links] = await pool.execute(
+      `SELECT platform, url FROM developer_links WHERE developer_id = ?`,
+      [id]
+    );
+    developer.socialLinks = links.map((row) => ({
+      platform: row.platform,
+      url: row.url,
+    }));
 
     const [projects] = await pool.execute(
       `SELECT project_name, project_url, description FROM developer_projects WHERE developer_id = ?`,
@@ -220,28 +260,51 @@ app.get("/developer-profile/:id", authenticateJWT, async (req, res) => {
 app.put("/developer-profile/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, email, bio, location, skills, socialLinks, projects } = req.body;
+    const { fullName, email, bio, location, skills, socialLinks, projects } =
+      req.body;
 
     await pool.execute(
       `UPDATE developers SET fullName = ?, email = ?, bio = ?, location = ? WHERE id = ?`,
       [fullName, email, bio, location, id]
     );
 
-    await pool.execute(`DELETE FROM developer_skills WHERE developer_id = ?`, [id]);
+    await pool.execute(`DELETE FROM developer_skills WHERE developer_id = ?`, [
+      id,
+    ]);
     if (skills?.length) {
-      const skillValues = skills.map(skill => [id, skill]);
-      await pool.query(`INSERT INTO developer_skills (developer_id, skill) VALUES ?`, [skillValues]);
+      const skillValues = skills.map((skill) => [id, skill]);
+      await pool.query(
+        `INSERT INTO developer_skills (developer_id, skill) VALUES ?`,
+        [skillValues]
+      );
     }
 
-    await pool.execute(`DELETE FROM developer_links WHERE developer_id = ?`, [id]);
+    await pool.execute(`DELETE FROM developer_links WHERE developer_id = ?`, [
+      id,
+    ]);
     if (socialLinks?.length) {
-      const linkValues = socialLinks.map(link => [id, link.platform, link.url]);
-      await pool.query(`INSERT INTO developer_links (developer_id, platform, url) VALUES ?`, [linkValues]);
+      const linkValues = socialLinks.map((link) => [
+        id,
+        link.platform,
+        link.url,
+      ]);
+      await pool.query(
+        `INSERT INTO developer_links (developer_id, platform, url) VALUES ?`,
+        [linkValues]
+      );
     }
 
-    await pool.execute(`DELETE FROM developer_projects WHERE developer_id = ?`, [id]);
+    await pool.execute(
+      `DELETE FROM developer_projects WHERE developer_id = ?`,
+      [id]
+    );
     if (projects?.length) {
-      const projectValues = projects.map(p => [id, p.project_name, p.project_url, p.description]);
+      const projectValues = projects.map((p) => [
+        id,
+        p.project_name,
+        p.project_url,
+        p.description,
+      ]);
       await pool.query(
         `INSERT INTO developer_projects (developer_id, project_name, project_url, description) VALUES ?`,
         [projectValues]
@@ -255,37 +318,37 @@ app.put("/developer-profile/:id", async (req, res) => {
   }
 });
 
-
 app.get("/entrepreneur-dashboard", async (req, res) => {
-  
   try {
     const [rows] = await pool.query(
       "SELECT * FROM entrepreneur_idea ORDER BY created_at DESC"
     );
 
     // convert JSON fields back to JS objects
-  const ideas = rows.map((row) => {
-  let requiredSkills = [];
-  let attachments = [];
-  
-  try {
-    requiredSkills = row.required_skills ? JSON.parse(row.required_skills) : [];
-  } catch (err) {
-    requiredSkills = row.required_skills ? [row.required_skills] : [];
-  }
+    const ideas = rows.map((row) => {
+      let requiredSkills = [];
+      let attachments = [];
 
-  try {
-    attachments = row.attachments ? JSON.parse(row.attachments) : [];
-  } catch (err) {
-    attachments = row.attachments ? [row.attachments] : [];
-  }
+      try {
+        requiredSkills = row.required_skills
+          ? JSON.parse(row.required_skills)
+          : [];
+      } catch (err) {
+        requiredSkills = row.required_skills ? [row.required_skills] : [];
+      }
 
-  return {
-    ...row,
-    required_skills: requiredSkills,
-    attachments: attachments,
-  };
-});
+      try {
+        attachments = row.attachments ? JSON.parse(row.attachments) : [];
+      } catch (err) {
+        attachments = row.attachments ? [row.attachments] : [];
+      }
+
+      return {
+        ...row,
+        required_skills: requiredSkills,
+        attachments: attachments,
+      };
+    });
 
     res.json(ideas);
   } catch (err) {
@@ -334,7 +397,8 @@ app.get("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
       [id]
     );
 
-    if (rows.length === 0) return res.status(404).json({ error: "Idea not found" });
+    if (rows.length === 0)
+      return res.status(404).json({ error: "Idea not found" });
 
     const idea = rows[0];
     idea.required_skills = parseJSONSafe(idea.required_skills);
@@ -347,12 +411,21 @@ app.get("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
   }
 });
 
-
-
 // PUT /api/ideas/:id
 app.put("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
   const { id } = req.params;
-  const { title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments } = req.body;
+  const {
+    title,
+    overview,
+    stage,
+    equity_offering,
+    visibility,
+    timeline,
+    budget,
+    additional_requirements,
+    required_skills,
+    attachments,
+  } = req.body;
 
   try {
     const [result] = await pool.query(
@@ -368,7 +441,7 @@ app.put("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
         additional_requirements,
         JSON.stringify(required_skills),
         JSON.stringify(attachments),
-        id
+        id,
       ]
     );
 
@@ -383,18 +456,22 @@ app.put("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
   }
 });
 
-
 // GET /developer-dashboard
-app.get("/developer-dashboard", async (req, res) => {
+app.get("/developer-dashboard/:developerId", async (req, res) => {
+  const { developerId } = req.params;
+
   try {
-    // Fetch all pending ideas
     const [rows] = await pool.query(
       `SELECT 
-      e.name,
-         ei.*
+          e.name,
+          ei.*,
+          CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
        FROM entrepreneur_idea ei
-       JOIN entrepreneur e on ei.entrepreneur_id = e.id
-       WHERE ei.status = 0`
+       JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+       LEFT JOIN bookmarks b 
+         ON b.idea_id = ei.id AND b.developer_id = ?
+       WHERE ei.status = 0`,
+      [developerId]
     );
 
     res.json({
@@ -410,17 +487,20 @@ app.get("/developer-dashboard", async (req, res) => {
   }
 });
 
-app.get('/proposal/:id', async (req, res) => {
+app.get("/proposal/:id", async (req, res) => {
   const id = req.params.id;
   try {
-    const [results] = await pool.query('SELECT e.name AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?', [id]);
+    const [results] = await pool.query(
+      "SELECT e.name AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?",
+      [id]
+    );
     if (results.length === 0) {
-      return res.status(404).json({ error: 'Proposal not found' });
+      return res.status(404).json({ error: "Proposal not found" });
     }
     res.json(results[0]);
   } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Database error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
@@ -428,12 +508,12 @@ app.post("/submit-proposal", async (req, res) => {
   try {
     const {
       ideaId,
-      developerId, 
+      developerId,
       scope,
       timeline,
       equityRequested,
       additionalNotes,
-      milestones, 
+      milestones,
     } = req.body;
 
     if (!ideaId || !developerId || !scope || !timeline || !equityRequested) {
@@ -524,7 +604,6 @@ WHERE ei.entrepreneur_id = ?
   }
 });
 
-
 // Update proposal status
 app.post("/proposal/:proposalId/status", async (req, res) => {
   const { proposalId } = req.params;
@@ -535,7 +614,10 @@ app.post("/proposal/:proposalId/status", async (req, res) => {
     if (action === "accept") status = "Approved";
     else if (action === "reject") status = "Rejected";
 
-    await pool.execute("UPDATE proposals SET status = ? WHERE id = ?", [status, proposalId]);
+    await pool.execute("UPDATE proposals SET status = ? WHERE id = ?", [
+      status,
+      proposalId,
+    ]);
 
     res.json({ message: `Proposal ${status.toLowerCase()}`, status });
   } catch (err) {
@@ -544,65 +626,64 @@ app.post("/proposal/:proposalId/status", async (req, res) => {
   }
 });
 
-app.get('/ideas/:id', async (req, res) => {
+app.get("/ideas/:id", async (req, res) => {
   const ideaId = req.params.id;
   try {
     const [rows] = await pool.execute(
-      'SELECT * FROM entrepreneur_idea WHERE id = ?',
+      "SELECT * FROM entrepreneur_idea WHERE id = ?",
       [ideaId]
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'Idea not found' });
+      return res.status(404).json({ error: "Idea not found" });
     }
 
     const idea = rows[0];
 
     // Parse required_skills safely and flatten nested arrays
     try {
-      const parsedSkills = JSON.parse(idea.required_skills || '[]');
+      const parsedSkills = JSON.parse(idea.required_skills || "[]");
       idea.required_skills = Array.isArray(parsedSkills)
         ? parsedSkills.flat(Infinity)
         : [];
     } catch (err) {
-      console.error('Error parsing required_skills:', err);
+      console.error("Error parsing required_skills:", err);
       idea.required_skills = [];
     }
 
     // Parse attachments safely
     try {
-      const parsedAttachments = JSON.parse(idea.attachments || '[]');
-      idea.attachments = Array.isArray(parsedAttachments) ? parsedAttachments : [];
+      const parsedAttachments = JSON.parse(idea.attachments || "[]");
+      idea.attachments = Array.isArray(parsedAttachments)
+        ? parsedAttachments
+        : [];
     } catch (err) {
-      console.error('Error parsing attachments:', err);
+      console.error("Error parsing attachments:", err);
       idea.attachments = [];
     }
 
     // Return idea object
     res.json({ idea });
   } catch (error) {
-    console.error('Error fetching idea:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching idea:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-
-
-
-app.put('/ideas/:id/sign-nda', async (req, res) => {
+app.put("/ideas/:id/sign-nda", async (req, res) => {
   const ideaId = req.params.id;
   try {
     const [result] = await pool.execute(
-      'UPDATE entrepreneur_idea SET nda_accepted = 1 WHERE id = ?',
+      "UPDATE entrepreneur_idea SET nda_accepted = 1 WHERE id = ?",
       [ideaId]
     );
     if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Idea not found' });
+      return res.status(404).json({ error: "Idea not found" });
     }
-    res.json({ success: true, message: 'NDA accepted' });
+    res.json({ success: true, message: "NDA accepted" });
   } catch (error) {
-    console.error('Error updating NDA status:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error updating NDA status:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -644,7 +725,38 @@ app.get("/manage-proposals/:ideaId", async (req, res) => {
     });
   }
 });
+// Toggle bookmark
+// Make sure this is at the top of server.js
+app.use(express.json());
 
+app.post("/api/developer-dashboard/bookmarks/toggle", async (req, res) => {
+  const { developer_id, idea_id, toggle } = req.body;
+
+  if (!developer_id || !idea_id || toggle === undefined) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    if (toggle) {
+      // Add bookmark
+      await pool.query(
+        "INSERT INTO bookmarks (developer_id, idea_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE updated_at=NOW()",
+        [developer_id, idea_id]
+      );
+      return res.json({ message: "Bookmark added" });
+    } else {
+      // Remove bookmark
+      await pool.query(
+        "DELETE FROM bookmarks WHERE developer_id = ? AND idea_id = ?",
+        [developer_id, idea_id]
+      );
+      return res.json({ message: "Bookmark removed" });
+    }
+  } catch (err) {
+    console.error("Bookmark toggle error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link,useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import axios from "axios";
 import {
@@ -68,9 +68,8 @@ interface Proposal {
   lastActivity: string;
 }
 
-
 export default function ManageProposals() {
-   const { id } = useParams();
+  const { id } = useParams();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -78,7 +77,7 @@ export default function ManageProposals() {
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(
     null,
   );
-   const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -96,68 +95,65 @@ export default function ManageProposals() {
     return matchesIdea && matchesStatus && matchesSearch;
   });
 
-useEffect(() => {
-  const fetchProposals = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  useEffect(() => {
+    const fetchProposals = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-      // Make API call to backend
-      const response = await axios.get(
-        `http://localhost:5000/manage-proposals/${id}`
-      );
-      console.log( response.data.data);
-      if (response.data.success) {
-        
-        const fetchedProposals: Proposal[] = response.data.data.map(
-          (p: any) => ({
-            id: p.proposal_id.toString(),
-            developer: {
-              id: "dev" + p.proposal_id, // or you can use actual developer ID if available
-              name: p.developer_name,
-              email: p.developer_email,
-              avatar: "", // optional
-              location: "", // optional
-              timezone: "", // optional
-              rating: 0, // optional
-              completedProjects: 0, // optional
-              skills: [], // optional
-              github: "",
-              linkedin: "",
-              portfolio: "",
-              isVerified: true, // optional
-              responseTime: "",
-            },
-            ideaId: id,
-            ideaTitle: p.ideaTitle, // optional, or pass idea title from backend
-            submittedAt: p.created_at || new Date().toISOString(),
-            status: p.proposal_status as Proposal["status"],
-            equityRequested: p.equity_requested,
-            proposedTimeline: p.timeline,
-            scope: p.scope,
-            milestones: [], // if backend provides milestones, map them here
-            additionalNotes: p.additional_notes,
-            attachments: [], // optional
-            lastActivity: p.created_at || new Date().toISOString(),
-          })
+        // Make API call to backend
+        const response = await axios.get(
+          `http://localhost:5000/manage-proposals/${id}`,
         );
+        console.log(response.data.data);
+        if (response.data.success) {
+          const fetchedProposals: Proposal[] = response.data.data.map(
+            (p: any) => ({
+              id: p.proposal_id.toString(),
+              developer: {
+                id: "dev" + p.proposal_id, // or you can use actual developer ID if available
+                name: p.developer_name,
+                email: p.developer_email,
+                avatar: "", // optional
+                location: "", // optional
+                timezone: "", // optional
+                rating: 0, // optional
+                completedProjects: 0, // optional
+                skills: [], // optional
+                github: "",
+                linkedin: "",
+                portfolio: "",
+                isVerified: true, // optional
+                responseTime: "",
+              },
+              ideaId: id,
+              ideaTitle: p.ideaTitle, // optional, or pass idea title from backend
+              submittedAt: p.created_at || new Date().toISOString(),
+              status: p.proposal_status as Proposal["status"],
+              equityRequested: p.equity_requested,
+              proposedTimeline: p.timeline,
+              scope: p.scope,
+              milestones: [], // if backend provides milestones, map them here
+              additionalNotes: p.additional_notes,
+              attachments: [], // optional
+              lastActivity: p.created_at || new Date().toISOString(),
+            }),
+          );
 
-        setProposals(fetchedProposals);
-        
-      } else {
-        setError("Failed to fetch proposals.");
+          setProposals(fetchedProposals);
+        } else {
+          setError("Failed to fetch proposals.");
+        }
+      } catch (err: any) {
+        console.error(err);
+        setError("An error occurred while fetching proposals.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError("An error occurred while fetching proposals.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchProposals();
-}, [id]);
-
+    fetchProposals();
+  }, [id]);
 
   const handleAcceptProposal = (proposalId: string) => {
     setProposals((prev) =>

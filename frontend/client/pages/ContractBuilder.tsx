@@ -125,59 +125,62 @@ export default function ContractBuilder() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load proposal data on component mount
-useEffect(() => {
-  async function fetchProposalData(proposalId: number) {
-    try {
-      const response = await fetch(`/api/proposals/${proposalId}`);
-      const result = await response.json();
+  useEffect(() => {
+    async function fetchProposalData(proposalId: number) {
+      try {
+        const response = await fetch(`/api/proposals/${proposalId}`);
+        const result = await response.json();
 
-      if (result.success && result.data && result.data.length > 0) {
-        const proposal = result.data[0];
+        if (result.success && result.data && result.data.length > 0) {
+          const proposal = result.data[0];
 
-        setContractData((prev) => ({
-          ...prev,
-          entrepreneurName: proposal.entrepreneur_name || prev.entrepreneurName,
-          entrepreneurEmail: proposal.entrepreneur_email || prev.entrepreneurEmail,
-          entrepreneurCompany: "", // no API data available
-          developerName: proposal.developer_name || prev.developerName,
-          developerEmail: proposal.developer_email || prev.developerEmail,
-          projectTitle: proposal.additional_notes || "Project Title Not Provided",
-          projectDescription: proposal.additional_notes || "",
-          scope: proposal.scope || prev.scope,
-          timeline: proposal.timeline || prev.timeline,
-          milestones: [], // no milestone data from API
-          equityPercentage: proposal.equity_requested
-            ? proposal.equity_requested.toString().replace("%", "")
-            : prev.equityPercentage,
+          setContractData((prev) => ({
+            ...prev,
+            entrepreneurName:
+              proposal.entrepreneur_name || prev.entrepreneurName,
+            entrepreneurEmail:
+              proposal.entrepreneur_email || prev.entrepreneurEmail,
+            entrepreneurCompany: "", // no API data available
+            developerName: proposal.developer_name || prev.developerName,
+            developerEmail: proposal.developer_email || prev.developerEmail,
+            projectTitle:
+              proposal.additional_notes || "Project Title Not Provided",
+            projectDescription: proposal.additional_notes || "",
+            scope: proposal.scope || prev.scope,
+            timeline: proposal.timeline || prev.timeline,
+            milestones: [], // no milestone data from API
+            equityPercentage: proposal.equity_requested
+              ? proposal.equity_requested.toString().replace("%", "")
+              : prev.equityPercentage,
 
-          // static defaults for missing legal terms not provided by API
-          ipOwnership: "100% owned by Entrepreneur",
-          confidentiality: "5 years",
-          terminationClause: "30 days written notice",
-          disputeResolution: "Binding arbitration in Bangalore, Karnataka, India",
-          governingLaw: "Laws of India",
+            // static defaults for missing legal terms not provided by API
+            ipOwnership: "100% owned by Entrepreneur",
+            confidentiality: "5 years",
+            terminationClause: "30 days written notice",
+            disputeResolution:
+              "Binding arbitration in Bangalore, Karnataka, India",
+            governingLaw: "Laws of India",
 
-          additionalClauses: [],
-          revisions: "2 rounds of revisions included",
-          supportTerms: "30 days post-delivery support included",
-        }));
+            additionalClauses: [],
+            revisions: "2 rounds of revisions included",
+            supportTerms: "30 days post-delivery support included",
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching proposal data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching proposal data:", error);
     }
-  }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const proposalIdParam = urlParams.get("proposalId");
+    const urlParams = new URLSearchParams(window.location.search);
+    const proposalIdParam = urlParams.get("proposalId");
 
-  if (proposalIdParam) {
-    const proposalId = parseInt(proposalIdParam, 10);
-    if (!isNaN(proposalId)) {
-      fetchProposalData(proposalId);
+    if (proposalIdParam) {
+      const proposalId = parseInt(proposalIdParam, 10);
+      if (!isNaN(proposalId)) {
+        fetchProposalData(proposalId);
+      }
     }
-  }
-}, []);
-
+  }, []);
 
   const handleInputChange = (
     field: keyof ContractData,
@@ -334,9 +337,7 @@ useEffect(() => {
                   <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                     <Lightbulb className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-xl font-bold text-navy">
-                    Zero Fund
-                  </span>
+                  <span className="text-xl font-bold text-navy">Zero Fund</span>
                 </Link>
               </div>
             </div>
@@ -526,9 +527,7 @@ useEffect(() => {
                 <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                   <Lightbulb className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-navy">
-                  Zero Fund
-                </span>
+                <span className="text-xl font-bold text-navy">Zero Fund</span>
               </Link>
             </div>
           </div>

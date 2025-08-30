@@ -4,7 +4,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import EntrepreneurSignup from "./pages/EntrepreneurSignup";
@@ -79,7 +85,10 @@ export default function App() {
             />
             <Route path="/developer-signup" element={<DeveloperSignup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:role/:token" element={<ResetPassword />} />
+            <Route
+              path="/reset-password/:role/:token"
+              element={<ResetPassword />}
+            />
 
             <Route
               path="/login"
@@ -107,14 +116,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-<Route
-          path="/edit-idea/:id"
-          element={
-            <ProtectedRoute>
-              <EditIdea />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+              path="/edit-idea/:id"
+              element={
+                <ProtectedRoute>
+                  <EditIdea />
+                </ProtectedRoute>
+              }
+            />
             {/* Profile routes */}
             <Route
               path="/developer-profile"
