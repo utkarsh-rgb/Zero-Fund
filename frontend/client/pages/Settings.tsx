@@ -49,6 +49,8 @@ export default function Settings() {
 const userDataString = localStorage.getItem("userData");
 const userData = userDataString ? JSON.parse(userDataString) : {};
 const userType = userData.userType;
+const name = userData.fullname;
+const userEmail = userData.email;
 console.log(userType);
   const handleLogout = () => {
   localStorage.removeItem("jwt_token");
@@ -92,7 +94,7 @@ console.log(userType);
 
             <div className="flex items-center space-x-4">
               <div className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                {userInitials}
+                {userType}
               </div>
             </div>
           </div>
@@ -157,7 +159,7 @@ console.log(userType);
                   {/* Profile Picture */}
                   <div className="flex items-center space-x-6">
                     <div className="w-24 h-24 bg-skyblue rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                      {userInitials}
+                      {}
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-navy mb-2">
@@ -184,7 +186,7 @@ console.log(userType);
                       </label>
                       <input
                         type="text"
-                        defaultValue={userName}
+                        defaultValue={name}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
                       />
                     </div>
