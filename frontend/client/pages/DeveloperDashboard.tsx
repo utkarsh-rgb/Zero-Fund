@@ -84,7 +84,7 @@ const MOCK_COLLABORATIONS: Collaboration[] = [
 ];
 
 export default function DeveloperDashboard() {
-  const navigate = useNavigate();
+  
   const [activeTab, setActiveTab] = useState("feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -92,67 +92,64 @@ export default function DeveloperDashboard() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [proposals, setProposals] = useState<any[]>([]);
+const [count, setCount] = useState<number | null>(null);
 
+const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+const developer_id = userData.id;
 
+useEffect(() => {
+  if (!userData?.id || userData.userType !== "developer") return;
 
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const developer_id = userData.id;
-    console.log(developer_id);
-    if (!userData?.userType) {
-      navigate("/login");
-      return;
+  const fetchIdeas = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/developer-dashboard/${developer_id}`
+      );
+      if (res.data.success) {
+        const ideasWithBookmark = res.data.data.map((idea: any) => ({
+          ...idea,
+          isBookmarked: idea.is_bookmarked === 1,
+        }));
+        setIdeas(ideasWithBookmark);
+      } else setError("Failed to fetch ideas");
+    } catch (err) {
+      setError("Server error while fetching ideas");
+    } finally {
+      setLoading(false);
     }
-    if (!userData?.id) {
-      navigate("/login");
-      return;
-    }
-    if (userData.userType !== "developer") {
-      navigate("/entrepreneur-dashboard");
-      return;
-    }
+  };
 
-    const fetchIdeas = async () => {
-  setLoading(true);
+  const fetchProposals = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/developer-proposals/${developer_id}`
+      );
+      setProposals(res.data.proposals || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+    fetchBookmarkCount();
+  fetchIdeas();
+  fetchProposals();
+}, [developer_id]); 
+
+ const fetchBookmarkCount = async () => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/developer-dashboard/${developer_id}`,
+      `http://localhost:5000/api/developer/${developer_id}/bookmarks/count`
     );
-    console.log("Backend response:", response.data);
-
-    if (response.data.success) {
-      // Map backend's is_bookmarked to frontend isBookmarked
-      const ideasWithBookmark = response.data.data.map((idea: any) => ({
-        ...idea,
-        isBookmarked: idea.is_bookmarked === 1, // convert 0/1 to true/false
-      }));
-      console.log(ideasWithBookmark);
-      setIdeas(ideasWithBookmark);
-    } else {
-      setError("Failed to fetch ideas");
-    }
+    setCount(response.data.totalBookmarks);
+    console.log("Total bookmarks:", response.data.totalBookmarks); // ✅ correct value
   } catch (err) {
-    console.error(err);
-    setError("Server error while fetching ideas");
+    console.error("Error fetching bookmarks:", err);
   } finally {
     setLoading(false);
   }
 };
-
-    const fetchProposals = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/developer-proposals/${userData.id}`,
-        );
-        setProposals(response.data.proposals || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchIdeas();
-      fetchProposals();
-  }, [navigate]);
 
 const toggleBookmark = async (idea: Idea) => {
   try {
@@ -165,11 +162,13 @@ const toggleBookmark = async (idea: Idea) => {
 
     await axios.post(
       "http://localhost:5000/api/developer-dashboard/bookmarks/toggle",
-      { developer_id: 1, idea_id: idea.id, toggle }
+      { developer_id: developer_id, idea_id: idea.id, toggle }
     );
+ fetchBookmarkCount();
+
   } catch (err) {
     console.error("Bookmark toggle failed:", err);
-    // rollback if error
+    // Rollback if error
     setIdeas(prev =>
       prev.map(i => (i.id === idea.id ? { ...i, isBookmarked: idea.isBookmarked } : i))
     );
@@ -294,6 +293,9 @@ const toggleBookmark = async (idea: Idea) => {
                 >
                   <Bookmark className="w-5 h-5" />
                   <span>Bookmarked Ideas</span>
+                   <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {count}
+                  </span>
                 </button>
 
                 <button

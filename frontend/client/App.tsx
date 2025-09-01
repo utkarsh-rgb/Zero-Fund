@@ -11,18 +11,19 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import EntrepreneurSignup from "./pages/EntrepreneurSignup";
 import DeveloperSignup from "./pages/DeveloperSignup";
 import Login from "./pages/Login";
 import DeveloperDashboard from "./pages/DeveloperDashboard";
+import EntrepreneurDashboard from "./pages/EntrepreneurDashboard";
 import IdeaDetails from "./pages/IdeaDetails";
 import ProposalSubmit from "./pages/ProposalSubmit";
 import ChatCollaboration from "./pages/ChatCollaboration";
 import ContractReview from "./pages/ContractReview";
 import ContributionTracker from "./pages/ContributionTracker";
-import EntrepreneurDashboard from "./pages/EntrepreneurDashboard";
 import PostIdea from "./pages/PostIdea";
 import ManageProposals from "./pages/ManageProposals";
 import EntrepreneurChat from "./pages/EntrepreneurChat";
@@ -30,10 +31,9 @@ import ContractBuilder from "./pages/ContractBuilder";
 import ReviewContributions from "./pages/ReviewContributions";
 import CollaborationManagement from "./pages/CollaborationManagement";
 import EntrepreneurProfile from "./pages/EntrepreneurProfile";
-import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
-import { isLoggedIn } from "./helper/auth";
 import RedirectIfAuth from "./RedirectIfAuth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -41,16 +41,12 @@ import EditIdea from "./pages/EditIdea";
 
 const queryClient = new QueryClient();
 
-// Protected route helper
-
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const location = useLocation();
 
-  // If no user data, redirect to login
   if (!userData?.userType) return <Navigate to="/login" replace />;
 
-  // Prevent entrepreneur from accessing developer dashboard
   if (
     userData.userType === "entrepreneur" &&
     location.pathname === "/developer-dashboard"
@@ -58,7 +54,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return <Navigate to="/entrepreneur-dashboard" replace />;
   }
 
-  // Prevent developer from accessing entrepreneur dashboard
   if (
     userData.userType === "developer" &&
     location.pathname === "/entrepreneur-dashboard"
@@ -66,7 +61,6 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     return <Navigate to="/developer-dashboard" replace />;
   }
 
-  // Authorized, render the children
   return children;
 };
 
@@ -99,7 +93,6 @@ export default function App() {
               }
             />
 
-            {/* Dashboards */}
             <Route
               path="/developer-dashboard"
               element={
@@ -124,7 +117,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            {/* Profile routes */}
+
             <Route
               path="/developer-profile"
               element={
@@ -142,9 +135,7 @@ export default function App() {
               }
             />
 
-            {/* Other pages */}
             <Route path="/idea-details/:id" element={<IdeaDetails />} />
-
             <Route path="/proposal-submit" element={<ProposalSubmit />} />
             <Route path="/chat-collaboration" element={<ChatCollaboration />} />
             <Route path="/contract-review" element={<ContractReview />} />
@@ -167,7 +158,6 @@ export default function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/notifications" element={<Notifications />} />
 
-            {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
