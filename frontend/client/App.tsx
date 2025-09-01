@@ -156,7 +156,7 @@ export default function App() {
               element={<CollaborationManagement />}
             />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/notifications/:developerId" element={<Notifications />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

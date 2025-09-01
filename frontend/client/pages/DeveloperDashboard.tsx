@@ -242,12 +242,13 @@ const toggleBookmark = async (idea: Idea) => {
 
             <div className="flex items-center space-x-4">
               <Link
-                to="/notifications"
+                to={`/notifications/${developer_id}`}
                 className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
               </Link>
+
               <Link
                 to="/settings"
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -260,7 +261,7 @@ const toggleBookmark = async (idea: Idea) => {
               >
                 Profile
               </Link>
-                      </div>
+            </div>
           </div>
         </div>
       </header>
@@ -293,7 +294,7 @@ const toggleBookmark = async (idea: Idea) => {
                 >
                   <Bookmark className="w-5 h-5" />
                   <span>Bookmarked Ideas</span>
-                   <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                     {count}
                   </span>
                 </button>
@@ -340,7 +341,7 @@ const toggleBookmark = async (idea: Idea) => {
                   </span>
                 </button>
 
-                <Link
+                {/* <Link
                   to="/notifications"
                   className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors text-gray-700 hover:bg-gray-100"
                 >
@@ -349,7 +350,7 @@ const toggleBookmark = async (idea: Idea) => {
                   <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                     5
                   </span>
-                </Link>
+                </Link> */}
 
                 <Link
                   to="/contract-review"
@@ -479,15 +480,13 @@ const toggleBookmark = async (idea: Idea) => {
                             </span>
                           )}
                           <button
-  onClick={() => toggleBookmark(idea)}
-  className="p-2 text-gray-400 hover:text-skyblue transition-colors"
->
-  <Bookmark
-    className={`w-5 h-5 ${idea.isBookmarked ? "fill-current text-skyblue" : ""}`}
-  />
-</button>
-
-
+                            onClick={() => toggleBookmark(idea)}
+                            className="p-2 text-gray-400 hover:text-skyblue transition-colors"
+                          >
+                            <Bookmark
+                              className={`w-5 h-5 ${idea.isBookmarked ? "fill-current text-skyblue" : ""}`}
+                            />
+                          </button>
                         </div>
                       </div>
 
@@ -507,8 +506,6 @@ const toggleBookmark = async (idea: Idea) => {
                           </div>
                         </div>
                       )}
-
-    
 
                       <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4 text-sm text-gray-500">

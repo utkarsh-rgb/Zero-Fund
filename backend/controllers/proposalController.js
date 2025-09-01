@@ -130,11 +130,53 @@ const updateProposalStatus = async (req, res) => {
     if (action === "accept") status = "Approved";
     else if (action === "reject") status = "Rejected";
 
+    // 1️⃣ Update proposal status in DB
     await pool.execute("UPDATE proposals SET status = ? WHERE id = ?", [
       status,
       proposalId,
     ]);
 
+    // 2️⃣ Fetch proposal info for notification
+    const [rows] = await pool.execute(
+      `SELECT 
+         p.developer_id,
+         d.fullName AS developer_name,
+         i.title AS idea_title,
+         i.created_at AS idea_created_at
+       FROM proposals p
+       JOIN developers d ON p.developer_id = d.id
+       JOIN entrepreneur_idea i ON p.idea_id = i.id
+       WHERE p.id = ?`,
+      [proposalId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Proposal not found" });
+    }
+
+    const proposal = rows[0];
+
+    const formattedDate = new Date(proposal.idea_created_at).toLocaleString(
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
+
+    const firstName = proposal.developer_name.split(" ")[0];
+
+const message = `Hi ${firstName}! Good news — your proposal for "${proposal.idea_title}" has been ${status.toLowerCase()} as of ${formattedDate}. Check your dashboard for details.`;
+
+    await pool.execute(
+      `INSERT INTO notifications (developer_id, proposal_id, message) VALUES (?, ?, ?)`,
+      [proposal.developer_id, proposalId, message]
+    );
+
+   
     res.json({ message: `Proposal ${status.toLowerCase()}`, status });
   } catch (err) {
     console.error(err);

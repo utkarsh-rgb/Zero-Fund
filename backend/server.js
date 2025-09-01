@@ -3,6 +3,8 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
+const http = require("http");
+const { Server } = require("socket.io");
 require("dotenv").config();
 
 // Routers
@@ -14,14 +16,8 @@ const entrepreneurRoutes = require("./routes/entrepreneurRoutes");
 const proposalRoutes = require("./routes/proposalRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
 const bookmarkRoutes = require("./routes/bookmarkRoutes");
-
+const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
-
-// Middleware
-app.use((req, res, next) => {
-  console.log("Incoming request:", req.method, req.url, req.body);
-  next();
-});
 
 app.use(
   cors({
@@ -48,6 +44,14 @@ app.use("/", developerRoutes);
 app.use("/", entrepreneurRoutes);
 app.use("/", proposalRoutes);
 app.use("/",bookmarkRoutes);
+app.use("/",notificationRoutes);
+
+
+
+
+
+
+
 
 // Start server
 const PORT = process.env.PORT || 5000;
