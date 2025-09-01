@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const bookmarkController = require("../controllers/bookmarkController");
+const {toggleBookmark, totalCount} = require("../controllers/bookmarkController");
 
-// This line MUST reference the exported function correctly
-router.post("/api/developer-dashboard/bookmarks/toggle", bookmarkController.toggleBookmark);
-
+router.post("/api/developer-dashboard/bookmarks/toggle",toggleBookmark);
+router.get("/api/developer/:developer_id/bookmarks/count",totalCount);
 module.exports = router;

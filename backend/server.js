@@ -1,28 +1,29 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
 const cors = require("cors");
-const pool = require("./db"); // ✅ pool directly
-const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const path = require("path");
 const bodyParser = require("body-parser");
+require("dotenv").config();
+
+// Routers
 const forgotPasswordRouter = require("./utils/forgotPassword");
 const resetPasswordRouter = require("./utils/resetPassword");
 const authRoutes = require("./routes/authRoutes");
-const ideaRoutes = require("./routes/ideaRoutes");
 const developerRoutes = require("./routes/developerRoutes");
-const authenticateJWT = require("./middleware/authenticateJWT");
-const multer = require("multer");
-require("dotenv").config();
+const entrepreneurRoutes = require("./routes/entrepreneurRoutes");
+const proposalRoutes = require("./routes/proposalRoutes");
+const ideaRoutes = require("./routes/ideaRoutes");
+const bookmarkRoutes = require("./routes/bookmarkRoutes");
 
 const app = express();
 
 // Middleware
+app.use((req, res, next) => {
+  console.log("Incoming request:", req.method, req.url, req.body);
+  next();
+});
+
 app.use(
-  (req, res, next) => {
-    console.log("Incoming request:", req.method, req.url, req.body);
-    next();
-  },
   cors({
     origin: "http://localhost:8080",
     credentials: true,
@@ -33,465 +34,21 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// File uploads
+// Serve uploads folder statically
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+app.use("/uploads", express.static(uploadDir));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
-const upload = multer({ storage });
-
+// Routes
 app.use("/", forgotPasswordRouter);
 app.use("/", resetPasswordRouter);
+app.use("/", authRoutes);
+app.use("/", ideaRoutes);
+app.use("/", developerRoutes);
+app.use("/", entrepreneurRoutes);
+app.use("/", proposalRoutes);
+app.use("/",bookmarkRoutes);
 
-app.use(authRoutes);
-app.use(ideaRoutes);
-app.use(developerRoutes);
-
-
-app.get("/entrepreneur-dashboard", async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM entrepreneur_idea ORDER BY created_at DESC"
-    );
-
-    // convert JSON fields back to JS objects
-    const ideas = rows.map((row) => {
-      let requiredSkills = [];
-      let attachments = [];
-
-      try {
-        requiredSkills = row.required_skills
-          ? JSON.parse(row.required_skills)
-          : [];
-      } catch (err) {
-        requiredSkills = row.required_skills ? [row.required_skills] : [];
-      }
-
-      try {
-        attachments = row.attachments ? JSON.parse(row.attachments) : [];
-      } catch (err) {
-        attachments = row.attachments ? [row.attachments] : [];
-      }
-
-      return {
-        ...row,
-        required_skills: requiredSkills,
-        attachments: attachments,
-      };
-    });
-
-    res.json(ideas);
-  } catch (err) {
-    console.error("Error fetching ideas:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-// DELETE /api/ideas/:id
-app.delete("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const [result] = await pool.query(
-      "DELETE FROM entrepreneur_idea WHERE id = ?",
-      [id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Idea not found" });
-    }
-
-    res.json({ message: "Idea deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting idea:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-const parseJSONSafe = (data) => {
-  if (!data) return [];
-  try {
-    return JSON.parse(data);
-  } catch {
-    // If parsing fails, wrap single string in array
-    return [data];
-  }
-};
-
-app.get("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM entrepreneur_idea WHERE id = ?",
-      [id]
-    );
-
-    if (rows.length === 0)
-      return res.status(404).json({ error: "Idea not found" });
-
-    const idea = rows[0];
-    idea.required_skills = parseJSONSafe(idea.required_skills);
-    idea.attachments = parseJSONSafe(idea.attachments);
-
-    res.json(idea);
-  } catch (err) {
-    console.error("Error fetching idea:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-// PUT /api/ideas/:id
-app.put("/entrepreneur-dashboard/ideas/:id", async (req, res) => {
-  const { id } = req.params;
-  const {
-    title,
-    overview,
-    stage,
-    equity_offering,
-    visibility,
-    timeline,
-    budget,
-    additional_requirements,
-    required_skills,
-    attachments,
-  } = req.body;
-
-  try {
-    const [result] = await pool.query(
-      "UPDATE entrepreneur_idea SET title=?, overview=?, stage=?, equity_offering=?, visibility=?, timeline=?, budget=?, additional_requirements=?, required_skills=?, attachments=? WHERE id=?",
-      [
-        title,
-        overview,
-        stage,
-        equity_offering,
-        visibility,
-        timeline,
-        budget,
-        additional_requirements,
-        JSON.stringify(required_skills),
-        JSON.stringify(attachments),
-        id,
-      ]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Idea not found" });
-    }
-
-    res.json({ message: "Idea updated successfully" });
-  } catch (err) {
-    console.error("Error updating idea:", err);
-    res.status(500).json({ error: "Database error" });
-  }
-});
-
-// GET /developer-dashboard
-app.get("/developer-dashboard/:developerId", async (req, res) => {
-  const { developerId } = req.params;
-
-  try {
-    const [rows] = await pool.query(
-      `SELECT 
-          e.name,
-          ei.*,
-          CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
-       FROM entrepreneur_idea ei
-       JOIN entrepreneur e ON ei.entrepreneur_id = e.id
-       LEFT JOIN bookmarks b 
-         ON b.idea_id = ei.id AND b.developer_id = ?
-       WHERE ei.status = 0`,
-      [developerId]
-    );
-
-    res.json({
-      success: true,
-      data: rows,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching ideas",
-    });
-  }
-});
-
-app.get("/proposal/:id", async (req, res) => {
-  const id = req.params.id;
-  try {
-    const [results] = await pool.query(
-      "SELECT e.name AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?",
-      [id]
-    );
-    if (results.length === 0) {
-      return res.status(404).json({ error: "Proposal not found" });
-    }
-    res.json(results[0]);
-  } catch (error) {
-    console.error("Database error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-app.post("/submit-proposal", async (req, res) => {
-  try {
-    const {
-      ideaId,
-      developerId,
-      scope,
-      timeline,
-      equityRequested,
-      additionalNotes,
-      milestones,
-    } = req.body;
-
-    if (!ideaId || !developerId || !scope || !timeline || !equityRequested) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // 1. Insert into proposals table
-    const [proposalResult] = await pool.execute(
-      `INSERT INTO proposals (idea_id, developer_id, scope, timeline, equity_requested, additional_notes)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [ideaId, developerId, scope, timeline, equityRequested, additionalNotes]
-    );
-
-    const proposalId = proposalResult.insertId;
-
-    // 2. Insert milestones
-    for (let m of milestones) {
-      await pool.execute(
-        `INSERT INTO milestones (proposal_id, title, description, duration)
-         VALUES (?, ?, ?, ?)`,
-        [proposalId, m.title, m.description, m.duration]
-      );
-    }
-
-    res.status(200).json({ message: "Proposal submitted successfully" });
-  } catch (error) {
-    console.error("Error submitting proposal:", error);
-    res.status(500).json({ error: "Server error", message: error.message });
-  }
-});
-
-// GET /developer-proposals
-app.get("/developer-proposals/:developerId", async (req, res) => {
-  try {
-    const { developerId } = req.params;
-
-    const [proposals] = await pool.execute(
-      `SELECT p.id, p.scope, p.timeline, p.equity_requested AS equityProposed, 
-              p.additional_notes, p.created_at AS submittedAt,
-              ei.title AS ideaTitle, e.name AS founderName, p.status,   COUNT(*) OVER() AS total_proposal_count
-       FROM proposals p
-       JOIN entrepreneur_idea ei ON p.idea_id = ei.id
-       JOIN entrepreneur e ON ei.entrepreneur_id = e.id
-       WHERE p.developer_id = ?`,
-      [developerId]
-    );
-
-    res.status(200).json({ proposals });
-  } catch (error) {
-    console.error("Error fetching proposals:", error);
-    res.status(500).json({ error: "Server error", message: error.message });
-  }
-});
-
-// Fetch proposals for an entrepreneur
-app.get("/entrepreneur-proposals/:entrepreneurId", async (req, res) => {
-  const { entrepreneurId } = req.params;
-
-  if (!entrepreneurId) {
-    return res.status(400).json({ error: "Entrepreneur ID is required" });
-  }
-
-  try {
-    const [proposals] = await pool.execute(
-      `SELECT 
-    p.id, 
-    p.scope, 
-    p.timeline, 
-    p.equity_requested AS equityRequested,
-    p.additional_notes AS additionalNotes,
-    p.status, 
-    p.created_at AS submittedAt,
-    ei.title AS ideaTitle,
-    d.fullName AS developerName,
-    d.bio AS skills
-FROM proposals p
-JOIN entrepreneur_idea ei ON p.idea_id = ei.id
-JOIN developers d ON p.developer_id = d.id
-WHERE ei.entrepreneur_id = ?
-`,
-      [entrepreneurId]
-    );
-
-    res.json({ proposals, totalProposalCount: proposals.length });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch proposals" });
-  }
-});
-
-// Update proposal status
-app.post("/proposal/:proposalId/status", async (req, res) => {
-  const { proposalId } = req.params;
-  const { action } = req.body; // 'accept' or 'reject'
-
-  try {
-    let status = "Pending";
-    if (action === "accept") status = "Approved";
-    else if (action === "reject") status = "Rejected";
-
-    await pool.execute("UPDATE proposals SET status = ? WHERE id = ?", [
-      status,
-      proposalId,
-    ]);
-
-    res.json({ message: `Proposal ${status.toLowerCase()}`, status });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update proposal status" });
-  }
-});
-
-app.get("/ideas/:id", async (req, res) => {
-  const ideaId = req.params.id;
-  try {
-    const [rows] = await pool.execute(
-      "SELECT * FROM entrepreneur_idea WHERE id = ?",
-      [ideaId]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Idea not found" });
-    }
-
-    const idea = rows[0];
-
-    // Parse required_skills safely and flatten nested arrays
-    try {
-      const parsedSkills = JSON.parse(idea.required_skills || "[]");
-      idea.required_skills = Array.isArray(parsedSkills)
-        ? parsedSkills.flat(Infinity)
-        : [];
-    } catch (err) {
-      console.error("Error parsing required_skills:", err);
-      idea.required_skills = [];
-    }
-
-    // Parse attachments safely
-    try {
-      const parsedAttachments = JSON.parse(idea.attachments || "[]");
-      idea.attachments = Array.isArray(parsedAttachments)
-        ? parsedAttachments
-        : [];
-    } catch (err) {
-      console.error("Error parsing attachments:", err);
-      idea.attachments = [];
-    }
-
-    // Return idea object
-    res.json({ idea });
-  } catch (error) {
-    console.error("Error fetching idea:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.put("/ideas/:id/sign-nda", async (req, res) => {
-  const ideaId = req.params.id;
-  try {
-    const [result] = await pool.execute(
-      "UPDATE entrepreneur_idea SET nda_accepted = 1 WHERE id = ?",
-      [ideaId]
-    );
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Idea not found" });
-    }
-    res.json({ success: true, message: "NDA accepted" });
-  } catch (error) {
-    console.error("Error updating NDA status:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.get("/manage-proposals/:ideaId", async (req, res) => {
-  const ideaId = req.params.ideaId;
-
-  try {
-    const [rows] = await pool.query(
-      `SELECT 
-          p.id AS proposal_id,
-          p.scope,
-          p.timeline,
-          p.equity_requested,
-          p.additional_notes,
-          p.status AS proposal_status,
-          d.fullName AS developer_name,
-          d.email AS developer_email,
-          d.bio AS developer_bio,
-          e.name AS entrepreneur_name,
-          e.email AS entrepreneur_email,
-          ei.title as ideaTitle
-      FROM proposals p
-      JOIN developers d ON p.developer_id = d.id
-      JOIN entrepreneur_idea ei ON p.idea_id = ei.id
-      JOIN entrepreneur e ON ei.entrepreneur_id = e.id
-      WHERE p.idea_id = ?`,
-      [ideaId]
-    );
-
-    res.json({
-      success: true,
-      data: rows,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-});
-// Toggle bookmark
-// Make sure this is at the top of server.js
-app.use(express.json());
-
-app.post("/api/developer-dashboard/bookmarks/toggle", async (req, res) => {
-  const { developer_id, idea_id, toggle } = req.body;
-
-  if (!developer_id || !idea_id || toggle === undefined) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  try {
-    if (toggle) {
-      // Add bookmark
-      await pool.query(
-        "INSERT INTO bookmarks (developer_id, idea_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE updated_at=NOW()",
-        [developer_id, idea_id]
-      );
-      return res.json({ message: "Bookmark added" });
-    } else {
-      // Remove bookmark
-      await pool.query(
-        "DELETE FROM bookmarks WHERE developer_id = ? AND idea_id = ?",
-        [developer_id, idea_id]
-      );
-      return res.json({ message: "Bookmark removed" });
-    }
-  } catch (err) {
-    console.error("Bookmark toggle error:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
-});
-
-
-
-app.listen(5000, () => console.log("🚀 Server running on port 5000"));
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

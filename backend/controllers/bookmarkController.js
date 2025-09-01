@@ -21,5 +21,26 @@ const toggleBookmark = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+const totalCount =  async (req, res) => {
+  const { developer_id } = req.params;
 
-module.exports = { toggleBookmark };
+  if (!developer_id) {
+    return res.status(400).json({ error: "Developer ID is required" });
+  }
+
+  try {
+    const [rows] = await pool.execute(
+      "SELECT COUNT(*) AS total_bookmarks FROM bookmarks WHERE developer_id = ?",
+      [developer_id]
+    );
+
+    res.json({ totalBookmarks: rows[0].total_bookmarks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+module.exports = { toggleBookmark,totalCount };

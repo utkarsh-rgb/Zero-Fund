@@ -78,4 +78,69 @@ const postIdeaHandler = async (req, res) => {
   }
 };
 
-module.exports = { postIdeaHandler, upload };
+
+  const getIdeaById = async (req, res) => {
+  const ideaId = req.params.id;
+  try {
+    const [rows] = await pool.execute(
+      "SELECT * FROM entrepreneur_idea WHERE id = ?",
+      [ideaId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Idea not found" });
+    }
+
+    const idea = rows[0];
+
+    // Parse required_skills safely and flatten nested arrays
+    try {
+      const parsedSkills = JSON.parse(idea.required_skills || "[]");
+      idea.required_skills = Array.isArray(parsedSkills)
+        ? parsedSkills.flat(Infinity)
+        : [];
+    } catch (err) {
+      console.error("Error parsing required_skills:", err);
+      idea.required_skills = [];
+    }
+
+    // Parse attachments safely
+    try {
+      const parsedAttachments = JSON.parse(idea.attachments || "[]");
+      idea.attachments = Array.isArray(parsedAttachments)
+        ? parsedAttachments
+        : [];
+    } catch (err) {
+      console.error("Error parsing attachments:", err);
+      idea.attachments = [];
+    }
+
+    // Return idea object
+    res.json({ idea });
+  } catch (error) {
+    console.error("Error fetching idea:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+ 
+const signNDA =  async (req, res) => {
+  const ideaId = req.params.id;
+  try {
+    const [result] = await pool.execute(
+      "UPDATE entrepreneur_idea SET nda_accepted = 1 WHERE id = ?",
+      [ideaId]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Idea not found" });
+    }
+    res.json({ success: true, message: "NDA accepted" });
+  } catch (error) {
+    console.error("Error updating NDA status:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
+module.exports = { postIdeaHandler, upload, getIdeaById, signNDA };

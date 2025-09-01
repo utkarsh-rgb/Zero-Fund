@@ -88,4 +88,37 @@ const updateDeveloperProfile = async (req, res) => {
   }
 };
 
-module.exports = { getDeveloperProfile, updateDeveloperProfile };
+
+  const developerDashboardById=async (req, res) => {
+  const { developerId } = req.params;
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+          
+          e.name,
+          ei.*,
+          CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
+       FROM entrepreneur_idea ei
+       JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+       LEFT JOIN bookmarks b 
+         ON b.idea_id = ei.id AND b.developer_id = ?
+       WHERE ei.status = 0`,
+      [developerId]
+    );
+
+    res.json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching ideas",
+    });
+  }
+};
+
+
+module.exports = { getDeveloperProfile, updateDeveloperProfile, developerDashboardById };
