@@ -10,8 +10,9 @@ logs/
 *.log
 
 # Environment variables
+backend/.env
+frontend/.env
 .env
-
 # OS-specific files
 .DS_Store
 Thumbs.db
