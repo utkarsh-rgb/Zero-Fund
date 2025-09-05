@@ -12,6 +12,7 @@ logs/
 # Environment variables
 backend/.env
 frontend/.env
+backend/utils/.env
 
 # OS-specific files
 .DS_Store

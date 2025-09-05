@@ -69,7 +69,7 @@ const getDeveloperProposals = async (req, res) => {
     const [proposals] = await pool.execute(
       `SELECT p.id, p.scope, p.timeline, p.equity_requested AS equityProposed, 
               p.additional_notes, p.created_at AS submittedAt,
-              ei.title AS ideaTitle, e.name AS founderName, p.status,   
+              ei.title AS ideaTitle, e.fullName AS founderName, p.status,   
               COUNT(*) OVER() AS total_proposal_count
        FROM proposals p
        JOIN entrepreneur_idea ei ON p.idea_id = ei.id
