@@ -280,54 +280,7 @@ export default function EntrepreneurDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                  <Lightbulb className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-navy">Zero Fund</span>
-              </Link>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-600">Entrepreneur Dashboard</span>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-4">
-                {/* <Link
-                  to="/notifications"
-                  className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                </Link> */}
-                <Link
-                  to="/settings"
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <Settings className="w-5 h-5" />
-                </Link>
-                <Link
-                  to="/profile"
-                  className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
-                >
-                  JD
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-                >
-                  <LogOut className="w-5 h-5" />
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+    
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex space-x-8">
@@ -404,16 +357,7 @@ export default function EntrepreneurDashboard() {
                   </span>
                 </button>
 
-                {/* <Link
-                  to="/notifications"
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors text-gray-700 hover:bg-gray-100"
-                >
-                  <Bell className="w-5 h-5" />
-                  <span>Notifications</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    7
-                  </span>
-                </Link> */}
+               
 
                 <Link
                   to="/contract-builder"

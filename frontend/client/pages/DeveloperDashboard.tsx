@@ -84,7 +84,6 @@ const MOCK_COLLABORATIONS: Collaboration[] = [
 ];
 
 export default function DeveloperDashboard() {
-  
   const [activeTab, setActiveTab] = useState("feed");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -92,91 +91,90 @@ export default function DeveloperDashboard() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [proposals, setProposals] = useState<any[]>([]);
-const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<number | null>(null);
 
-const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-const developer_id = userData.id;
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const developer_id = userData.id;
 
-useEffect(() => {
-  if (!userData?.id || userData.userType !== "developer") return;
+  useEffect(() => {
+    if (!userData?.id || userData.userType !== "developer") return;
 
-  const fetchIdeas = async () => {
-    setLoading(true);
+    const fetchIdeas = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/developer-dashboard/${developer_id}`,
+        );
+        if (res.data.success) {
+          const ideasWithBookmark = res.data.data.map((idea: any) => ({
+            ...idea,
+            isBookmarked: idea.is_bookmarked === 1,
+          }));
+          setIdeas(ideasWithBookmark);
+        } else setError("Failed to fetch ideas");
+      } catch (err) {
+        setError("Server error while fetching ideas");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchProposals = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/developer-proposals/${developer_id}`,
+        );
+        setProposals(res.data.proposals || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchBookmarkCount();
+    fetchIdeas();
+    fetchProposals();
+  }, [developer_id]);
+
+  const fetchBookmarkCount = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/developer-dashboard/${developer_id}`
+      const response = await axios.get(
+        `http://localhost:5000/api/developer/${developer_id}/bookmarks/count`,
       );
-      if (res.data.success) {
-        const ideasWithBookmark = res.data.data.map((idea: any) => ({
-          ...idea,
-          isBookmarked: idea.is_bookmarked === 1,
-        }));
-        setIdeas(ideasWithBookmark);
-      } else setError("Failed to fetch ideas");
+      setCount(response.data.totalBookmarks);
+      console.log("Total bookmarks:", response.data.totalBookmarks); // ✅ correct value
     } catch (err) {
-      setError("Server error while fetching ideas");
+      console.error("Error fetching bookmarks:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProposals = async () => {
+  const toggleBookmark = async (idea: Idea) => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/developer-proposals/${developer_id}`
+      // Optimistic UI update
+      setIdeas((prev) =>
+        prev.map((i) =>
+          i.id === idea.id ? { ...i, isBookmarked: !i.isBookmarked } : i,
+        ),
       );
-      setProposals(res.data.proposals || []);
+
+      const toggle = !idea.isBookmarked;
+
+      await axios.post(
+        "http://localhost:5000/api/developer-dashboard/bookmarks/toggle",
+        { developer_id: developer_id, idea_id: idea.id, toggle },
+      );
+      fetchBookmarkCount();
     } catch (err) {
-      console.error(err);
+      console.error("Bookmark toggle failed:", err);
+      // Rollback if error
+      setIdeas((prev) =>
+        prev.map((i) =>
+          i.id === idea.id ? { ...i, isBookmarked: idea.isBookmarked } : i,
+        ),
+      );
     }
   };
-
-
-    fetchBookmarkCount();
-  fetchIdeas();
-  fetchProposals();
-}, [developer_id]); 
-
- const fetchBookmarkCount = async () => {
-  try {
-    const response = await axios.get(
-      `http://localhost:5000/api/developer/${developer_id}/bookmarks/count`
-    );
-    setCount(response.data.totalBookmarks);
-    console.log("Total bookmarks:", response.data.totalBookmarks); // ✅ correct value
-  } catch (err) {
-    console.error("Error fetching bookmarks:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-const toggleBookmark = async (idea: Idea) => {
-  try {
-    // Optimistic UI update
-    setIdeas(prev =>
-      prev.map(i => (i.id === idea.id ? { ...i, isBookmarked: !i.isBookmarked } : i))
-    );
-
-    const toggle = !idea.isBookmarked;
-
-    await axios.post(
-      "http://localhost:5000/api/developer-dashboard/bookmarks/toggle",
-      { developer_id: developer_id, idea_id: idea.id, toggle }
-    );
- fetchBookmarkCount();
-
-  } catch (err) {
-    console.error("Bookmark toggle failed:", err);
-    // Rollback if error
-    setIdeas(prev =>
-      prev.map(i => (i.id === idea.id ? { ...i, isBookmarked: idea.isBookmarked } : i))
-    );
-  }
-};
-
-
-  
 
   const StatusBadge = ({
     status,
@@ -225,7 +223,7 @@ const toggleBookmark = async (idea: Idea) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -250,21 +248,21 @@ const toggleBookmark = async (idea: Idea) => {
               </Link>
 
               <Link
-                to="/settings"
+                to={`/settings/${developer_id}`}
                 className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <Settings className="w-5 h-5" />
               </Link>
-              <Link
-                to="/developer-profile"
+              <div
+                
                 className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm hover:bg-navy transition-colors"
               >
                 Profile
-              </Link>
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex space-x-8">

@@ -1,10 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
-const path = require("path");
+
 const bodyParser = require("body-parser");
-const http = require("http");
-const { Server } = require("socket.io");
+const path = require("path");
 require("dotenv").config();
 
 // Routers
@@ -34,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 app.use("/uploads", express.static(uploadDir));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/", forgotPasswordRouter);

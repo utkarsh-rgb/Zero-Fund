@@ -135,9 +135,28 @@ const entrepreneurUpdateIdea =  async (req, res) => {
   }
 };
 
+// GET entrepreneur profile by ID
+const entrepreneurProfile =  async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await pool.query("SELECT * FROM entrepreneur WHERE id = ?", [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Entrepreneur not found" });
+    }
+
+    res.json(rows[0]); // return the first (and only) record
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   entrepreneurDashboard,
   entrepreneurDeleteIdea,
   entrepreneurIdea,
   entrepreneurUpdateIdea,
+  entrepreneurProfile
 };

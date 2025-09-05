@@ -1,4 +1,27 @@
 const pool = require("../db");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+// Set storage engine
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "./uploads/profile_pics";
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `developer_${req.params.id}${ext}`);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) cb(null, true);
+  else cb(new Error("Not an image!"), false);
+};
+
+const upload = multer({ storage, fileFilter });
 
 // Get developer profile
 const getDeveloperProfile = async (req, res) => {
@@ -6,7 +29,7 @@ const getDeveloperProfile = async (req, res) => {
     const { id } = req.params;
 
     const [devResults] = await pool.execute(
-      `SELECT id, fullName, email, bio, location FROM developers WHERE id = ?`,
+      `SELECT id, fullName, email, bio, location, profile_pic FROM developers WHERE id = ?`,
       [id]
     );
     if (devResults.length === 0)
@@ -88,37 +111,66 @@ const updateDeveloperProfile = async (req, res) => {
   }
 };
 
-
-  const developerDashboardById=async (req, res) => {
+// Developer dashboard
+const developerDashboardById = async (req, res) => {
   const { developerId } = req.params;
-
   try {
     const [rows] = await pool.query(
-      `SELECT 
-          
-          e.name,
-          ei.*,
-          CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
+      `SELECT e.name, ei.*, CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
        FROM entrepreneur_idea ei
        JOIN entrepreneur e ON ei.entrepreneur_id = e.id
-       LEFT JOIN bookmarks b 
-         ON b.idea_id = ei.id AND b.developer_id = ?
+       LEFT JOIN bookmarks b ON b.idea_id = ei.id AND b.developer_id = ?
        WHERE ei.status = 0`,
       [developerId]
     );
 
-    res.json({
-      success: true,
-      data: rows,
-    });
+    res.json({ success: true, data: rows });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching ideas",
-    });
+    res.status(500).json({ success: false, message: "Server error while fetching ideas" });
   }
 };
 
+// Upload profile picture
+const uploadDeveloperProfile = [
+  upload.single("profile_pic"),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-module.exports = { getDeveloperProfile, updateDeveloperProfile, developerDashboardById };
+      const filePath = req.file.path.replace(/\\/g, "/"); // convert backslashes to forward slashes
+
+      await pool.execute("UPDATE developers SET profile_pic = ? WHERE id = ?", [filePath, req.params.id]);
+
+      res.json({ message: "Profile picture uploaded!", path: filePath });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  }
+];
+
+// Remove profile picture
+const removeProfilePic = async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT profile_pic FROM developers WHERE id=?", [req.params.id]);
+    const filePath = rows[0]?.profile_pic;
+
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    await pool.execute("UPDATE developers SET profile_pic = NULL WHERE id=?", [req.params.id]);
+
+    res.json({ message: "Profile picture removed!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Remove failed" });
+  }
+};
+
+module.exports = {
+  getDeveloperProfile,
+  updateDeveloperProfile,
+  developerDashboardById,
+  removeProfilePic,
+  uploadDeveloperProfile
+};

@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+
+import axios from "axios";
 import {
-  ArrowLeft,
+
   User,
   Shield,
-  Bell,
-  CreditCard,
+
   Globe,
   Smartphone,
   Mail,
@@ -13,21 +13,35 @@ import {
   EyeOff,
   LogOut,
   Save,
-  Edit,
   Trash2,
-  Download,
   Upload,
-  Lock,
+  
   CheckCircle,
-  AlertCircle,
-  Phone,
-  Code,
-  Lightbulb,
   Settings as SettingsIcon,
-  ChevronRight,
+
 } from "lucide-react";
 
+interface SocialLink {
+  platform: string;
+  url: string;
+}
 
+interface Project {
+  project_name: string;
+  project_url: string;
+  description: string;
+}
+
+interface user {
+  id: number;
+  fullName: string;
+  email: string;
+  bio: string;
+  location: string;
+  skills: string[];
+  socialLinks: SocialLink[];
+  projects: Project[];
+}
 
 interface SecuritySettings {
   twoFactor: boolean;
@@ -38,68 +52,90 @@ interface SecuritySettings {
 export default function Settings() {
   const [activeSection, setActiveSection] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [user, setUser] = useState<any>(null); // renamed from user
+
   const [security, setSecurity] = useState<SecuritySettings>({
     twoFactor: false,
     loginAlerts: true,
     passwordExpiry: false,
   });
 
-  
-const userDataString = localStorage.getItem("userData");
-const userData = userDataString ? JSON.parse(userDataString) : {};
-const userType = userData.userType;
-const name = userData.fullname;
-const userEmail = userData.email;
-console.log(userType);
+  const userDataString = localStorage.getItem("userData");
+  const userData = userDataString ? JSON.parse(userDataString) : {};
+  const userType = userData.userType;
+  const jwt_token = localStorage.getItem("jwt_token");
+
+  // Choose ID dynamically based on userType
+  const id =
+    userType === "user"
+      ? userData.user_id || userData.id
+      : userData.entrepreneur_id || userData.id;
+
   const handleLogout = () => {
-  localStorage.removeItem("jwt_token");
+    localStorage.removeItem("jwt_token");
     localStorage.removeItem("userType");
     window.location.href = "/";
   };
 
+  // Fetch user data dynamically based on type
+  useEffect(() => {
+    if (!id || !userType) return;
+
+    const fetchUserData = async () => {
+      try {
+        const endpoint =
+          userType === "developer"
+            ? `http://localhost:5000/developer/${id}`
+            : `http://localhost:5000/entrepreneur/${id}`;
+
+        const res = await axios.get(endpoint, {
+          headers: { Authorization: `Bearer ${jwt_token}` },
+        });
+
+        setUser(res.data);
+        console.log(res.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [id, userType, jwt_token]);
+
   const sections = [
     { id: "profile", name: "Profile", icon: User },
     { id: "security", name: "Security", icon: Shield },
-   ];
+  ];
+
+  // Save changes dynamically based on userType
+  const handleSave = async () => {
+    if (!id || !jwt_token) return;
+
+    try {
+      const endpoint =
+        userType === "developer"
+          ? `http://localhost:5000/developer/${id}`
+          : `http://localhost:5000/entrepreneur/${id}`;
+
+      await axios.put(endpoint, user, {
+        headers: { Authorization: `Bearer ${jwt_token}` },
+      });
+
+      console.log(user);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("Failed to update profile.");
+    }
+  };
+
+  if (!user) return <p>Loading...</p>;
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                  {userType === "entrepreneur" ? (
-                    <Lightbulb className="w-5 h-5 text-white" />
-                  ) : (
-                    <Code className="w-5 h-5 text-white" />
-                  )}
-                </div>
-                <span className="text-xl font-bold text-navy">
-                  Zero Fund
-                </span>
-              </Link>
-              <span className="text-gray-400">|</span>
-              <Link
-                to={`/${userType}-dashboard`}
-                className="flex items-center space-x-2 text-gray-600 hover:text-navy transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Dashboard</span>
-              </Link>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-skyblue rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                {userType}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+  
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex space-x-8">
@@ -145,103 +181,298 @@ console.log(userType);
             {/* Profile Section */}
             {activeSection === "profile" && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h1 className="text-2xl font-bold text-navy">
-                    Profile Settings
-                  </h1>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
-                    <Save className="w-4 h-4" />
-                    <span>Save Changes</span>
-                  </button>
-                </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-navy">Profile Settings</h1>
+        <button
+          onClick={handleSave}
+          className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
+        >
+          <Save className="w-4 h-4" />
+          <span>Save Changes</span>
+        </button>
+      </div>
 
-                <div className="space-y-8">
-                  {/* Profile Picture */}
-                  <div className="flex items-center space-x-6">
-                    <div className="w-24 h-24 bg-skyblue rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                      {}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-navy mb-2">
-                        Profile Photo
-                      </h3>
-                      <div className="flex space-x-3">
-                        <button className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                          <Upload className="w-4 h-4" />
-                          <span>Upload New</span>
-                        </button>
-                        <button className="flex items-center space-x-2 px-3 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                          <span>Remove</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+      <div className="space-y-8">
+    {/* Profile Picture */}
 
-                  {/* Basic Information */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue={name}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          defaultValue={userEmail}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-                        />
-                        <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        defaultValue="+91 98765 43210"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Location
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue="Mumbai, India"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-                      />
-                    </div>
-                  </div>
+    { userType === "developer" && (
+<div className="flex items-center space-x-6">
+  <div className="w-24 h-24 bg-skyblue rounded-full flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
+    {user?.profile_pic ? (
+      <img
+        src={`http://localhost:5000/${user.profile_pic}`}
+        alt="Profile"
+        className="w-full h-full object-cover"
+      />
+    ) : (
+      user?.fullName?.charAt(0).toUpperCase()
+    )}
+  </div>
+    
+  <div>
+    <h3 className="text-lg font-semibold text-navy mb-2">Profile Photo</h3>
+    <div className="flex space-x-3">
+      <input
+        type="file"
+        id="uploadProfile"
+        hidden
+        accept="image/*"
+        onChange={async (e) => {
+          if (!e.target.files?.[0]) return;
+          const formData = new FormData();
+          formData.append("profile_pic", e.target.files[0]);
+          try {
+            const token = localStorage.getItem("jwt_token");
+            const res = await axios.post(
+              `http://localhost:5000/developer/${user.id}/upload`,
+              formData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            setUser({ ...user, profile_pic: res.data.path });
+          } catch (err) {
+            console.error(err);
+            alert("Upload failed");
+          }
+        }}
+      />
+      <label
+        htmlFor="uploadProfile"
+        className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+      >
+        <Upload className="w-4 h-4" />
+        <span>Upload New</span>
+      </label>
 
-                  {/* Bio */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bio
-                    </label>
-                    <textarea
-                      rows={4}
-                      defaultValue={
-                        userType === "entrepreneur"
-                          ? "Passionate entrepreneur with 5+ years of experience in ed-tech. Looking to build innovative solutions that make education accessible to everyone."
-                          : "Full-stack developer with expertise in React, Node.js, and cloud technologies. Passionate about building scalable solutions and contributing to innovative startups."
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
+      <button
+        onClick={async () => {
+          try {
+            const token = localStorage.getItem("jwt_token");
+            await axios.delete(
+              `http://localhost:5000/developer/${user.id}/remove`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+            setUser({ ...user, profile_pic: null });
+          } catch (err) {
+            console.error(err);
+            alert("Remove failed");
+          }
+        }}
+        className="flex items-center space-x-2 px-3 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+      >
+        <Trash2 className="w-4 h-4" />
+        <span>Remove</span>
+      </button>
+    </div>
+  </div>
+</div> 
+)}
+
+        {/* Basic Information */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <input
+              type="text"
+              value={user.fullName}
+              onChange={(e) => setUser({ ...user, fullName: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <div className="relative">
+              <input
+                type="email"
+                value={user.email}
+                onChange={(e) => setUser({ ...user, email: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+              />
+              <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <input
+              type="text"
+              value={user.location}
+              onChange={(e) => setUser({ ...user, location: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Bio */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+          <textarea
+            rows={4}
+            value={user.bio}
+            onChange={(e) => setUser({ ...user, bio: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+          />
+        </div>
+
+        {/* Skills */}
+        {userType ===  "developer" && (
+        <div>
+          <h3 className="font-semibold text-navy mb-2">Skills</h3>
+          {user.skills.map((skill, idx) => (
+            <div key={idx} className="flex mb-2 space-x-2">
+              <input
+                type="text"
+                value={skill}
+                onChange={(e) => {
+                  const newSkills = [...user.skills];
+                  newSkills[idx] = e.target.value;
+                  setUser({ ...user, skills: newSkills });
+                }}
+                className="flex-1 px-2 py-1 border rounded"
+              />
+              <button
+                onClick={() => {
+                  const newSkills = user.skills.filter((_, i) => i !== idx);
+                  setUser({ ...user, skills: newSkills });
+                }}
+                className="px-2 py-1 bg-red-500 text-white rounded"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => setUser({ ...user, skills: [...user.skills, ""] })}
+            className="px-3 py-1 bg-skyblue text-white rounded"
+          >
+            Add Skill
+          </button>
+        </div>
+
+)}
+        {/* Social Links */}
+        {userType ===  "developer" && (
+        <div>
+          <h3 className="font-semibold text-navy mb-2">Social Links</h3>
+          {user.socialLinks.map((link, idx) => (
+            <div key={idx} className="flex mb-2 space-x-2">
+              <input
+                type="text"
+                placeholder="Platform"
+                value={link.platform}
+                onChange={(e) => {
+                  const newLinks = [...user.socialLinks];
+                  newLinks[idx].platform = e.target.value;
+                  setUser({ ...user, socialLinks: newLinks });
+                }}
+                className="flex-1 px-2 py-1 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="URL"
+                value={link.url}
+                onChange={(e) => {
+                  const newLinks = [...user.socialLinks];
+                  newLinks[idx].url = e.target.value;
+                  setUser({ ...user, socialLinks: newLinks });
+                }}
+                className="flex-1 px-2 py-1 border rounded"
+              />
+              <button
+                onClick={() => {
+                  const newLinks = user.socialLinks.filter((_, i) => i !== idx);
+                  setUser({ ...user, socialLinks: newLinks });
+                }}
+                className="px-2 py-1 bg-red-500 text-white rounded"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() =>
+              setUser({
+                ...user,
+                socialLinks: [...user.socialLinks, { platform: "", url: "" }],
+              })
+            }
+            className="px-3 py-1 bg-skyblue text-white rounded"
+          >
+            Add Link
+          </button>
+        </div>
+        )}
+        {/* Projects */}
+        {userType ===  "developer" && (
+        <div>
+          <h3 className="font-semibold text-navy mb-2">Projects</h3>
+          {user.projects.map((p, idx) => (
+            <div key={idx} className="mb-2 space-y-1 border p-2 rounded">
+              <input
+                type="text"
+                placeholder="Project Name"
+                value={p.project_name}
+                onChange={(e) => {
+                  const newProjects = [...user.projects];
+                  newProjects[idx].project_name = e.target.value;
+                  setUser({ ...user, projects: newProjects });
+                }}
+                className="w-full px-2 py-1 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Project URL"
+                value={p.project_url}
+                onChange={(e) => {
+                  const newProjects = [...user.projects];
+                  newProjects[idx].project_url = e.target.value;
+                  setUser({ ...user, projects: newProjects });
+                }}
+                className="w-full px-2 py-1 border rounded"
+              />
+              <textarea
+                placeholder="Description"
+                value={p.description}
+                onChange={(e) => {
+                  const newProjects = [...user.projects];
+                  newProjects[idx].description = e.target.value;
+                  setUser({ ...user, projects: newProjects });
+                }}
+                className="w-full px-2 py-1 border rounded"
+              />
+              <button
+                onClick={() => {
+                  const newProjects = user.projects.filter((_, i) => i !== idx);
+                  setUser({ ...user, projects: newProjects });
+                }}
+                className="px-2 py-1 bg-red-500 text-white rounded"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() =>
+              setUser({
+                ...user,
+                projects: [...user.projects, { project_name: "", project_url: "", description: "" }],
+              })
+            }
+            className="px-3 py-1 bg-skyblue text-white rounded"
+          >
+            Add Project
+          </button>
+        </div>
+        )}
+      </div>
+    </div>
             )}
 
             {/* Security Section */}
@@ -389,7 +620,6 @@ console.log(userType);
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>
