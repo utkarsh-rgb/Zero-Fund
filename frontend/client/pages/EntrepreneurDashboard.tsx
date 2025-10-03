@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import { io } from "socket.io-client";
 import Messages from "./Messages";
 
@@ -102,11 +103,11 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
         const entrepreneurId = userData?.id;
         if (!entrepreneurId) return;
 
-        const res = await axios.post<{
+        const res = await axiosLocal.post<{
           success: boolean;
           contracts: Contract[];
         }>(
-          "http://localhost:5000/entrepreneur/pending-contracts",
+          "/entrepreneur/pending-contracts",
           { entrepreneurId }, // <-- passed in body
         );
 
@@ -132,8 +133,8 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
       console.log("entrepreneurId:", entrepreneurId);
       if (!entrepreneurId) return;
 
-      const response = await axios.get(
-        `http://localhost:5000/entrepreneur-collaboration/${entrepreneurId}`
+      const response = await axiosLocal.get(
+        `/entrepreneur-collaboration/${entrepreneurId}`
       );
 
       console.log("Collaboration Fetched:", response.data);
@@ -166,8 +167,8 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
 
       // 2️⃣ Fetch ideas
       try {
-        const response = await axios.get(
-          "http://localhost:5000/entrepreneur-dashboard",
+        const response = await axiosLocal.get(
+          "/entrepreneur-dashboard",
         );
         setIdeas(response.data);
       } catch (error) {
@@ -180,8 +181,8 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
   }, [navigate]);
   const handleAcceptContract = async (contractId: number) => {
     try {
-      const res = await axios.post<{ success: boolean; message?: string }>(
-        "http://localhost:5000/entrepreneur-accept-contract",
+      const res = await axiosLocal.post<{ success: boolean; message?: string }>(
+        "/entrepreneur-accept-contract",
         { contractId },
       );
 
@@ -198,8 +199,8 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
   };
   const handleRejectContract = async (contractId: number) => {
     try {
-      const res = await axios.post<{ success: boolean; message?: string }>(
-        "http://localhost:5000/entrepreneur-reject-contract",
+      const res = await axiosLocal.post<{ success: boolean; message?: string }>(
+      "/entrepreneur-reject-contract",
         { contractId },
       );
 
@@ -236,8 +237,8 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
     }
 
     try {
-      const response = await axios.get(
-        `http://localhost:5000/entrepreneur-proposals/${entrepreneurId}`,
+      const response = await axiosLocal.get(
+        `/entrepreneur-proposals/${entrepreneurId}`,
       );
       console.log("Proposals fetched:", response.data);
       setProposals(response.data.proposals); // store in state
@@ -256,8 +257,8 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
       );
       if (!confirmDelete) return;
 
-      await axios.delete(
-        `http://localhost:5000/entrepreneur-dashboard/ideas/${id}`,
+      await axiosLocal.delete(
+        `/entrepreneur-dashboard/ideas/${id}`,
       );
 
       // Optionally, remove the idea from state so UI updates instantly

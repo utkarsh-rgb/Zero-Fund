@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import {
   User,
   Shield,
@@ -81,10 +80,10 @@ export default function Settings() {
       try {
         const endpoint =
           userType === "developer"
-            ? `http://localhost:5000/developer/${id}`
-            : `http://localhost:5000/entrepreneur/${id}`;
+            ? `/developer/${id}`
+            : `/entrepreneur/${id}`;
 
-        const res = await axios.get(endpoint, {
+        const res = await axiosLocal.get(endpoint, {
           headers: { Authorization: `Bearer ${jwt_token}` },
         });
         console.log(res.data);
@@ -114,10 +113,10 @@ export default function Settings() {
     try {
       const endpoint =
         userType === "developer"
-          ? `http://localhost:5000/developer/${id}`
-          : `http://localhost:5000/entrepreneur/${id}`;
+          ? `/developer/${id}`
+          : `/entrepreneur/${id}`;
 
-      await axios.put(endpoint, user, {
+      await axiosLocal.put(endpoint, user, {
         headers: { Authorization: `Bearer ${jwt_token}` },
       });
 
@@ -230,8 +229,8 @@ export default function Settings() {
 
                               try {
                                 const token = localStorage.getItem("jwt_token");
-                                await axios.post(
-                                  `http://localhost:5000/developer/${user.id}/upload`,
+                                await axiosLocal.post(
+                                  `/developer/${user.id}/upload`,
                                   formData,
                                   {
                                     headers: {
@@ -258,8 +257,8 @@ export default function Settings() {
                             onClick={async () => {
                               try {
                                 const token = localStorage.getItem("jwt_token");
-                                await axios.delete(
-                                  `http://localhost:5000/developer/${user.id}/remove`,
+                                await axiosLocal.delete(
+                                  `/developer/${user.id}/remove`,
                                   {
                                     headers: {
                                       Authorization: `Bearer ${token}`,

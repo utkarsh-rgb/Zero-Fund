@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import io, { Socket } from "socket.io-client";
-import axios from "axios";
+
+import axiosLocal from "@/api/axiosLocal";
 
 type Message = {
   id?: string; // optional unique id from backend
@@ -12,9 +13,9 @@ type Message = {
   timestamp?: string; // optional timestamp from backend
 };
 
-const SOCKET_URL = "http://localhost:5000";
-const API_URL = "http://localhost:5000/messages";
-const UNIQUE_DEVELOPERS_API = "http://localhost:5000/unique-developers";
+// const SOCKET_URL = "http://localhost:5000";
+//const API_URL = "http://localhost:5000/messages";
+//const UNIQUE_DEVELOPERS_API = "http://localhost:5000/unique-developers";
 
 const Messages: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -44,9 +45,11 @@ const Messages: React.FC = () => {
 
   const fetchDevelopers = async () => {
   try {
-    const res = await axios.get<{ developers: { developer_id: number; fullname: string }[] }>(
-      `${UNIQUE_DEVELOPERS_API}?entrepreneur_id=${entrepreneurId}`
-    );
+      const res = await axiosLocal.get<{
+    developers: { developer_id: number; fullname: string }[];
+  }>("/unique-developers", {
+    params: { entrepreneur_id: entrepreneurId },
+  });
 
     // Ensure unique developers by developer_id
     const uniqueDevsMap = new Map<number, { developer_id: number; fullname: string }>();
@@ -75,7 +78,7 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (!entrepreneurId) return;
 
-    const socket = io(SOCKET_URL);
+    const socket = io("http://localhost:5000");
     socketRef.current = socket;
 
     // Join entrepreneur personal room
@@ -103,14 +106,15 @@ const Messages: React.FC = () => {
     if (!selectedDeveloper || !entrepreneurId) return;
 
     const fetchMessages = async () => {
-      try {
-        const res = await axios.get<Message[]>(
-          `${API_URL}/entrepreneur/${entrepreneurId}/developer/${selectedDeveloper}`,
-        );
-        setMessages(res.data);
-      } catch (err) {
-        console.error("Failed to fetch messages:", err);
-      }
+    try {
+  const res = await axiosLocal.get<Message[]>(
+    `/messages/entrepreneur/${entrepreneurId}/developer/${selectedDeveloper}`
+  );
+  setMessages(res.data);
+} catch (err) {
+  console.error("Failed to fetch messages:", err);
+}
+
     };
     fetchMessages();
   }, [entrepreneurId, selectedDeveloper]);

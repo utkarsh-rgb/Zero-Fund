@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import { Link, redirect, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -86,8 +86,8 @@ export default function ContractReview() {
           return;
         }
 
-        const response = await axios.get(
-          `http://localhost:5000/developer-contract-draft?developerId=${developerId}`,
+        const response = await axiosLocal.get(
+          `/developer-contract-draft?developerId=${developerId}`,
         );
 
         if (response.data.success) {
@@ -237,7 +237,7 @@ Jurisdiction: Courts of Bangalore, Karnataka shall have exclusive jurisdiction f
       }
 
       // Send POST request to backend
-      const res = await axios.post("http://localhost:5000/developer-sign-contract", {
+      const res = await axiosLocal.post("/developer-sign-contract", {
         contractId,
         developerId,
       });

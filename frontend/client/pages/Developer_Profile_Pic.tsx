@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import axios from "axios";
 import { Camera, User } from "lucide-react";
+import axiosLocal from "../api/axiosLocal";
 
 interface DeveloperProfilePicProps {
   currentPicture?: string;
@@ -43,8 +43,8 @@ const DeveloperProfilePic: React.FC<DeveloperProfilePicProps> = ({
       formData.append('profilePicture', file);
       formData.append('userId', userId);
 
-      const response = await axios.post(
-        'http://localhost:5000/upload-profile-picture',
+      const response = await axiosLocal.post(
+        '/upload-profile-picture',
         formData,
         {
           headers: {

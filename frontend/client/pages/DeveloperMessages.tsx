@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import io, { Socket } from "socket.io-client";
-import axios from "axios";
+import axiosLocal, {SOCKET_URL,API_URL,UNIQUE_ENTREPRENEURS_API} from "../api/axiosLocal";
 
 type Message = {
   sender_type: "entrepreneur" | "developer";
@@ -11,9 +11,6 @@ type Message = {
   timestamp: string;
 };
 
-const SOCKET_URL = "http://localhost:5000";
-const API_URL = "http://localhost:5000/messages";
-const UNIQUE_ENTREPRENEURS_API = "http://localhost:5000/unique-entrepreneurs";
 
 const DeveloperMessages: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -42,8 +39,8 @@ console.log(developerId);
     if (!developerId) return;
 const fetchEntrepreneurs = async () => {
   try {
-    const res = await axios.get<{ entrepreneurIds: number[] }>(
-      `${API_URL}/unique-entrepreneurs`,
+    const res = await axiosLocal.get<{ entrepreneurIds: number[] }>(
+      `/unique-entrepreneurs`,
       { params: { developer_id: developerId } }
     );
 
@@ -94,8 +91,8 @@ const fetchEntrepreneurs = async () => {
 
     const fetchMessages = async () => {
       try {
-        const res = await axios.get<Message[]>(
-          `${API_URL}/developer/${developerId}/entrepreneur/${selectedEntrepreneur}`
+        const res = await axiosLocal.get<Message[]>(
+          `/developer/${developerId}/entrepreneur/${selectedEntrepreneur}`
         );
         setMessages(res.data);
       } catch (err) {

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ContractPDF from "./ContractPDF";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
+
 import {
   ArrowLeft,
   Lightbulb,
@@ -103,8 +104,8 @@ export default function ContractBuilder() {
 
     const fetchContractData = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/contract-builder?proposalId=${proposalId}`,
+        const response = await axiosLocal.get(
+          `/contract-builder?proposalId=${proposalId}`,
         );
         console.log(response.data);
         if (response.data.success) {
@@ -251,8 +252,8 @@ export default function ContractBuilder() {
 
       console.log("Saving contract draft data:", payload);
 
-      const response = await axios.post(
-        "http://localhost:5000/contract-draft-save",
+      const response = await axiosLocal.post(
+        "/contract-draft-save",
         payload,
       );
 
@@ -301,8 +302,8 @@ const handleSignAndSend = async () => {
 
     console.log("Sending Contract Data:", payload);
 
-    const response = await axios.post(
-      "http://localhost:5000/contracts-details",
+    const response = await axiosLocal.post(
+      "/contracts-details",
       payload
     );
 

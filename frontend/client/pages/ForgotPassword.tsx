@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import { Link } from "react-router-dom"; // for navigation
 
 const ForgotPassword: React.FC = () => {
@@ -26,8 +26,8 @@ const ForgotPassword: React.FC = () => {
 
     try {
       const trimmedEmail = email.trim();
-      const res = await axios.post(
-        "http://localhost:5000/forgot-password",
+      const res = await axiosLocal.post(
+        "/forgot-password",
         { role, email: trimmedEmail },
         { headers: { "Content-Type": "application/json" } }
       );

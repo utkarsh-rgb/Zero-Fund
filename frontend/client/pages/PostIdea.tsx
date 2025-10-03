@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import {
   ArrowLeft,
   Lightbulb,
@@ -146,8 +146,8 @@ export default function PostIdea() {
       }
 
       // Send FormData to backend using Axios
-      const response = await axios.post(
-        "http://localhost:5000/post-idea",
+      const response = await axiosLocal.post(
+        "/post-idea",
         data,
         {
           headers: {

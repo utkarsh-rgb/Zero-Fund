@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axiosLocal from "../api/axiosLocal";
 
 const ResetPassword: React.FC = () => {
   const params = useParams();
@@ -23,8 +23,8 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-      const res = await axios.post(
-        `http://localhost:5000/reset-password/${role}/${token}`,
+      const res = await axiosLocal.post(
+        `/reset-password/${role}/${token}`,
         { newPassword }
       );
 

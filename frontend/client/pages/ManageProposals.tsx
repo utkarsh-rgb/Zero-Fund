@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import {
   ArrowLeft,
   Lightbulb,
@@ -102,8 +102,8 @@ export default function ManageProposals() {
         setError("");
 
         // Make API call to backend
-        const response = await axios.get(
-          `http://localhost:5000/manage-proposals/${id}`,
+        const response = await axiosLocal.get(
+          `/manage-proposals/${id}`,
         );
         console.log(response.data.data);
         if (response.data.success) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
+
 import {
   ArrowLeft,
   Bell,
@@ -54,8 +55,8 @@ export default function Notifications() {
   // Fetch notifications from backend
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/notifications/${developerId}`,
+      const res = await axiosLocal.get(
+        `/notifications/${developerId}`,
       );
       const data: Notification[] = res.data.map((n: any) => ({
         id: n.id,
@@ -83,7 +84,7 @@ export default function Notifications() {
 
   const markAsRead = async (id: number) => {
     try {
-      await axios.patch(`http://localhost:5000/notifications/${id}/read`);
+      await axiosLocal.patch(`/notifications/${id}/read`);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
@@ -94,7 +95,7 @@ export default function Notifications() {
 
  const markAllAsRead = async () => {
   try {
-    await axios.patch(`http://localhost:5000/notifications/read-all/${developerId}`);
+    await axiosLocal.patch(`/notifications/read-all/${developerId}`);
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   } catch (err) {
     console.error("Failed to mark all notifications as read", err);
@@ -103,7 +104,7 @@ export default function Notifications() {
 
 const deleteNotification = async (id: number) => {
   try {
-    await axios.delete(`http://localhost:5000/notifications/${id}`);
+    await axiosLocal.delete(`/notifications/${id}`);
     setNotifications(prev => prev.filter(n => n.id !== id));
   } catch (err) {
     console.error("Failed to delete notification", err);
