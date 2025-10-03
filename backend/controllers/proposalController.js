@@ -5,9 +5,10 @@ const getProposalById = async (req, res) => {
   const id = req.params.id;
   try {
     const [results] = await pool.query(
-      "SELECT e.name AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?",
-      [id]
-    );
+  "SELECT e.fullName AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?",
+  [id]
+);
+
     if (results.length === 0) {
       return res.status(404).json({ error: "Proposal not found" });
     }
@@ -199,7 +200,7 @@ const message = `Hi ${firstName}! Good news — your proposal for "${proposal.id
           d.fullName AS developer_name,
           d.email AS developer_email,
           d.bio AS developer_bio,
-          e.name AS entrepreneur_name,
+          e.fullName AS entrepreneur_name,
           e.email AS entrepreneur_email,
           ei.title as ideaTitle
       FROM proposals p
@@ -224,6 +225,24 @@ const message = `Hi ${firstName}! Good news — your proposal for "${proposal.id
 };
 
 
+// Get unique developer IDs from proposals
+// Get unique developers (ID + fullname) from proposals
+const getUniqueDeveloperIds= async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT DISTINCT d.id AS developer_id, d.fullname
+      FROM developers d
+      JOIN proposals p ON d.id = p.developer_id
+    `);
+
+    console.log(rows);
+
+    res.json({ developers: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch developers" });
+  }
+};
 
 module.exports = {
   getProposalById,
@@ -232,4 +251,5 @@ module.exports = {
   getEntrepreneurProposals,
   updateProposalStatus,
   manageProposal,
+  getUniqueDeveloperIds ,
 };

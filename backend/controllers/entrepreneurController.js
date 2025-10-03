@@ -136,27 +136,65 @@ const entrepreneurUpdateIdea =  async (req, res) => {
 };
 
 // GET entrepreneur profile by ID
-const entrepreneurProfile =  async (req, res) => {
+// GET entrepreneur profile by ID
+const entrepreneurProfile = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [rows] = await pool.query("SELECT * FROM entrepreneur WHERE id = ?", [id]);
+    // Fetch entrepreneur by ID
+    const [rows] = await pool.query(
+      "SELECT fullName,email,location,bio FROM entrepreneur WHERE id = ?",
+      [id]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Entrepreneur not found" });
     }
 
-    res.json(rows[0]); // return the first (and only) record
+    const entrepreneur = rows[0];
+
+    // Optional: log what was fetched
+    console.log("Entrepreneur fetched:", entrepreneur);
+
+    res.status(200).json(entrepreneur);
+  } catch (err) {
+    console.error("Error fetching entrepreneur:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+const entrepreneurProfileUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fullName, email, location, bio } = req.body;
+
+    console.log("Request body:", req.body);
+    console.log("Entrepreneur ID:", id);
+
+    // Update query
+    const [rows] = await pool.query(
+      `UPDATE entrepreneur
+       SET fullName = ?, email = ?, location = ?, bio = ?
+       WHERE id = ?`,
+      [fullName, email, location, bio, id]
+    );
+
+    if (rows.affectedRows === 0) {
+      return res.status(404).json({ message: "Entrepreneur not found" });
+    }
+
+    res.json({ message: "Profile updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+
 module.exports = {
   entrepreneurDashboard,
   entrepreneurDeleteIdea,
   entrepreneurIdea,
   entrepreneurUpdateIdea,
-  entrepreneurProfile
+  entrepreneurProfile,
+  entrepreneurProfileUpdate
 };

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { io } from "socket.io-client";
+import Messages from "./Messages";
 
 import {
   Plus,
@@ -26,7 +27,14 @@ import {
   Send,
   Trash,
 } from "lucide-react";
-
+interface Milestone {
+  id: number;
+  title: string;
+  description: string;
+  duration: string;
+  created_at: string;
+  completed?: boolean; // Indicates if the milestone is completed
+}
 type Idea = {
   required_skills: any;
   attachments: any;
@@ -56,54 +64,90 @@ interface Proposal {
 }
 
 interface Collaboration {
-  id: string;
-  projectTitle: string;
-  developerName: string;
-  developerAvatar: string;
-  status: "Active" | "Completed" | "On Hold" | "Terminated";
-  progress: number;
-  nextMilestone: string;
-  equityAllocated: string;
-  startDate: string;
+  id: number;
+  project_title: string;
+  developer_name: string;
+  status: string;
+  signed_by_developer: number;
+  signed_by_entrepreneur: number;
+  timeline?: string;
+  equity_percentage?: string;
+  ip_ownership?: string;
+  confidentiality?: string;
+  developer_id?: number;
 }
-
-const MOCK_COLLABORATIONS: Collaboration[] = [
-  {
-    id: "1",
-    projectTitle: "FinTech for Rural India",
-    developerName: "Vikram Singh",
-    developerAvatar: "VS",
-    status: "Active",
-    progress: 65,
-    nextMilestone: "Payment Gateway Integration",
-    equityAllocated: "10%",
-    startDate: "2024-01-01",
-  },
-  {
-    id: "2",
-    projectTitle: "Health Monitoring App",
-    developerName: "Lisa Wang",
-    developerAvatar: "LW",
-    status: "Completed",
-    progress: 100,
-    nextMilestone: "Project Delivered",
-    equityAllocated: "12%",
-    startDate: "2023-11-15",
-  },
-];
+interface Contract {
+  id: number;
+  title?: string;
+  developer_id: number;
+  entrepreneur_id: number;
+  signed_by_developer: number;
+  signed_by_entrepreneur?: number;
+}
 
 export default function EntrepreneurDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [pendingContracts, setPendingContracts] = useState([]);
+const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
+  
+  useEffect(() => {
+    if (activeTab !== "contract") return;
 
-  const [collaborations] = useState<Collaboration[]>(MOCK_COLLABORATIONS);
-  const handleLogout = () => {
-    localStorage.removeItem("jwt_token"); 
-    localStorage.removeItem("userData"); 
-    navigate("/login"); 
+    const fetchPendingContracts = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        const entrepreneurId = userData?.id;
+        if (!entrepreneurId) return;
+
+        const res = await axios.post<{
+          success: boolean;
+          contracts: Contract[];
+        }>(
+          "http://localhost:5000/entrepreneur/pending-contracts",
+          { entrepreneurId }, // <-- passed in body
+        );
+
+        if (res.data.success) {
+          console.log(res.data);
+          setPendingContracts(res.data.contracts);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending contracts:", err);
+      }
+    };
+
+    fetchPendingContracts();
+  }, [activeTab]);
+
+ useEffect(() => {
+  if (activeTab !== "collaboration") return;
+
+  const fetchCollaboration = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      const entrepreneurId = userData?.id;
+      console.log("entrepreneurId:", entrepreneurId);
+      if (!entrepreneurId) return;
+
+      const response = await axios.get(
+        `http://localhost:5000/entrepreneur-collaboration/${entrepreneurId}`
+      );
+
+      console.log("Collaboration Fetched:", response.data);
+
+      // Only set the contracts array
+      setCollaboration(response.data.contracts || []);
+    } catch (err) {
+      console.error("Failed to fetch signed collaborations:", err);
+    }
   };
+
+  fetchCollaboration();
+}, [activeTab]);
+;
 
   useEffect(() => {
     const checkUserAndFetchIdeas = async () => {
@@ -131,8 +175,54 @@ export default function EntrepreneurDashboard() {
       }
     };
 
+ 
     checkUserAndFetchIdeas();
   }, [navigate]);
+  const handleAcceptContract = async (contractId: number) => {
+    try {
+      const res = await axios.post<{ success: boolean; message?: string }>(
+        "http://localhost:5000/entrepreneur-accept-contract",
+        { contractId },
+      );
+
+      if (res.data.success) {
+        alert("Contract accepted!");
+        setPendingContracts((prev) => prev.filter((c) => c.id !== contractId));
+      } else {
+        alert(res.data.message || "Failed to accept contract.");
+      }
+    } catch (err) {
+      console.error("Error accepting contract:", err);
+      alert("Failed to accept contract. Try again.");
+    }
+  };
+  const handleRejectContract = async (contractId: number) => {
+    try {
+      const res = await axios.post<{ success: boolean; message?: string }>(
+        "http://localhost:5000/entrepreneur-reject-contract",
+        { contractId },
+      );
+
+      if (res.data.success) {
+        alert("Contract rejected!");
+
+        // Remove from pending contracts
+        setPendingContracts((prev) => prev.filter((c) => c.id !== contractId));
+
+        // Optionally, if you want to keep it in the list and mark as rejected:
+        // setPendingContracts((prev) =>
+        //   prev.map((c) =>
+        //     c.id === contractId ? { ...c, status: "rejected" } : c
+        //   )
+        // );
+      } else {
+        alert(res.data.message || "Failed to reject contract.");
+      }
+    } catch (err) {
+      console.error("Error rejecting contract:", err);
+      alert("Failed to reject contract. Try again.");
+    }
+  };
 
   const fetchProposals = async () => {
     // Get entrepreneurId from localStorage here
@@ -155,8 +245,6 @@ export default function EntrepreneurDashboard() {
       console.error("Failed to fetch proposals:", error);
     }
   };
-
-  // Fetch proposals when component mounts
   useEffect(() => {
     fetchProposals();
   }, []);
@@ -185,48 +273,56 @@ export default function EntrepreneurDashboard() {
     navigate(`/edit-idea/${id}`);
   };
 
- 
   const handleProposalAction = async (
-  proposalId: number,
-  action: "accept" | "reject"
-) => {
-  // Determine the new status immediately for optimistic UI
-  const newStatus: Proposal["status"] = action === "accept" ? "Accepted" : "Rejected";
+    proposalId: number,
+    action: "accept" | "reject",
+  ) => {
+    // Determine the new status immediately for optimistic UI
+    const newStatus: Proposal["status"] =
+      action === "accept" ? "Accepted" : "Rejected";
 
-  // 🔹 Optimistic update: instantly update frontend
-  setProposals(prev =>
-    prev.map(p =>
-      Number(p.id) === proposalId ? { ...p, status: newStatus } : p
-    )
-  );
-
-  try {
-    // 🔹 API call to update backend
-    const res = await axios.post(
-      `http://localhost:5000/proposal/${proposalId}/status`,
-      { action }
+    // 🔹 Optimistic update: instantly update frontend
+    setProposals((prev) =>
+      prev.map((p) =>
+        Number(p.id) === proposalId ? { ...p, status: newStatus } : p,
+      ),
     );
 
-    // Ensure the backend returns a valid status, fallback to previous if not
-    const updatedStatus: Proposal["status"] =
-      res.data.status === "Accepted" || res.data.status === "Rejected" ||
-      res.data.status === "Pending" || res.data.status === "Reviewed"
-        ? res.data.status
-        : newStatus;
+    try {
+      // 🔹 API call to update backend
+      const res = await axios.post(
+        `http://localhost:5000/proposal/${proposalId}/status`,
+        { action },
+      );
 
-    // 🔹 Ensure frontend matches backend response
-    setProposals(prev =>
-      prev.map(p =>
-        Number(p.id) === proposalId ? { ...p, status: updatedStatus } : p
-      )
-    );
-  } catch (err) {
-    console.error("Failed to update proposal:", err);
+      // Ensure the backend returns a valid status, fallback to previous if not
+      const updatedStatus: Proposal["status"] =
+        res.data.status === "Accepted" ||
+        res.data.status === "Rejected" ||
+        res.data.status === "Pending" ||
+        res.data.status === "Reviewed"
+          ? res.data.status
+          : newStatus;
 
-    // 🔹 Do not rollback to Pending, just keep the optimistic status
-    // Optionally, you can show an error toast instead
-  }
-};
+      // 🔹 Ensure frontend matches backend response
+      setProposals((prev) =>
+        prev.map((p) =>
+          Number(p.id) === proposalId ? { ...p, status: updatedStatus } : p,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update proposal:", err);
+
+      // 🔹 Do not rollback to Pending, just keep the optimistic status
+      // Optionally, you can show an error toast instead
+    }
+  };
+  const capitalizeWords = (str: string): string => {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -278,10 +374,15 @@ export default function EntrepreneurDashboard() {
     }
   };
 
+  // Example: 1 milestone = completed, 0 = pending
+  const calculateProgress = (milestones: Milestone[] | null) => {
+    if (!milestones || milestones.length === 0) return 0;
+    const completed = milestones.filter((m) => m.completed).length;
+    return Math.round((completed / milestones.length) * 100);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-    
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex space-x-8">
           {/* Sidebar Navigation */}
@@ -331,9 +432,9 @@ export default function EntrepreneurDashboard() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("collaborations")}
+                  onClick={() => setActiveTab("collaboration")}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === "collaborations"
+                    activeTab === "collaboration"
                       ? "bg-skyblue text-white"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -343,7 +444,10 @@ export default function EntrepreneurDashboard() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("messages")}
+                  onClick={() => {
+                    setActiveTab("messages"); // optional if you still want to manage state
+                    navigate("/entrepreneur-dashboard/message"); // redirect to /message
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "messages"
                       ? "bg-skyblue text-white"
@@ -357,15 +461,17 @@ export default function EntrepreneurDashboard() {
                   </span>
                 </button>
 
-               
-
-                <Link
-                  to="/contract-builder"
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors text-gray-700 hover:bg-gray-100"
+                <button
+                  onClick={() => setActiveTab("contract")}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === "contract"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
                 >
                   <FileText className="w-5 h-5" />
-                  <span>Contracts</span>
-                </Link>
+                  <span>Contract</span>
+                </button>
               </div>
             </nav>
 
@@ -385,9 +491,9 @@ export default function EntrepreneurDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Active Projects</span>
-                  <span className="text-sm font-semibold text-green-600">
+                  {/* <span className="text-sm font-semibold text-green-600">
                     {collaborations.filter((c) => c.status === "Active").length}
-                  </span>
+                  </span> */}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Total Views</span>
@@ -475,12 +581,9 @@ export default function EntrepreneurDashboard() {
                         <p className="text-sm text-gray-500">
                           Active Collaborations
                         </p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          {
-                            collaborations.filter((c) => c.status === "Active")
-                              .length
-                          }
-                        </p>
+                        {/* <p className="text-2xl font-bold text-gray-800">
+                          {collaborations.length}
+                        </p> */}
                       </div>
                     </div>
                   </div>
@@ -537,48 +640,69 @@ export default function EntrepreneurDashboard() {
                       ))}
                     </div>
                   </div>
-
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <h3 className="text-lg font-semibold text-navy mb-4">
-                      Active Projects
+                      Active Developers
                     </h3>
-                    <div className="space-y-4">
-                      {collaborations
-                        .filter((c) => c.status === "Active")
-                        .map((collab) => (
-                          <div
-                            key={collab.id}
-                            className="p-3 border border-gray-200 rounded-lg"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-navy rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                                  {collab.developerAvatar}
-                                </div>
-                                <div>
-                                  <p className="font-medium text-gray-800">
-                                    {collab.projectTitle}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    with {collab.developerName}
-                                  </p>
-                                </div>
-                              </div>
-                              <span className="text-sm font-semibold text-skyblue">
-                                {collab.progress}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-skyblue h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${collab.progress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Render contract content only when active */}
+            {activeTab === "contract" && (
+              <div className="p-4 space-y-4">
+                {pendingContracts.length === 0 ? (
+                  <p>No pending contracts from developers.</p>
+                ) : (
+                  pendingContracts.map((contract) => (
+                    <div
+                      key={contract.id}
+                      className="p-3 border rounded shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
+                    >
+                      <div>
+                        <p>
+                          <strong>Contract ID:</strong> {contract.id}
+                        </p>
+                        <p>
+                          <strong>Title:</strong>{" "}
+                          {contract.project_title
+                            ? capitalizeWords(contract.project_title)
+                            : "N/A"}
+                        </p>
+                        <p>
+                          <strong>Developer:</strong>{" "}
+                          {contract.developer_name
+                            ? capitalizeWords(contract.developer_name)
+                            : "N/A"}
+                        </p>
+                        <p className="mt-2 text-gray-700">
+                          This contract has been signed by the developer. By
+                          clicking <strong>Accept</strong>, you also agree and
+                          sign the contract. After accepting, you can view the
+                          details in the <strong>Collaborations</strong> tab. If
+                          you click <strong>Reject</strong>, you can't undo this
+                          decision.
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2 mt-2 md:mt-0">
+                        <button
+                          onClick={() => handleAcceptContract(contract.id)}
+                          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleRejectContract(contract.id)}
+                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
@@ -796,8 +920,6 @@ export default function EntrepreneurDashboard() {
                             <p className="text-gray-600 mb-2">
                               Applied for: {proposal.ideaTitle}
                             </p>
-
-                          
                           </div>
                         </div>
 
@@ -904,107 +1026,57 @@ export default function EntrepreneurDashboard() {
             )}
 
             {/* Collaborations Tab */}
-            {activeTab === "collaborations" && (
-              <div>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-navy mb-2">
-                    Active Collaborations
-                  </h1>
-                  <p className="text-gray-600">
-                    Manage your ongoing projects with developers
-                  </p>
-                </div>
+         {activeTab === "collaboration" && (
+  <div className="space-y-3">
+    {collaboration.length === 0 ? (
+      <p>No signed collaborations yet.</p>
+    ) : (
+      collaboration.map((c) => (
+        <div
+          key={c.id}
+          className="p-4 border rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+        >
+          {/* Left: Basic info */}
+          <div className="space-y-1">
+            <p><strong>Contract ID:</strong> {c.id}</p>
+            <p><strong>Project Title:</strong> {c.project_title || "N/A"}</p>
+            <p><strong>Developer:</strong> {c.developer_name || "N/A"}</p>
+            <p><strong>Timeline:</strong> {c.timeline || "N/A"}</p>
+            <p><strong>Equity:</strong> {c.equity_percentage || "N/A"}</p>
+            <p><strong>Status:</strong> {c.status}</p>
+          </div>
 
-                <div className="space-y-6">
-                  {collaborations.map((collab) => (
-                    <div
-                      key={collab.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
-                            {collab.developerAvatar}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-navy">
-                              {collab.projectTitle}
-                            </h3>
-                            <p className="text-gray-600 mb-2">
-                              with {collab.developerName}
-                            </p>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
-                              <span>Started: {collab.startDate}</span>
-                              <span>•</span>
-                              <span>
-                                Equity Allocated: {collab.equityAllocated}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <span
-                          className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(collab.status)}`}
-                        >
-                          {collab.status}
-                        </span>
-                      </div>
+          {/* Middle: Contract details */}
+          <div className="space-y-1">
+            <p><strong>Signed by Entrepreneur:</strong> {c.signed_by_entrepreneur ? "✅" : "❌"}</p>
+            <p><strong>Signed by Developer:</strong> {c.signed_by_developer ? "✅" : "❌"}</p>
+            <p><strong>IP Ownership:</strong> {c.ip_ownership || "N/A"}</p>
+            <p><strong>Confidentiality:</strong> {c.confidentiality || "N/A"}</p>
+          </div>
 
-                      <div className="mb-4">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-gray-600">Progress</span>
-                          <span className="font-semibold">
-                            {collab.progress}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3">
-                          <div
-                            className="bg-skyblue h-3 rounded-full transition-all duration-300"
-                            style={{ width: `${collab.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
+          {/* Right: Action buttons */}
+          <div className="flex flex-col gap-2 mt-2 md:mt-0">
+            <button
+              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={() => console.log("View full contract", c)}
+            >
+              View Details
+            </button>
 
-                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">Next Milestone:</span>
-                          <p className="font-semibold">
-                            {collab.nextMilestone}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Status:</span>
-                          <p className="font-semibold">{collab.status}</p>
-                        </div>
-                      </div>
+            <button
+              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              onClick={() => navigate("/entrepreneur-dashboard/message")}
+            >
+              Chat
+            </button>
+          </div>
+        </div>
+      ))
+    )}
+  </div>
+)}
 
-                      <div className="flex space-x-3">
-                        <Link
-                          to="/entrepreneur-chat"
-                          className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>Open Chat</span>
-                        </Link>
-                        <Link
-                          to="/review-contributions"
-                          className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>Review Work</span>
-                        </Link>
-                        <Link
-                          to="/contract-builder"
-                          className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <FileText className="w-4 h-4" />
-                          <span>View Contract</span>
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Messages Tab */}
             {activeTab === "messages" && (
@@ -1018,17 +1090,9 @@ export default function EntrepreneurDashboard() {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-96 flex items-center justify-center">
-                  <div className="text-center">
-                    <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                      No Messages Yet
-                    </h3>
-                    <p className="text-gray-500">
-                      Start conversations with developers who apply to your
-                      ideas
-                    </p>
-                  </div>
+                {/* Replace the placeholder with your chat component */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-[24rem] flex flex-col">
+                  <Messages />
                 </div>
               </div>
             )}

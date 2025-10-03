@@ -2,19 +2,7 @@ const pool = require("../db");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
-// Set storage engine
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = "./uploads/profile_pics";
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    cb(null, `developer_${req.params.id}${ext}`);
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) cb(null, true);
@@ -23,43 +11,69 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-// Get developer profile
-const getDeveloperProfile = async (req, res) => {
+const getDeveloperProfilePic = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const [devResults] = await pool.execute(
-      `SELECT id, fullName, email, bio, location, profile_pic FROM developers WHERE id = ?`,
+    const [rows] = await pool.execute(
+      "SELECT profile_pic, profile_pic_type FROM developers WHERE id = ?",
       [id]
     );
-    if (devResults.length === 0)
+
+    if (!rows.length || !rows[0].profile_pic) return res.status(404).send("No profile picture");
+
+    const { profile_pic, profile_pic_type } = rows[0];
+
+    res.setHeader("Content-Type", profile_pic_type);
+    res.send(profile_pic);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to fetch profile picture");
+  }
+};
+
+
+// Get developer profile
+const getDeveloperProfile = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Get main developer info
+    const [rows] = await pool.execute(
+      "SELECT id, fullName, email, bio, location, profile_pic FROM developers WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0)
       return res.status(404).json({ message: "Developer not found" });
 
-    const developer = devResults[0];
+    const developer = rows[0];
 
-    // Get skills
+    // Convert BLOB to base64 string if exists
+    if (developer.profile_pic)
+      developer.profile_pic = `data:image/png;base64,${developer.profile_pic.toString(
+        "base64"
+      )}`;
+
+    // Fetch skills
     const [skills] = await pool.execute(
-      `SELECT skill FROM developer_skills WHERE developer_id = ?`,
+      "SELECT skill FROM developer_skills WHERE developer_id = ?",
       [id]
     );
-    developer.skills = skills.map((row) => row.skill);
+    developer.skills = skills.map((row) => row.skill) || [];
 
-    // Get social links
+    // Fetch social links
     const [links] = await pool.execute(
-      `SELECT platform, url FROM developer_links WHERE developer_id = ?`,
+      "SELECT platform, url FROM developer_links WHERE developer_id = ?",
       [id]
     );
-    developer.socialLinks = links.map((row) => ({
-      platform: row.platform,
-      url: row.url,
-    }));
+    developer.socialLinks =
+      links.map((row) => ({ platform: row.platform, url: row.url })) || [];
 
-    // Get projects
+    // Fetch projects
     const [projects] = await pool.execute(
-      `SELECT project_name, project_url, description FROM developer_projects WHERE developer_id = ?`,
+      "SELECT project_name, project_url, description FROM developer_projects WHERE developer_id = ?",
       [id]
     );
-    developer.projects = projects;
+    developer.projects = projects || [];
 
     res.json(developer);
   } catch (error) {
@@ -133,39 +147,38 @@ const developerDashboardById = async (req, res) => {
 
 // Upload profile picture
 const uploadDeveloperProfile = [
-  upload.single("profile_pic"),
+  multer({ storage: multer.memoryStorage() }).single("profile_pic"),
   async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-      const filePath = req.file.path.replace(/\\/g, "/"); // convert backslashes to forward slashes
+      const fileBuffer = req.file.buffer; // raw binary
+      const fileType = req.file.mimetype; // store MIME type
 
-      await pool.execute("UPDATE developers SET profile_pic = ? WHERE id = ?", [filePath, req.params.id]);
+      await pool.execute(
+        "UPDATE developers SET profile_pic = ?, profile_pic_type = ? WHERE id = ?",
+        [fileBuffer, fileType, req.params.id]
+      );
 
-      res.json({ message: "Profile picture uploaded!", path: filePath });
+      res.json({ message: "Profile picture uploaded!" });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Upload failed" });
     }
-  }
+  },
 ];
 
 // Remove profile picture
 const removeProfilePic = async (req, res) => {
   try {
-    const [rows] = await pool.execute("SELECT profile_pic FROM developers WHERE id=?", [req.params.id]);
-    const filePath = rows[0]?.profile_pic;
-
-    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
     await pool.execute("UPDATE developers SET profile_pic = NULL WHERE id=?", [req.params.id]);
-
     res.json({ message: "Profile picture removed!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Remove failed" });
   }
 };
+
 
 module.exports = {
   getDeveloperProfile,

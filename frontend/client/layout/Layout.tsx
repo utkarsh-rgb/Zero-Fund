@@ -32,7 +32,7 @@ const Layout: React.FC = () => {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-skyblue to-navy rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm">
                   <Code className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <span className="text-lg sm:text-xl font-bold text-navy">Zero Fund</span>
+                <span className="text-lg sm:text-xl font-bold text-navy">Zero Fund Venture</span>
               </Link>
               
               <div className="hidden md:flex items-center space-x-3">
