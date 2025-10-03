@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import {
   ArrowLeft,
   Code,
@@ -57,7 +57,7 @@ export default function IdeaDetails() {
     async function fetchIdea() {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/ideas/${id}`);
+        const response = await axiosLocal.get(`/ideas/${id}`);
         const fetchedIdea = response.data.idea;
         console.log("Skills from backend:", response.data.idea.required_skills);
         setIdea(fetchedIdea);
@@ -76,13 +76,13 @@ export default function IdeaDetails() {
 
   const handleAcceptNDA = async () => {
     try {
-      await axios.put(`http://localhost:5000/ideas/${idea.id}/sign-nda`);
+      await axiosLocal.put(`/ideas/${idea.id}/sign-nda`);
       setHasAcceptedNDA(true);
       setShowNDAModal(false);
 
       // Refetch idea details to get full data after NDA accepted
-      const response = await axios.get(
-        `http://localhost:5000/ideas/${idea.id}`,
+      const response = await axiosLocal.get(
+        `/ideas/${idea.id}`,
       );
       setIdea(response.data.idea);
     } catch (error) {

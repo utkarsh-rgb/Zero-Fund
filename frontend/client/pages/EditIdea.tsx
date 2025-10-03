@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 
 type Idea = {
   id: string;
@@ -25,7 +25,7 @@ const EditIdea: React.FC = () => {
   useEffect(() => {
     const fetchIdea = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/entrepreneur-dashboard/ideas/${id}`);
+        const res = await axiosLocal.get(`/entrepreneur-dashboard/ideas/${id}`);
         setIdea(res.data);
       } catch (err) {
         console.error("Error fetching idea:", err);
@@ -44,7 +44,7 @@ const EditIdea: React.FC = () => {
     if (!idea) return;
 
     try {
-      await axios.put(`http://localhost:5000/entrepreneur-dashboard/ideas/${id}`, idea);
+      await axiosLocal.put(`/entrepreneur-dashboard/ideas/${id}`, idea);
       alert("Idea updated successfully!");
       navigate("/entrepreneur-dashboard");
     } catch (err) {

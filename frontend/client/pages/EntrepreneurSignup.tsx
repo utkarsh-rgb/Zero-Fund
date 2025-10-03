@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import {
   ArrowLeft,
   ArrowRight,
@@ -89,8 +89,8 @@ export default function EntrepreneurSignup() {
   }
 
   try {
-    const res = await axios.post(
-      "http://localhost:5000/entrepreneur/signup",
+    const res = await axiosLocal.post(
+      "/entrepreneur/signup",
       {
         fullName: formData.fullName,
         email: formData.email,

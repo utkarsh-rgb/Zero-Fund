@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
@@ -70,8 +70,8 @@ export default function ProposalSubmit() {
     if (ideaId) {
       const fetchIdeaData = async () => {
         try {
-          const response = await axios.get(
-            `http://localhost:5000/proposal/${ideaId}`,
+          const response = await axiosLocal.get(
+            `/proposal/${ideaId}`,
           );
           const data = response.data;
             console.log(data);
@@ -139,7 +139,7 @@ export default function ProposalSubmit() {
         localStorage.getItem("userData") || "{}",
       );
 
-      await axios.post("http://localhost:5000/submit-proposal", {
+      await axiosLocal.post("/submit-proposal", {
         ideaId: idea.id,
         developerId: developerData.id, // send developer id
         ...formData,

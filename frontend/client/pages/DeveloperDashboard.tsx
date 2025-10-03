@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosLocal from "../api/axiosLocal";
 import {
   Code,
   Search,
@@ -91,8 +91,8 @@ export default function DeveloperDashboard() {
 
         if (!developerId) return;
 
-        const response = await axios.get(
-          `http://localhost:5000/developer-collaboration/${developerId}`
+        const response = await axiosLocal.get(
+          `/developer-collaboration/${developerId}`
         );
 
         console.log("Developer collaborations:", response.data);
@@ -123,8 +123,8 @@ export default function DeveloperDashboard() {
     const fetchIdeas = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(
-          `http://localhost:5000/developer-dashboard/${developer_id}`,
+        const res = await axiosLocal.get(
+          `/developer-dashboard/${developer_id}`,
         );
         console.log(res.data);
         if (res.data.success) {
@@ -143,8 +143,8 @@ export default function DeveloperDashboard() {
 
     const fetchProposals = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5000/developer-proposals/${developer_id}`,
+        const res = await axiosLocal.get(
+          `/developer-proposals/${developer_id}`,
         );
         setProposals(res.data.proposals || []);
       } catch (err) {
@@ -159,8 +159,8 @@ export default function DeveloperDashboard() {
 
   const fetchBookmarkCount = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/api/developer/${developer_id}/bookmarks/count`,
+      const response = await axiosLocal.get(
+        `/api/developer/${developer_id}/bookmarks/count`,
       );
       setCount(response.data.totalBookmarks);
       console.log("Total bookmarks:", response.data.totalBookmarks); // ✅ correct value
@@ -182,8 +182,8 @@ export default function DeveloperDashboard() {
 
       const toggle = !idea.isBookmarked;
 
-      await axios.post(
-        "http://localhost:5000/api/developer-dashboard/bookmarks/toggle",
+      await axiosLocal.post(
+        "/api/developer-dashboard/bookmarks/toggle",
         { developer_id: developer_id, idea_id: idea.id, toggle },
       );
       fetchBookmarkCount();
