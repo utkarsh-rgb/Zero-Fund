@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import io, { Socket } from "socket.io-client";
 
-import axiosLocal from "@/api/axiosLocal";
+import axiosLocal from "../api/axiosLocal";
 
 type Message = {
   id?: string; // optional unique id from backend
