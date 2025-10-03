@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 
 import axios from "axios";
 import {
-
   User,
   Shield,
-
   Globe,
   Smartphone,
   Mail,
@@ -15,10 +13,8 @@ import {
   Save,
   Trash2,
   Upload,
-  
   CheckCircle,
   Settings as SettingsIcon,
-
 } from "lucide-react";
 
 interface SocialLink {
@@ -32,7 +28,7 @@ interface Project {
   description: string;
 }
 
-interface user {
+interface User {
   id: number;
   fullName: string;
   email: string;
@@ -91,9 +87,13 @@ export default function Settings() {
         const res = await axios.get(endpoint, {
           headers: { Authorization: `Bearer ${jwt_token}` },
         });
-
-        setUser(res.data);
         console.log(res.data);
+        setUser({
+          ...res.data,
+          skills: res.data.skills || [],
+          socialLinks: res.data.socialLinks || [],
+          projects: res.data.projects || [],
+        });
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -124,6 +124,7 @@ export default function Settings() {
       console.log(user);
       alert("Profile updated successfully!");
     } catch (error) {
+      
       console.error("Error updating user:", error);
       alert("Failed to update profile.");
     }
@@ -131,12 +132,8 @@ export default function Settings() {
 
   if (!user) return <p>Loading...</p>;
 
-
-
   return (
     <div className="min-h-screen bg-gray-50">
-  
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex space-x-8">
           {/* Sidebar */}
@@ -181,298 +178,347 @@ export default function Settings() {
             {/* Profile Section */}
             {activeSection === "profile" && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-navy">Profile Settings</h1>
-        <button
-          onClick={handleSave}
-          className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
-        >
-          <Save className="w-4 h-4" />
-          <span>Save Changes</span>
-        </button>
-      </div>
+                <div className="flex justify-between items-center mb-6">
+                  <h1 className="text-2xl font-bold text-navy">
+                    Profile Settings
+                  </h1>
+                  <button
+                    onClick={handleSave}
+                    className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </button>
+                </div>
 
-      <div className="space-y-8">
-    {/* Profile Picture */}
+                <div className="space-y-8">
+                  {/* Profile Picture */}
 
-    { userType === "developer" && (
-<div className="flex items-center space-x-6">
-  <div className="w-24 h-24 bg-skyblue rounded-full flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
-    {user?.profile_pic ? (
-      <img
-        src={`http://localhost:5000/${user.profile_pic}`}
-        alt="Profile"
-        className="w-full h-full object-cover"
-      />
-    ) : (
-      user?.fullName?.charAt(0).toUpperCase()
-    )}
-  </div>
-    
-  <div>
-    <h3 className="text-lg font-semibold text-navy mb-2">Profile Photo</h3>
-    <div className="flex space-x-3">
-      <input
-        type="file"
-        id="uploadProfile"
-        hidden
-        accept="image/*"
-        onChange={async (e) => {
-          if (!e.target.files?.[0]) return;
-          const formData = new FormData();
-          formData.append("profile_pic", e.target.files[0]);
-          try {
-            const token = localStorage.getItem("jwt_token");
-            const res = await axios.post(
-              `http://localhost:5000/developer/${user.id}/upload`,
-              formData,
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-            setUser({ ...user, profile_pic: res.data.path });
-          } catch (err) {
-            console.error(err);
-            alert("Upload failed");
-          }
-        }}
-      />
-      <label
-        htmlFor="uploadProfile"
-        className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
-      >
-        <Upload className="w-4 h-4" />
-        <span>Upload New</span>
-      </label>
+                  {userType === "developer" && (
+                    <div className="flex items-center space-x-6">
+                      <div className="w-24 h-24 bg-skyblue rounded-full flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
+                        {user?.profile_pic ? (
+                          <img
+                            src={user.profile_pic}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          user?.fullName?.charAt(0).toUpperCase()
+                        )}
+                      </div>
 
-      <button
-        onClick={async () => {
-          try {
-            const token = localStorage.getItem("jwt_token");
-            await axios.delete(
-              `http://localhost:5000/developer/${user.id}/remove`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            );
-            setUser({ ...user, profile_pic: null });
-          } catch (err) {
-            console.error(err);
-            alert("Remove failed");
-          }
-        }}
-        className="flex items-center space-x-2 px-3 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-      >
-        <Trash2 className="w-4 h-4" />
-        <span>Remove</span>
-      </button>
-    </div>
-  </div>
-</div> 
-)}
+                      <div>
+                        <h3 className="text-lg font-semibold text-navy mb-2">
+                          Profile Photo
+                        </h3>
+                        <div className="flex space-x-3">
+                          <input
+                            type="file"
+                            id="uploadProfile"
+                            hidden
+                            accept="image/*"
+                            onChange={async (e) => {
+                              if (!e.target.files?.[0]) return;
 
-        {/* Basic Information */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-            <input
-              type="text"
-              value={user.fullName}
-              onChange={(e) => setUser({ ...user, fullName: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-            />
-          </div>
+                              const file = e.target.files[0];
+                              const tempUrl = URL.createObjectURL(file); // create temporary URL for preview
+                              setUser({ ...user, profile_pic: tempUrl }); // show immediately in UI
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-            <div className="relative">
-              <input
-                type="email"
-                value={user.email}
-                onChange={(e) => setUser({ ...user, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-              />
-              <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
-            </div>
-          </div>
+                              const formData = new FormData();
+                              formData.append("profile_pic", file);
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-            <input
-              type="text"
-              value={user.location}
-              onChange={(e) => setUser({ ...user, location: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-            />
-          </div>
-        </div>
+                              try {
+                                const token = localStorage.getItem("jwt_token");
+                                await axios.post(
+                                  `http://localhost:5000/developer/${user.id}/upload`,
+                                  formData,
+                                  {
+                                    headers: {
+                                      "Content-Type": "multipart/form-data",
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                  },
+                                );
+                              } catch (err) {
+                                console.error(err);
+                                alert("Upload failed");
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor="uploadProfile"
+                            className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+                          >
+                            <Upload className="w-4 h-4" />
+                            <span>Upload New</span>
+                          </label>
 
-        {/* Bio */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-          <textarea
-            rows={4}
-            value={user.bio}
-            onChange={(e) => setUser({ ...user, bio: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
-          />
-        </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("jwt_token");
+                                await axios.delete(
+                                  `http://localhost:5000/developer/${user.id}/remove`,
+                                  {
+                                    headers: {
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                  },
+                                );
+                                setUser({ ...user, profile_pic: null });
+                              } catch (err) {
+                                console.error(err);
+                                alert("Remove failed");
+                              }
+                            }}
+                            className="flex items-center space-x-2 px-3 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-        {/* Skills */}
-        {userType ===  "developer" && (
-        <div>
-          <h3 className="font-semibold text-navy mb-2">Skills</h3>
-          {user.skills.map((skill, idx) => (
-            <div key={idx} className="flex mb-2 space-x-2">
-              <input
-                type="text"
-                value={skill}
-                onChange={(e) => {
-                  const newSkills = [...user.skills];
-                  newSkills[idx] = e.target.value;
-                  setUser({ ...user, skills: newSkills });
-                }}
-                className="flex-1 px-2 py-1 border rounded"
-              />
-              <button
-                onClick={() => {
-                  const newSkills = user.skills.filter((_, i) => i !== idx);
-                  setUser({ ...user, skills: newSkills });
-                }}
-                className="px-2 py-1 bg-red-500 text-white rounded"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() => setUser({ ...user, skills: [...user.skills, ""] })}
-            className="px-3 py-1 bg-skyblue text-white rounded"
-          >
-            Add Skill
-          </button>
-        </div>
+                  {/* Basic Information */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={user.fullName ?? ""}
+                        onChange={(e) =>
+                          setUser({ ...user, fullName: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+                      />
+                    </div>
 
-)}
-        {/* Social Links */}
-        {userType ===  "developer" && (
-        <div>
-          <h3 className="font-semibold text-navy mb-2">Social Links</h3>
-          {user.socialLinks.map((link, idx) => (
-            <div key={idx} className="flex mb-2 space-x-2">
-              <input
-                type="text"
-                placeholder="Platform"
-                value={link.platform}
-                onChange={(e) => {
-                  const newLinks = [...user.socialLinks];
-                  newLinks[idx].platform = e.target.value;
-                  setUser({ ...user, socialLinks: newLinks });
-                }}
-                className="flex-1 px-2 py-1 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="URL"
-                value={link.url}
-                onChange={(e) => {
-                  const newLinks = [...user.socialLinks];
-                  newLinks[idx].url = e.target.value;
-                  setUser({ ...user, socialLinks: newLinks });
-                }}
-                className="flex-1 px-2 py-1 border rounded"
-              />
-              <button
-                onClick={() => {
-                  const newLinks = user.socialLinks.filter((_, i) => i !== idx);
-                  setUser({ ...user, socialLinks: newLinks });
-                }}
-                className="px-2 py-1 bg-red-500 text-white rounded"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() =>
-              setUser({
-                ...user,
-                socialLinks: [...user.socialLinks, { platform: "", url: "" }],
-              })
-            }
-            className="px-3 py-1 bg-skyblue text-white rounded"
-          >
-            Add Link
-          </button>
-        </div>
-        )}
-        {/* Projects */}
-        {userType ===  "developer" && (
-        <div>
-          <h3 className="font-semibold text-navy mb-2">Projects</h3>
-          {user.projects.map((p, idx) => (
-            <div key={idx} className="mb-2 space-y-1 border p-2 rounded">
-              <input
-                type="text"
-                placeholder="Project Name"
-                value={p.project_name}
-                onChange={(e) => {
-                  const newProjects = [...user.projects];
-                  newProjects[idx].project_name = e.target.value;
-                  setUser({ ...user, projects: newProjects });
-                }}
-                className="w-full px-2 py-1 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Project URL"
-                value={p.project_url}
-                onChange={(e) => {
-                  const newProjects = [...user.projects];
-                  newProjects[idx].project_url = e.target.value;
-                  setUser({ ...user, projects: newProjects });
-                }}
-                className="w-full px-2 py-1 border rounded"
-              />
-              <textarea
-                placeholder="Description"
-                value={p.description}
-                onChange={(e) => {
-                  const newProjects = [...user.projects];
-                  newProjects[idx].description = e.target.value;
-                  setUser({ ...user, projects: newProjects });
-                }}
-                className="w-full px-2 py-1 border rounded"
-              />
-              <button
-                onClick={() => {
-                  const newProjects = user.projects.filter((_, i) => i !== idx);
-                  setUser({ ...user, projects: newProjects });
-                }}
-                className="px-2 py-1 bg-red-500 text-white rounded"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() =>
-              setUser({
-                ...user,
-                projects: [...user.projects, { project_name: "", project_url: "", description: "" }],
-              })
-            }
-            className="px-3 py-1 bg-skyblue text-white rounded"
-          >
-            Add Project
-          </button>
-        </div>
-        )}
-      </div>
-    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={user.email ?? ""}
+                          onChange={(e) =>
+                            setUser({ ...user, email: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+                        />
+                        <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={user.location ?? ""}
+                        onChange={(e) =>
+                          setUser({ ...user, location: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bio
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={user.bio ?? ""}
+                      onChange={(e) =>
+                        setUser({ ...user, bio: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Skills */}
+                  {userType === "developer" && (
+                    <div>
+                      <h3 className="font-semibold text-navy mb-2">Skills</h3>
+                      {user.skills?.map((skill, idx) => (
+                        <div key={idx} className="flex mb-2 space-x-2">
+                          <input
+                            type="text"
+                            value={skill ?? ""}
+                            onChange={(e) => {
+                              const newSkills = [...user.skills];
+                              newSkills[idx] = e.target.value;
+                              setUser({ ...user, skills: newSkills });
+                            }}
+                            className="flex-1 px-2 py-1 border rounded"
+                          />
+                          <button
+                            onClick={() => {
+                              const newSkills = user.skills.filter(
+                                (_, i) => i !== idx,
+                              );
+                              setUser({ ...user, skills: newSkills });
+                            }}
+                            className="px-2 py-1 bg-red-500 text-white rounded"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() =>
+                          setUser({ ...user, skills: [...user.skills, ""] })
+                        }
+                        className="px-3 py-1 bg-skyblue text-white rounded"
+                      >
+                        Add Skill
+                      </button>
+                    </div>
+                  )}
+                  {/* Social Links */}
+                  {userType === "developer" && (
+                    <div>
+                      <h3 className="font-semibold text-navy mb-2">
+                        Social Links
+                      </h3>
+                      {user.socialLinks?.map((link, idx) => (
+                        <div key={idx} className="flex mb-2 space-x-2">
+                          <input
+                            type="text"
+                            placeholder="Platform"
+                            value={link.platform ?? ""}
+                            onChange={(e) => {
+                              const newLinks = [...user.socialLinks];
+                              newLinks[idx].platform = e.target.value;
+                              setUser({ ...user, socialLinks: newLinks });
+                            }}
+                            className="flex-1 px-2 py-1 border rounded"
+                          />
+                          <input
+                            type="text"
+                            placeholder="URL"
+                            value={link.url ?? ""}
+                            onChange={(e) => {
+                              const newLinks = [...user.socialLinks];
+                              newLinks[idx].url = e.target.value;
+                              setUser({ ...user, socialLinks: newLinks });
+                            }}
+                            className="flex-1 px-2 py-1 border rounded"
+                          />
+                          <button
+                            onClick={() => {
+                              const newLinks = user.socialLinks.filter(
+                                (_, i) => i !== idx,
+                              );
+                              setUser({ ...user, socialLinks: newLinks });
+                            }}
+                            className="px-2 py-1 bg-red-500 text-white rounded"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() =>
+                          setUser({
+                            ...user,
+                            socialLinks: [
+                              ...user.socialLinks,
+                              { platform: "", url: "" },
+                            ],
+                          })
+                        }
+                        className="px-3 py-1 bg-skyblue text-white rounded"
+                      >
+                        Add Link
+                      </button>
+                    </div>
+                  )}
+                  {/* Projects */}
+                  {userType === "developer" && (
+                    <div>
+                      <h3 className="font-semibold text-navy mb-2">Projects</h3>
+                      {user.projects?.map((p, idx) => (
+                        <div
+                          key={idx}
+                          className="mb-2 space-y-1 border p-2 rounded"
+                        >
+                          <input
+                            type="text"
+                            placeholder="Project Name"
+                            value={p.project_name ?? ""}
+                            onChange={(e) => {
+                              const newProjects = [...user.projects];
+                              newProjects[idx].project_name = e.target.value;
+                              setUser({ ...user, projects: newProjects });
+                            }}
+                            className="w-full px-2 py-1 border rounded"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Project URL"
+                            value={p.project_url ?? ""}
+                            onChange={(e) => {
+                              const newProjects = [...user.projects];
+                              newProjects[idx].project_url = e.target.value;
+                              setUser({ ...user, projects: newProjects });
+                            }}
+                            className="w-full px-2 py-1 border rounded"
+                          />
+                          <textarea
+                            placeholder="Description"
+                            value={p.description ?? ""}
+                            onChange={(e) => {
+                              const newProjects = [...user.projects];
+                              newProjects[idx].description = e.target.value;
+                              setUser({ ...user, projects: newProjects });
+                            }}
+                            className="w-full px-2 py-1 border rounded"
+                          />
+                          <button
+                            onClick={() => {
+                              const newProjects = user.projects.filter(
+                                (_, i) => i !== idx,
+                              );
+                              setUser({ ...user, projects: newProjects });
+                            }}
+                            className="px-2 py-1 bg-red-500 text-white rounded"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() =>
+                          setUser({
+                            ...user,
+                            projects: [
+                              ...user.projects,
+                              {
+                                project_name: "",
+                                project_url: "",
+                                description: "",
+                              },
+                            ],
+                          })
+                        }
+                        className="px-3 py-1 bg-skyblue text-white rounded"
+                      >
+                        Add Project
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Security Section */}

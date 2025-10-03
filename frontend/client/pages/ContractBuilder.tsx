@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import ContractPDF from "./ContractPDF";
+import axios from "axios";
 import {
   ArrowLeft,
   Lightbulb,
@@ -21,166 +24,103 @@ import {
   Save,
 } from "lucide-react";
 
+interface Milestone {
+  id: number;
+  title: string;
+  description: string;
+  duration: string;
+  created_at: string;
+  deliverables: string[];
+}
+
 interface ContractData {
-  // Parties
+  developer_id : number,
   entrepreneurName: string;
   entrepreneurEmail: string;
-  entrepreneurCompany: string;
+  entrepreneurCompany: string | null;
   developerName: string;
   developerEmail: string;
-
-  // Project Details
   projectTitle: string;
   projectDescription: string;
   scope: string;
   timeline: string;
   milestones: Milestone[];
-
-  // Equity & Payment
   equityPercentage: string;
-
-  // Legal Terms
   ipOwnership: string;
   confidentiality: string;
   terminationClause: string;
   disputeResolution: string;
   governingLaw: string;
-
-  // Additional Terms
   additionalClauses: string[];
   revisions: string;
   supportTerms: string;
 }
 
-interface Milestone {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  deliverables: string[];
-}
-
-const INITIAL_CONTRACT_DATA: ContractData = {
-  entrepreneurName: "Priya Sharma",
-  entrepreneurEmail: "priya.sharma@example.com",
-  entrepreneurCompany: "EduTech Innovations Pvt Ltd",
-  developerName: "John Developer",
-  developerEmail: "john.dev@example.com",
-
-  projectTitle: "AI-Powered Education Platform",
-  projectDescription:
-    "Development of a comprehensive AI-driven educational platform for personalized learning",
-  scope:
-    "Full-stack development including frontend, backend, and AI integration",
-  timeline: "6 months from contract execution",
-  milestones: [
-    {
-      id: "1",
-      title: "User Authentication System",
-      description:
-        "Complete user registration, login, and basic dashboard setup",
-      duration: "3 weeks",
-      deliverables: ["User registration API", "Login system", "Dashboard UI"],
-    },
-    {
-      id: "2",
-      title: "AI Integration & Core Features",
-      description: "Integrate ML models and build core educational features",
-      duration: "8 weeks",
-      deliverables: [
-        "ML model integration",
-        "Learning algorithms",
-        "Content management",
-      ],
-    },
-  ],
-
-  equityPercentage: "12",
-
-  ipOwnership: "100% owned by Entrepreneur",
-  confidentiality: "5 years",
-  terminationClause: "30 days written notice",
-  disputeResolution: "Binding arbitration in Bangalore, Karnataka, India",
-  governingLaw: "Laws of India",
-
-  additionalClauses: [],
-  revisions: "2 rounds of revisions included",
-  supportTerms: "30 days post-delivery support included",
-};
-
 const GOVERNING_LAW_OPTIONS = [
-  "Laws of India",
-  "Laws of United States",
-  "Laws of United Kingdom",
-  "Laws of Singapore",
+  "The laws of India",
+  "The laws of the United States of America",
+  "The laws of the United Kingdom",
+  "The laws of Singapore",
 ];
 
+
 export default function ContractBuilder() {
-  const [contractData, setContractData] = useState<ContractData>(
-    INITIAL_CONTRACT_DATA,
-  );
+  const [contractData, setContractData] = useState<ContractData>({
+    developer_id: 0,
+    entrepreneurName: "",
+    entrepreneurEmail: "",
+    entrepreneurCompany: null,
+    developerName: "",
+    developerEmail: "",
+    projectTitle: "",
+    projectDescription: "",
+    scope: "",
+    timeline: "",
+    milestones: [],
+    equityPercentage: "",
+    ipOwnership: "",
+    confidentiality: "",
+    terminationClause: "",
+    disputeResolution: "",
+    governingLaw: "",
+    additionalClauses: [],
+    revisions: "",
+    supportTerms: "",
+  });
+
   const [activeSection, setActiveSection] = useState("parties");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [searchParams] = useSearchParams();
+  const proposalId = searchParams.get("proposalId");
 
-  // Load proposal data on component mount
   useEffect(() => {
-    async function fetchProposalData(proposalId: number) {
+    if (!proposalId) {
+      console.error("❌ Proposal ID is missing");
+      return;
+    }
+
+    const fetchContractData = async () => {
       try {
-        const response = await fetch(`/api/proposals/${proposalId}`);
-        const result = await response.json();
-
-        if (result.success && result.data && result.data.length > 0) {
-          const proposal = result.data[0];
-
-          setContractData((prev) => ({
-            ...prev,
-            entrepreneurName:
-              proposal.entrepreneur_name || prev.entrepreneurName,
-            entrepreneurEmail:
-              proposal.entrepreneur_email || prev.entrepreneurEmail,
-            entrepreneurCompany: "", // no API data available
-            developerName: proposal.developer_name || prev.developerName,
-            developerEmail: proposal.developer_email || prev.developerEmail,
-            projectTitle:
-              proposal.additional_notes || "Project Title Not Provided",
-            projectDescription: proposal.additional_notes || "",
-            scope: proposal.scope || prev.scope,
-            timeline: proposal.timeline || prev.timeline,
-            milestones: [], // no milestone data from API
-            equityPercentage: proposal.equity_requested
-              ? proposal.equity_requested.toString().replace("%", "")
-              : prev.equityPercentage,
-
-            // static defaults for missing legal terms not provided by API
-            ipOwnership: "100% owned by Entrepreneur",
-            confidentiality: "5 years",
-            terminationClause: "30 days written notice",
-            disputeResolution:
-              "Binding arbitration in Bangalore, Karnataka, India",
-            governingLaw: "Laws of India",
-
-            additionalClauses: [],
-            revisions: "2 rounds of revisions included",
-            supportTerms: "30 days post-delivery support included",
-          }));
+        const response = await axios.get(
+          `http://localhost:5000/contract-builder?proposalId=${proposalId}`,
+        );
+        console.log(response.data);
+        if (response.data.success) {
+          setContractData(response.data.data);
+        } else {
+          console.error("Failed to fetch contract data");
         }
-      } catch (error) {
-        console.error("Error fetching proposal data:", error);
+      } catch (err) {
+        console.error("❌ Error fetching contract data:", err);
       }
-    }
+    };
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const proposalIdParam = urlParams.get("proposalId");
+    fetchContractData();
+  }, [proposalId]);
 
-    if (proposalIdParam) {
-      const proposalId = parseInt(proposalIdParam, 10);
-      if (!isNaN(proposalId)) {
-        fetchProposalData(proposalId);
-      }
-    }
-  }, []);
+  if (!contractData) return <div>Loading contract...</div>;
 
   const handleInputChange = (
     field: keyof ContractData,
@@ -191,10 +131,11 @@ export default function ContractBuilder() {
 
   const addMilestone = () => {
     const newMilestone: Milestone = {
-      id: Date.now().toString(),
+      id: Date.now(),
       title: "",
       description: "",
       duration: "",
+      created_at: new Date().toISOString(),
       deliverables: [""],
     };
     setContractData((prev) => ({
@@ -211,7 +152,7 @@ export default function ContractBuilder() {
     setContractData((prev) => ({
       ...prev,
       milestones: prev.milestones.map((m) =>
-        m.id === id ? { ...m, [field]: value } : m,
+        m.id.toString() === id ? { ...m, [field]: value } : m,
       ),
     }));
   };
@@ -219,7 +160,7 @@ export default function ContractBuilder() {
   const removeMilestone = (id: string) => {
     setContractData((prev) => ({
       ...prev,
-      milestones: prev.milestones.filter((m) => m.id !== id),
+      milestones: prev.milestones.filter((m) => m.id.toString() !== id),
     }));
   };
 
@@ -227,7 +168,7 @@ export default function ContractBuilder() {
     setContractData((prev) => ({
       ...prev,
       milestones: prev.milestones.map((m) =>
-        m.id === milestoneId
+        m.id.toString() === milestoneId
           ? { ...m, deliverables: [...m.deliverables, ""] }
           : m,
       ),
@@ -242,7 +183,7 @@ export default function ContractBuilder() {
     setContractData((prev) => ({
       ...prev,
       milestones: prev.milestones.map((m) =>
-        m.id === milestoneId
+        m.id.toString() === milestoneId
           ? {
               ...m,
               deliverables: m.deliverables.map((d, i) =>
@@ -258,7 +199,7 @@ export default function ContractBuilder() {
     setContractData((prev) => ({
       ...prev,
       milestones: prev.milestones.map((m) =>
-        m.id === milestoneId
+        m.id.toString() === milestoneId
           ? {
               ...m,
               deliverables: m.deliverables.filter((_, i) => i !== index),
@@ -290,24 +231,95 @@ export default function ContractBuilder() {
       additionalClauses: prev.additionalClauses.filter((_, i) => i !== index),
     }));
   };
-
   const handleSaveContract = async () => {
+    if (!proposalId) {
+      console.error("❌ Proposal ID is missing");
+      return;
+    }
+
     setIsSaving(true);
-    // TODO: Save to backend
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
+
+    try {
+      // Prepare payload including proposalId
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const entrepreneur_id = userData?.id;
+      const payload = {
+        ...contractData,
+        proposalId: Number(proposalId),
+        entrepreneur_id
+      };
+
+      console.log("Saving contract draft data:", payload);
+
+      const response = await axios.post(
+        "http://localhost:5000/contract-draft-save",
+        payload,
+      );
+
+      if (response.data.success) {
+        console.log("Draft saved successfully:", response.data);
+        // Optional: show a success modal or toast
+        alert("Draft saved");
+      } else {
+        console.error("Failed to save draft:", response.data.message);
+      }
+    } catch (error) {
+      console.error("Error saving draft:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSignAndSend = async () => {
-    setIsSaving(true);
-    // Simulate entrepreneur signing the contract
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+const handleSignAndSend = async () => {
+  setIsSaving(true);
 
-    // Clear pending contract data and show success
-    localStorage.removeItem("pendingContract");
+  const userData = JSON.parse(localStorage.getItem("userData"));
+  const entrepreneur_id = userData?.id; // entrepreneur creating the contract
+
+  try {
+    if (!proposalId) {
+      console.error("❌ Proposal ID is missing");
+      setIsSaving(false);
+      return;
+    }
+
+    // // Ensure you have developer_id in contractData
+    // const { developer_id } = contractData;
+    // if (!developer_id) {
+    //   console.error("❌ Developer ID is missing in contract data");
+    //   setIsSaving(false);
+    //   return;
+    // }
+
+    // Prepare payload including proposalId, entrepreneur_id, developer_id
+    const payload = {
+      ...contractData,
+      proposalId: Number(proposalId),
+      entrepreneur_id: Number(entrepreneur_id),
+      // developer_id: Number(developer_id),
+    };
+
+    console.log("Sending Contract Data:", payload);
+
+    const response = await axios.post(
+      "http://localhost:5000/contracts-details",
+      payload
+    );
+
+    if (response.data.success) {
+      console.log("Contract saved successfully:", response.data);
+      localStorage.removeItem("pendingContract");
+      setShowSuccessModal(true);
+    } else {
+      console.error("Failed to save contract:", response.data.message);
+    }
+  } catch (error) {
+    console.error("Error sending contract data:", error);
+  } finally {
     setIsSaving(false);
-    setShowSuccessModal(true);
-  };
+  }
+};
+
 
   const sections = [
     { id: "parties", label: "Parties", icon: Users },
@@ -317,9 +329,11 @@ export default function ContractBuilder() {
     { id: "additional", label: "Additional Terms", icon: Plus },
   ];
 
+  
+
   if (isPreviewMode) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div id="contract-preview" className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -354,7 +368,13 @@ export default function ContractBuilder() {
               <p className="text-gray-600">{contractData.projectTitle}</p>
             </div>
 
-            <div className="prose prose-gray max-w-none space-y-6">
+            <div
+              id="pdf-part"
+              className="prose prose-gray max-w-none space-y-6"
+            >
+              <h1 className="text-3xl font-bold text-navy mb-2">
+                Collaboration Agreement
+              </h1>
               <section>
                 <h2 className="text-xl font-bold text-navy border-b border-gray-200 pb-2">
                   1. Parties to the Agreement
@@ -362,7 +382,7 @@ export default function ContractBuilder() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold">Entrepreneur:</h3>
-                    <p>{contractData.entrepreneurName}</p>
+                    <p>{contractData.entrepreneurName || ""}</p>
                     <p>{contractData.entrepreneurEmail}</p>
                     <p>{contractData.entrepreneurCompany}</p>
                   </div>
@@ -477,10 +497,20 @@ export default function ContractBuilder() {
                 Continue Editing
               </button>
               <div className="flex space-x-3">
-                <button className="flex items-center space-x-2 px-6 py-3 border border-skyblue text-skyblue rounded-lg hover:bg-skyblue/10 transition-colors">
-                  <Download className="w-4 h-4" />
-                  <span>Download PDF</span>
-                </button>
+                <PDFDownloadLink
+                  document={<ContractPDF contractData={contractData} />}
+                  fileName="contract.pdf"
+                >
+                  {({ loading }) => (
+                    <button className="w-full flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                      <Download className="w-4 h-4" />
+                      <span>
+                        {loading ? "Preparing PDF..." : "Export the PDF"}
+                      </span>
+                    </button>
+                  )}
+                </PDFDownloadLink>
+
                 <button
                   onClick={handleSignAndSend}
                   disabled={isSaving}
@@ -504,7 +534,7 @@ export default function ContractBuilder() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {/* <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link
@@ -532,7 +562,7 @@ export default function ContractBuilder() {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex space-x-8">
@@ -569,10 +599,6 @@ export default function ContractBuilder() {
                     <Eye className="w-4 h-4" />
                     <span>Preview Contract</span>
                   </button>
-                  <button className="w-full flex items-center space-x-2 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                    <Download className="w-4 h-4" />
-                    <span>Export as PDF</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -605,7 +631,7 @@ export default function ContractBuilder() {
                           </label>
                           <input
                             type="text"
-                            value={contractData.entrepreneurName}
+                            value={contractData.entrepreneurName || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 "entrepreneurName",
@@ -621,7 +647,7 @@ export default function ContractBuilder() {
                           </label>
                           <input
                             type="email"
-                            value={contractData.entrepreneurEmail}
+                            value={contractData.entrepreneurEmail || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 "entrepreneurEmail",
@@ -637,7 +663,7 @@ export default function ContractBuilder() {
                           </label>
                           <input
                             type="text"
-                            value={contractData.entrepreneurCompany}
+                            value={contractData.entrepreneurCompany || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 "entrepreneurCompany",
@@ -661,7 +687,7 @@ export default function ContractBuilder() {
                           </label>
                           <input
                             type="text"
-                            value={contractData.developerName}
+                            value={contractData.developerName || ""}
                             onChange={(e) =>
                               handleInputChange("developerName", e.target.value)
                             }
@@ -674,7 +700,7 @@ export default function ContractBuilder() {
                           </label>
                           <input
                             type="email"
-                            value={contractData.developerEmail}
+                            value={contractData.developerEmail || ""}
                             onChange={(e) =>
                               handleInputChange(
                                 "developerEmail",
@@ -706,7 +732,7 @@ export default function ContractBuilder() {
                     </label>
                     <input
                       type="text"
-                      value={contractData.projectTitle}
+                      value={contractData.projectTitle || ""}
                       onChange={(e) =>
                         handleInputChange("projectTitle", e.target.value)
                       }
@@ -719,7 +745,7 @@ export default function ContractBuilder() {
                       Project Description
                     </label>
                     <textarea
-                      value={contractData.projectDescription}
+                      value={contractData.projectDescription || ""}
                       onChange={(e) =>
                         handleInputChange("projectDescription", e.target.value)
                       }
@@ -734,7 +760,7 @@ export default function ContractBuilder() {
                         Scope of Work
                       </label>
                       <textarea
-                        value={contractData.scope}
+                        value={contractData.scope || ""}
                         onChange={(e) =>
                           handleInputChange("scope", e.target.value)
                         }
@@ -749,7 +775,7 @@ export default function ContractBuilder() {
                       </label>
                       <input
                         type="text"
-                        value={contractData.timeline}
+                        value={contractData.timeline || ""}
                         onChange={(e) =>
                           handleInputChange("timeline", e.target.value)
                         }
@@ -786,7 +812,9 @@ export default function ContractBuilder() {
                             </h4>
                             {contractData.milestones.length > 1 && (
                               <button
-                                onClick={() => removeMilestone(milestone.id)}
+                                onClick={() =>
+                                  removeMilestone(milestone.id.toString())
+                                }
                                 className="p-1 text-red-500 hover:text-red-700 transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -801,10 +829,10 @@ export default function ContractBuilder() {
                               </label>
                               <input
                                 type="text"
-                                value={milestone.title}
+                                value={milestone.title || ""}
                                 onChange={(e) =>
                                   updateMilestone(
-                                    milestone.id,
+                                    milestone.id.toString(),
                                     "title",
                                     e.target.value,
                                   )
@@ -818,10 +846,10 @@ export default function ContractBuilder() {
                               </label>
                               <input
                                 type="text"
-                                value={milestone.duration}
+                                value={milestone.duration || ""}
                                 onChange={(e) =>
                                   updateMilestone(
-                                    milestone.id,
+                                    milestone.id.toString(),
                                     "duration",
                                     e.target.value,
                                   )
@@ -840,7 +868,7 @@ export default function ContractBuilder() {
                               value={milestone.description}
                               onChange={(e) =>
                                 updateMilestone(
-                                  milestone.id,
+                                  milestone.id.toString(),
                                   "description",
                                   e.target.value,
                                 )
@@ -856,7 +884,9 @@ export default function ContractBuilder() {
                                 Deliverables
                               </label>
                               <button
-                                onClick={() => addDeliverable(milestone.id)}
+                                onClick={() =>
+                                  addDeliverable(milestone.id.toString())
+                                }
                                 className="text-skyblue hover:text-navy transition-colors text-sm"
                               >
                                 Add Item
@@ -874,7 +904,7 @@ export default function ContractBuilder() {
                                       value={deliverable}
                                       onChange={(e) =>
                                         updateDeliverable(
-                                          milestone.id,
+                                          milestone.id.toString(),
                                           deliverableIndex,
                                           e.target.value,
                                         )
@@ -886,7 +916,7 @@ export default function ContractBuilder() {
                                       <button
                                         onClick={() =>
                                           removeDeliverable(
-                                            milestone.id,
+                                            milestone.id.toString(),
                                             deliverableIndex,
                                           )
                                         }
@@ -1192,9 +1222,10 @@ export default function ContractBuilder() {
             </h2>
             <p className="text-gray-600 mb-6">
               You have successfully signed the contract and it has been sent to{" "}
-              {contractData.developerName} for their review and signature. They
-              will be notified via email.
+              {contractData.developerName} ({contractData.developerEmail}) for
+              their review and signature. They will be notified via email.
             </p>
+
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowSuccessModal(false)}

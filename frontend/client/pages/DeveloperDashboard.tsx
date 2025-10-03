@@ -31,7 +31,7 @@ interface Idea {
 
   title: string;
   stage: "Idea" | "MVP" | "Beta";
-  name: string;
+  fullName: string;
   founderAvatar: string;
   required_skills: string[];
   equity_offering: string;
@@ -56,32 +56,14 @@ interface Collaboration {
   id: string;
   projectTitle: string;
   founderName: string;
+  developerName: string,
   status: "Active" | "Completed" | "On Hold";
   progress: number;
   nextMilestone: string;
   equity: string;
 }
 
-const MOCK_COLLABORATIONS: Collaboration[] = [
-  {
-    id: "1",
-    projectTitle: "FinTech for Rural India",
-    founderName: "Vikram Singh",
-    status: "Active",
-    progress: 65,
-    nextMilestone: "Complete API Integration",
-    equity: "10%",
-  },
-  {
-    id: "2",
-    projectTitle: "E-commerce Analytics",
-    founderName: "Lisa Wang",
-    status: "Completed",
-    progress: 100,
-    nextMilestone: "Project Delivered",
-    equity: "8%",
-  },
-];
+
 
 export default function DeveloperDashboard() {
   const [activeTab, setActiveTab] = useState("feed");
@@ -92,9 +74,48 @@ export default function DeveloperDashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [proposals, setProposals] = useState<any[]>([]);
   const [count, setCount] = useState<number | null>(null);
-
+  const [collaborations, setCollaborations] = useState([])
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+   const [selectedContract, setSelectedContract] = useState(null); // for modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const developer_id = userData.id;
+    const navigate = useNavigate();
+  useEffect(() => {
+    if (activeTab !="collaborations") return;
+
+    const fetchDeveloperCollaborations = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        const developerId = userData?.id;
+
+        if (!developerId) return;
+
+        const response = await axios.get(
+          `http://localhost:5000/developer-collaboration/${developerId}`
+        );
+
+        console.log("Developer collaborations:", response.data);
+        setCollaborations(response.data.contracts || []);
+      } catch (err) {
+        console.error("Failed to fetch developer collaborations:", err);
+      }
+    };
+
+    fetchDeveloperCollaborations();
+  }, [activeTab]);
+
+   // Open modal
+  const openModal = (contract) => {
+    setSelectedContract(contract);
+    setIsModalOpen(true);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setSelectedContract(null);
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     if (!userData?.id || userData.userType !== "developer") return;
@@ -105,6 +126,7 @@ export default function DeveloperDashboard() {
         const res = await axios.get(
           `http://localhost:5000/developer-dashboard/${developer_id}`,
         );
+        console.log(res.data);
         if (res.data.success) {
           const ideasWithBookmark = res.data.data.map((idea: any) => ({
             ...idea,
@@ -324,20 +346,23 @@ export default function DeveloperDashboard() {
                   <span>Collaborations</span>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab("messages")}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === "messages"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Messages</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    2
-                  </span>
-                </button>
+              <button
+      onClick={() => {
+        setActiveTab("messages");
+        navigate("/developer-dashboard/message");
+      }}
+      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+        activeTab === "messages"
+          ? "bg-skyblue text-white"
+          : "text-gray-700 hover:bg-gray-100"
+      }`}
+    >
+      <MessageCircle className="w-5 h-5" />
+      <span>Messages</span>
+      <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+        2
+      </span>
+    </button>
 
                 {/* <Link
                   to="/notifications"
@@ -379,25 +404,14 @@ export default function DeveloperDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Active Projects</span>
-                  <span className="text-sm font-semibold text-green-600">
-                    {
-                      MOCK_COLLABORATIONS.filter((c) => c.status === "Active")
-                        .length
-                    }
-                  </span>
+                 
+                 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">
                     Total Equity Earned
                   </span>
-                  <span className="text-sm font-semibold text-skyblue">
-                    {MOCK_COLLABORATIONS.reduce(
-                      (total, c) =>
-                        total + parseFloat(c.equity.replace("%", "")),
-                      0,
-                    ).toFixed(1)}
-                    %
-                  </span>
+                 
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Success Rate</span>
@@ -466,7 +480,7 @@ export default function DeveloperDashboard() {
                               {idea.title}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              by {idea.name}
+                              by {idea.fullName}
                             </p>
                           </div>
                         </div>
@@ -577,7 +591,7 @@ export default function DeveloperDashboard() {
                                 {idea.title}
                               </h3>
                               <p className="text-sm text-gray-600">
-                                by {idea.name}
+                                by {idea.fullName}
                               </p>
                             </div>
                           </div>
@@ -702,99 +716,119 @@ export default function DeveloperDashboard() {
               </div>
             )}
 
-            {/* Collaborations Tab */}
-            {activeTab === "collaborations" && (
+           {/* Collaborations Tab */}
+{activeTab === "collaborations" && (
+  <div className="space-y-3">
+    {collaborations.length === 0 ? (
+      <p>No signed collaborations yet.</p>
+    ) : (
+      collaborations.map((c) => (
+        <div
+          key={c.id}
+          className="p-3 border rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
+        >
+          <div>
+            <p><strong>Contract ID:</strong> {c.id}</p>
+            <p><strong>Project Title:</strong> {c.project_title || "N/A"}</p>
+            <p><strong>Entrepreneur:</strong> {c.entrepreneur_name || "N/A"}</p>
+            <p><strong>Status:</strong> {c.status}</p>
+          </div>
+
+          <div className="flex flex-col gap-2 mt-2 md:mt-0">
+            <button
+              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={() => openModal(c)}
+            >
+              View Details
+            </button>
+
+            <button
+              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              onClick={() => navigate("/developer-dashboard/message")}
+            >
+              Chat
+            </button>
+          </div>
+        </div>
+      ))
+    )}
+
+    {/* Contract Details Modal */}
+    {isModalOpen && selectedContract && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white rounded-lg w-11/12 md:w-2/3 max-h-[80vh] overflow-y-auto p-6 relative">
+          <button
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl"
+            onClick={closeModal}
+          >
+            ✕
+          </button>
+
+          <h2 className="text-xl font-semibold mb-4">Contract Details</h2>
+
+          <div className="space-y-3">
+            <p><strong>Project Title:</strong> {selectedContract.project_title}</p>
+            <p><strong>Entrepreneur:</strong> {selectedContract.entrepreneur_name}</p>
+            <p><strong>Developer:</strong> {selectedContract.developer_name}</p>
+            <p><strong>Timeline:</strong> {selectedContract.timeline}</p>
+            <p><strong>Equity:</strong> {selectedContract.equity_percentage}</p>
+            <p><strong>Status:</strong> {selectedContract.status}</p>
+            <p><strong>IP Ownership:</strong> {selectedContract.ip_ownership}</p>
+            <p><strong>Confidentiality:</strong> {selectedContract.confidentiality}</p>
+            <p><strong>Termination Clause:</strong> {selectedContract.termination_clause}</p>
+            <p><strong>Dispute Resolution:</strong> {selectedContract.dispute_resolution}</p>
+            <p><strong>Governing Law:</strong> {selectedContract.governing_law}</p>
+            <p><strong>Support Terms:</strong> {selectedContract.support_terms}</p>
+            <p><strong>Project Description:</strong> {selectedContract.project_description}</p>
+            <p><strong>Scope:</strong> {selectedContract.scope}</p>
+
+            {/* Milestones */}
+            {selectedContract.milestones && (
               <div>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-navy mb-2">
-                    Active Collaborations
-                  </h1>
-                  <p className="text-gray-600">
-                    Projects you're currently working on
-                  </p>
-                </div>
-
-                <div className="space-y-6">
-                  {MOCK_COLLABORATIONS.map((collab) => (
-                    <div
-                      key={collab.id}
-                      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold text-navy">
-                            {collab.projectTitle}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            with {collab.founderName}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-3 py-1 text-sm font-medium rounded-full ${
-                            collab.status === "Active"
-                              ? "bg-green-100 text-green-800"
-                              : collab.status === "Completed"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {collab.status}
-                        </span>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-gray-600">Progress</span>
-                          <span className="font-semibold">
-                            {collab.progress}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-skyblue h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${collab.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">Next Milestone:</span>
-                          <p className="font-semibold">
-                            {collab.nextMilestone}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Equity Earned:</span>
-                          <p className="font-semibold text-skyblue">
-                            {collab.equity}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex space-x-2 justify-end">
-                            <button className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors">
-                              <MessageCircle className="w-4 h-4" />
-                              <span>Chat</span>
-                            </button>
-                            <Link
-                              to="/contract-review"
-                              className="flex items-center space-x-1 px-3 py-1 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                              <FileText className="w-4 h-4" />
-                              <span>Contract</span>
-                            </Link>
-                            <button className="flex items-center space-x-1 px-3 py-1 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
-                              <FileText className="w-4 h-4" />
-                              <span>View</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <strong>Milestones:</strong>
+                <ul className="list-disc pl-5 mt-1">
+                  {(() => {
+                    try {
+                      const milestones = JSON.parse(selectedContract.milestones);
+                      return milestones.map((milestone, index) => (
+                        <li key={index}>{milestone}</li>
+                      ));
+                    } catch {
+                      return <li className="text-red-500">Invalid milestone data</li>;
+                    }
+                  })()}
+                </ul>
               </div>
             )}
+
+            {/* Additional Clauses */}
+            {selectedContract.additional_clauses && (
+              <div>
+                <strong>Additional Clauses:</strong>
+                <p className="mt-1">
+                  {(() => {
+                    try {
+                      const clauses = JSON.parse(selectedContract.additional_clauses);
+                      if (Array.isArray(clauses)) {
+                        return clauses.join(", ");
+                      }
+                      if (typeof clauses === "object") {
+                        return Object.values(clauses).join(", ");
+                      }
+                      return clauses;
+                    } catch {
+                      return selectedContract.additional_clauses;
+                    }
+                  })()}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
             {/* Messages Tab */}
             {activeTab === "messages" && (

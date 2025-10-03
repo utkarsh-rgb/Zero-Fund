@@ -129,6 +129,10 @@ export default function Index() {
   const currentCard = TRUST_CARDS[currentCardIndex];
   const CurrentIcon = currentCard.icon;
 
+
+const userDataString = localStorage.getItem("userData");
+const userData = userDataString ? JSON.parse(userDataString) : null;
+const userType = userData?.userType; 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-softgray to-white">
       {/* Header */}
@@ -139,7 +143,7 @@ export default function Index() {
               <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-navy">Zero Fund</span>
+              <span className="text-xl font-bold text-navy">Zero Fund Venture</span>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
               <a
@@ -154,12 +158,35 @@ export default function Index() {
               >
                 Trust & Safety
               </a>
-              <Link
+
+              {/* <Link
                 to="/login"
                 className="bg-skyblue text-white px-6 py-2 rounded-lg hover:bg-navy transition-all duration-300 font-semibold transform hover:scale-105"
               >
                 Sign In
-              </Link>
+              </Link> */}
+
+ {userType ? (
+  <div
+    onClick={() => {
+      // Navigate or perform any action
+      // Example: redirect to dashboard
+      window.location.href = userType === "developer" ? "/developer-dashboard" : "/entrepreneur-dashboard";
+    }}
+    className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center text-white font-semibold text-xs sm:text-sm hover:opacity-90 transition-opacity cursor-pointer shadow-sm ml-2"
+    title={userType === "developer" ? "Developer Dashboard" : "Entrepreneur Dashboard"} // optional tooltip
+  >
+    {userType === "developer" ? "D" : "E"}
+  </div>
+) : (
+  <Link
+    to="/login"
+    className="bg-skyblue text-white px-6 py-2 rounded-lg hover:bg-navy transition-all duration-300 font-semibold transform hover:scale-105"
+  >
+    Sign In
+  </Link>
+)}
+
             </nav>
           </div>
         </div>
@@ -319,7 +346,7 @@ export default function Index() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-navy mb-4">
-              How Zero Fund Works
+              How Zero Fund Venture Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               A simple, transparent process that protects both entrepreneurs and
@@ -478,10 +505,10 @@ export default function Index() {
               <div className="w-8 h-8 bg-skyblue rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">Zero Fund</span>
+              <span className="text-xl font-bold">Zero Fund Venture</span>
             </div>
             <div className="text-sm text-gray-300">
-              © 2024 Zero Fund. Building the future of startup
+              © 2024 Zero Fund Venture. Building the future of startup
               collaboration.
             </div>
           </div>

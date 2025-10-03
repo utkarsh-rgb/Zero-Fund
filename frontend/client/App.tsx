@@ -39,6 +39,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import EditIdea from "./pages/EditIdea";
 import Layout from "./layout/Layout";
+import Messages from "./pages/Messages";
+import DeveloperMessages from "./pages/DeveloperMessages";
 
 const queryClient = new QueryClient();
 
@@ -114,7 +116,12 @@ export default function App() {
           <Route path="/review-contributions" element={<ReviewContributions />} />
           <Route path="/collaboration-management" element={<CollaborationManagement />} />
           <Route path="/settings/:developer_id" element={<Settings />} />
+          <Route path="/settings/:entrepreneur_id" element={<Settings />} />
+          
           <Route path="/notifications/:developerId" element={<Notifications />} />
+          <Route path="/entrepreneur-dashboard/message" element={<Messages/>} />
+          <Route path="/developer-dashboard/message" element={<DeveloperMessages/>} />
+          
         </Route>
 
         {/* Catch all */}
