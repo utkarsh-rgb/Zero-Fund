@@ -8,7 +8,7 @@ const {
 } = require("../controllers/SignedController");
 
 // Developer signs a contract
-router.put("/developer-sign-contract", developerSignedContract);
+router.post("/developer-sign-contract", developerSignedContract);
 
 // Entrepreneur accepts a contract signed by developer
 router.post("/entrepreneur-accept-contract", entrepreneurAcceptContract);

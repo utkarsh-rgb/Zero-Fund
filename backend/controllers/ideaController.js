@@ -1,19 +1,46 @@
-const pool = require("../db");
+// ideaController.js
+const { S3Client } = require("@aws-sdk/client-s3");
+const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require("multer");
+const pool = require("../db");
+require("dotenv").config();
+const path = require("path");
 
-const uploadDir = "uploads"; // make sure this exists
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
+// --- Configure multer to store files temporarily before upload ---
+const storage = multer.memoryStorage(); // store in memory for SDK v3 upload
 const upload = multer({ storage });
 
-// Async controller function
+// --- Configure S3 v3 client ---
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || "eu-north-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+// Helper to upload file buffer to S3
+const uploadToS3 = async (fileBuffer, fileName, mimetype) => {
+  const uploadParams = {
+    Bucket: process.env.S3_BUCKET,
+    Key: `${Date.now()}-${fileName}`,
+    Body: fileBuffer,
+    ContentType: mimetype,
+    // ACL: "public-read",
+  };
+
+  const parallelUpload = new Upload({
+    client: s3Client,
+    params: uploadParams,
+  });
+
+  await parallelUpload.done();
+  return `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+};
+
+// --- POST /idea ---
 const postIdeaHandler = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    console.log("Uploaded files:", req.files);
-
     const {
       title,
       overview,
@@ -33,23 +60,26 @@ const postIdeaHandler = async (req, res) => {
 
     const budgetValue = budget === "" ? null : parseFloat(budget);
     const equityValue = equityOffering || null;
-
     const skillsArray =
-      typeof requiredSkills === "string"
-        ? JSON.parse(requiredSkills)
-        : requiredSkills;
+      typeof requiredSkills === "string" ? JSON.parse(requiredSkills) : requiredSkills || [];
 
-    const attachmentsArray = req.files.map((file) => ({
-      name: file.originalname,
-      path: `${uploadDir}/${file.filename}`,
-    }));
+    // Upload all files to S3
+    const attachmentsArray = [];
+    for (const file of req.files) {
+      const url = await uploadToS3(file.buffer, file.originalname, file.mimetype);
+      attachmentsArray.push({
+        name: file.originalname,
+        url,
+        type: file.mimetype,
+        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      });
+    }
 
     const sql = `
       INSERT INTO entrepreneur_idea
-      (entrepreneur_id,title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments)
+      (entrepreneur_id, title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-
     const values = [
       entrepreneur_id,
       title,
@@ -73,14 +103,16 @@ const postIdeaHandler = async (req, res) => {
       requiredSkills: skillsArray,
     });
   } catch (error) {
-    console.error("Error inserting project:", error.message);
-    res.status(500).json({ error: "Something went wrong", message: error.message });
+    console.error("Error inserting project:", error);
+    res.status(500).json({ error: "Server error", message: error.message });
   }
 };
 
-
-  const getIdeaById = async (req, res) => {
+// --- GET /idea/:id ---
+// --- GET /idea/:id ---
+const getIdeaById = async (req, res) => {
   const ideaId = req.params.id;
+
   try {
     const [rows] = await pool.execute(
       "SELECT * FROM entrepreneur_idea WHERE id = ?",
@@ -93,29 +125,28 @@ const postIdeaHandler = async (req, res) => {
 
     const idea = rows[0];
 
-    // Parse required_skills safely and flatten nested arrays
-    try {
-      const parsedSkills = JSON.parse(idea.required_skills || "[]");
-      idea.required_skills = Array.isArray(parsedSkills)
-        ? parsedSkills.flat(Infinity)
-        : [];
-    } catch (err) {
-      console.error("Error parsing required_skills:", err);
-      idea.required_skills = [];
-    }
+    // --- Parse required_skills safely ---
+    idea.required_skills = Array.isArray(idea.required_skills)
+      ? idea.required_skills.flat(Infinity) // already an array, just flatten
+      : (() => {
+          try {
+            return JSON.parse(idea.required_skills || "[]").flat(Infinity);
+          } catch {
+            return [];
+          }
+        })();
 
-    // Parse attachments safely
-    try {
-      const parsedAttachments = JSON.parse(idea.attachments || "[]");
-      idea.attachments = Array.isArray(parsedAttachments)
-        ? parsedAttachments
-        : [];
-    } catch (err) {
-      console.error("Error parsing attachments:", err);
-      idea.attachments = [];
-    }
+    // --- Parse attachments safely ---
+    idea.attachments = Array.isArray(idea.attachments)
+      ? idea.attachments
+      : (() => {
+          try {
+            return JSON.parse(idea.attachments || "[]");
+          } catch {
+            return [];
+          }
+        })();
 
-    // Return idea object
     res.json({ idea });
   } catch (error) {
     console.error("Error fetching idea:", error);
@@ -123,24 +154,22 @@ const postIdeaHandler = async (req, res) => {
   }
 };
 
- 
-const signNDA =  async (req, res) => {
+
+// --- PUT /idea/:id/nda ---
+const signNDA = async (req, res) => {
   const ideaId = req.params.id;
   try {
     const [result] = await pool.execute(
       "UPDATE entrepreneur_idea SET nda_accepted = 1 WHERE id = ?",
       [ideaId]
     );
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Idea not found" });
-    }
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Idea not found" });
+
     res.json({ success: true, message: "NDA accepted" });
   } catch (error) {
     console.error("Error updating NDA status:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
-
-
 
 module.exports = { postIdeaHandler, upload, getIdeaById, signNDA };

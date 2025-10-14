@@ -621,7 +621,7 @@ export default function DeveloperDashboard() {
                           </span>
                           <div className="flex space-x-2">
                             <Link
-                              to={`/idea-details?id=${idea.id}`}
+                            to={`/idea-details/${idea.id}`}
                               className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
                             >
                               <Eye className="w-4 h-4" />

@@ -33,7 +33,7 @@ interface IdeaDetails {
   fullDescription: string;
   objectives: string[];
   required_skills: string[];
-  attachments: { name: string; type: string; size: string }[];
+  attachments: { name: string; type: string; size: string; url: string }[];
   nda_accepted: 0 | 1;
   isNDA: boolean;
   visibility: "Public" | "Invite Only" | "NDA Required";
@@ -58,6 +58,7 @@ export default function IdeaDetails() {
       try {
         setLoading(true);
         const response = await axiosLocal.get(`/ideas/${id}`);
+        console.log(response);
         const fetchedIdea = response.data.idea;
         console.log("Skills from backend:", response.data.idea.required_skills);
         setIdea(fetchedIdea);
@@ -392,36 +393,52 @@ export default function IdeaDetails() {
             </div>
 
             {/* Attachments */}
-            <div className="bg-white rounded-lg shadow-sm p-8">
-              <h2 className="text-xl font-bold text-navy mb-6">
-                Project Documents
-              </h2>
-              <div className="space-y-3">
-                {idea.attachments.map((attachment, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-skyblue/10 rounded-lg flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-skyblue" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {attachment.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {attachment.type} • {attachment.size}
-                        </p>
-                      </div>
-                    </div>
-                    <button className="p-2 text-gray-400 hover:text-skyblue transition-colors">
-                      <Download className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+          <div className="bg-white rounded-lg shadow-sm p-8">
+  <h2 className="text-xl font-bold text-navy mb-6">
+    Project Documents
+  </h2>
+
+  <div className="space-y-3">
+    {idea.attachments && idea.attachments.length > 0 ? (
+      idea.attachments.map((attachment, index) => (
+        <a
+          key={index}
+          href={attachment.url} // use the full URL from backend
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-skyblue"
+        >
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-skyblue/10 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-skyblue" />
             </div>
+            <div>
+              <p className="font-medium text-gray-800">
+                {attachment.name || "Untitled File"}
+              </p>
+              <p className="text-sm text-gray-500">
+                {attachment.type || "Unknown Type"} • {attachment.size || "—"}
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={attachment.url} // use the full URL here too
+            download={attachment.name}
+            className="p-2 text-gray-400 hover:text-skyblue transition-colors"
+            title="Download File"
+            onClick={(e) => e.stopPropagation()} // prevent outer <a> click
+          >
+            <Download className="w-5 h-5" />
+          </a>
+        </a>
+      ))
+    ) : (
+      <p className="text-gray-500 text-sm">No documents uploaded yet.</p>
+    )}
+  </div>
+</div>
+
           </div>
 
           {/* Sidebar */}
