@@ -78,7 +78,7 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (!entrepreneurId) return;
 
-    const socket = io("http://localhost:5000");
+    const socket = io("http://51.21.211.14/api");
     socketRef.current = socket;
 
     // Join entrepreneur personal room

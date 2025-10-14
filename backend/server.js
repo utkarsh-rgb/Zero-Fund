@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 
 // For all routes, serve SPA index.html
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/spa', 'index.html'));
 });
 // Serve uploads folder
