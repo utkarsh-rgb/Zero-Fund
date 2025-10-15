@@ -13,7 +13,7 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:8080", "http://localhost:3000"],
+    origin: ["http://localhost:8080", "http://localhost:3000","https://zero-fund-frontend.onrender.com"],
     credentials: true,
   })
 );
