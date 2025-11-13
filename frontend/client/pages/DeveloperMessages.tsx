@@ -11,9 +11,9 @@ type Message = {
   timestamp: string;
 };
 
-const SOCKET_URL = "http://51.21.211.14/api";
-const API_URL = "http://51.21.211.14/api/messages";
-const UNIQUE_ENTREPRENEURS_API = "http://51.21.211.14/api/unique-entrepreneurs";
+const SOCKET_URL = "https://bd.zerofundventure.com";
+const API_URL = "https://bd.zerofundventure.com/messages";
+const UNIQUE_ENTREPRENEURS_API = "https://bd.zerofundventure.com/unique-entrepreneurs";
 
 const DeveloperMessages: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);

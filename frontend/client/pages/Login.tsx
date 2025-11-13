@@ -59,11 +59,12 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsLoading(true);
 
   try {
-const res = await fetch("https://51.21.211.14/api/login", {  // HTTPS & single /api
+const res = await fetch("http://localhost:5000/api/login", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(formData),
 });
+
 
     const data = await res.json();
 

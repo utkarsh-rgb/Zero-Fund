@@ -13,15 +13,16 @@ type Message = {
   timestamp?: string; // optional timestamp from backend
 };
 
-// const SOCKET_URL = "http://localhost:5000";
-//const API_URL = "http://localhost:5000/messages";
-//const UNIQUE_DEVELOPERS_API = "http://localhost:5000/unique-developers";
+const SOCKET_URL = "https://bd.zerofundventure.com";
+const API_URL = "https://bd.zerofundventure.com/messages";
+const UNIQUE_DEVELOPERS_API =
+  "https://bd.zerofundventure.com/unique-developers";
 
 const Messages: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   type Developer = { developer_id: number; fullname: string };
-  
+
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [selectedDeveloper, setSelectedDeveloper] = useState<number | null>(
     null,
@@ -43,33 +44,36 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (!entrepreneurId) return;
 
-  const fetchDevelopers = async () => {
-  try {
-      const res = await axiosLocal.get<{
-    developers: { developer_id: number; fullname: string }[];
-  }>("/unique-developers", {
-    params: { entrepreneur_id: entrepreneurId },
-  });
+    const fetchDevelopers = async () => {
+      try {
+        const res = await axiosLocal.get<{
+          developers: { developer_id: number; fullname: string }[];
+        }>("/unique-developers", {
+          params: { entrepreneur_id: entrepreneurId },
+        });
 
-    // Ensure unique developers by developer_id
-    const uniqueDevsMap = new Map<number, { developer_id: number; fullname: string }>();
-    res.data.developers.forEach(dev => {
-      if (!uniqueDevsMap.has(dev.developer_id)) {
-        uniqueDevsMap.set(dev.developer_id, dev);
+        // Ensure unique developers by developer_id
+        const uniqueDevsMap = new Map<
+          number,
+          { developer_id: number; fullname: string }
+        >();
+        res.data.developers.forEach((dev) => {
+          if (!uniqueDevsMap.has(dev.developer_id)) {
+            uniqueDevsMap.set(dev.developer_id, dev);
+          }
+        });
+
+        const uniqueDevs = Array.from(uniqueDevsMap.values());
+        console.log(uniqueDevs);
+        setDevelopers(uniqueDevs);
+
+        if (uniqueDevs.length > 0) {
+          setSelectedDeveloper(uniqueDevs[0].developer_id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch developers:", err);
       }
-    });
-
-    const uniqueDevs = Array.from(uniqueDevsMap.values());
-    console.log(uniqueDevs);
-    setDevelopers(uniqueDevs);
-
-    if (uniqueDevs.length > 0) {
-      setSelectedDeveloper(uniqueDevs[0].developer_id);
-    }
-  } catch (err) {
-    console.error("Failed to fetch developers:", err);
-  }
-};
+    };
 
     fetchDevelopers();
   }, [entrepreneurId]);
@@ -78,7 +82,7 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (!entrepreneurId) return;
 
-    const socket = io("http://51.21.211.14/api");
+    const socket = io("https://bd.zerofundventure.com");
     socketRef.current = socket;
 
     // Join entrepreneur personal room
@@ -106,15 +110,14 @@ const Messages: React.FC = () => {
     if (!selectedDeveloper || !entrepreneurId) return;
 
     const fetchMessages = async () => {
-    try {
-  const res = await axiosLocal.get<Message[]>(
-    `/messages/entrepreneur/${entrepreneurId}/developer/${selectedDeveloper}`
-  );
-  setMessages(res.data);
-} catch (err) {
-  console.error("Failed to fetch messages:", err);
-}
-
+      try {
+        const res = await axiosLocal.get<Message[]>(
+          `/messages/entrepreneur/${entrepreneurId}/developer/${selectedDeveloper}`,
+        );
+        setMessages(res.data);
+      } catch (err) {
+        console.error("Failed to fetch messages:", err);
+      }
     };
     fetchMessages();
   }, [entrepreneurId, selectedDeveloper]);
@@ -147,12 +150,12 @@ const Messages: React.FC = () => {
     // setMessages((prev) => [...prev, msg]);
     setNewMessage("");
   };
-function capitalizeName(name: string): string {
-  return name
-    .split(" ")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
+  function capitalizeName(name: string): string {
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  }
   return (
     <div className="flex flex-col md:flex-row gap-4 max-w-5xl mx-auto my-5 h-[80vh]">
       {/* Developer list sidebar */}
@@ -172,7 +175,9 @@ function capitalizeName(name: string): string {
             }`}
               onClick={() => setSelectedDeveloper(dev.developer_id)}
             >
-              {dev.fullname ?capitalizeName(dev.fullname): `Developer #${dev.developer_id}`}
+              {dev.fullname
+                ? capitalizeName(dev.fullname)
+                : `Developer #${dev.developer_id}`}
             </div>
           ))
         )}
@@ -181,11 +186,13 @@ function capitalizeName(name: string): string {
       {/* Chat panel */}
       <div className="flex-1 flex flex-col border border-gray-300 rounded-lg bg-white">
         {/* Chat header */}
-  <div className="p-3 border-b border-gray-200 font-bold bg-gray-100 rounded-t-lg">
-  Chat with {capitalizeName(developers.find(dev => dev.developer_id === selectedDeveloper)?.fullname || "Developer")}
-</div>
-
-
+        <div className="p-3 border-b border-gray-200 font-bold bg-gray-100 rounded-t-lg">
+          Chat with{" "}
+          {capitalizeName(
+            developers.find((dev) => dev.developer_id === selectedDeveloper)
+              ?.fullname || "Developer",
+          )}
+        </div>
 
         {/* Messages area */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
@@ -204,15 +211,17 @@ function capitalizeName(name: string): string {
                   <div
                     className={`text-[10px] mt-1 ${isMe ? "text-gray-200 text-right" : "text-gray-500 text-left"}`}
                   >
-                   {msg.timestamp
-  ? new Date(msg.timestamp + "Z").toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-      timeZone: "Asia/Kolkata", // force IST
-    })
-  : ""}
-
+                    {msg.timestamp
+                      ? new Date(msg.timestamp + "Z").toLocaleTimeString(
+                          "en-IN",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                            timeZone: "Asia/Kolkata", // force IST
+                          },
+                        )
+                      : ""}
                   </div>
                 </div>
               </div>

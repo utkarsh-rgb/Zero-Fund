@@ -69,6 +69,7 @@ export default function Settings() {
   const handleLogout = () => {
     localStorage.removeItem("jwt_token");
     localStorage.removeItem("userType");
+     localStorage.removeItem("userData");
     window.location.href = "/";
   };
 

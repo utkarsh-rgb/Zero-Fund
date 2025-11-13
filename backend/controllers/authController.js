@@ -62,6 +62,7 @@ const developerSignup =  async (req, res) => {
 const login =  async (req, res) => {
   try {
     const { email, password, userType } = req.body;
+    console.log(email,password,userType);
     if (!email || !password || !userType)
       return res.status(400).json({ message: "All fields are required" });
 
