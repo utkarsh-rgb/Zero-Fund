@@ -46,7 +46,7 @@ const developerSignup =  async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.execute(
-      "INSERT INTO entrepreneur (name, email, password) VALUES (?, ?, ?)",
+      "INSERT INTO entrepreneur (fullName, email, password) VALUES (?, ?, ?)",
       [fullName, email, hashedPassword]
     );
 
