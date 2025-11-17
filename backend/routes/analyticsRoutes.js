@@ -8,7 +8,6 @@ const {
   getTopEntrepreneurs,
   getEquityAnalytics,
   getCollaborationMetrics,
-  getUserGrowth,
   getRecentActivity
 } = require("../controllers/analyticsController");
 
@@ -32,9 +31,6 @@ router.get("/equity-analytics", getEquityAnalytics);
 
 // Collaboration success metrics
 router.get("/collaboration-metrics", getCollaborationMetrics);
-
-// User growth analytics
-router.get("/user-growth", getUserGrowth);
 
 // Recent activity feed
 router.get("/recent-activity", getRecentActivity);
