@@ -96,6 +96,8 @@ export default function EntrepreneurDashboard() {
   const [pendingContracts, setPendingContracts] = useState([]);
 const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+   const [previewLoading, setPreviewLoading] = useState(false);
+
   
   useEffect(() => {
     if (activeTab !== "contract") return;
@@ -174,6 +176,7 @@ const entrepreneurId = userData?.id;
         const response = await axiosLocal.get(
           `/entrepreneur-dashboard/${entrepreneurId}`,
         );
+        console.log(response.data);
         setIdeas(response.data);
       } catch (error) {
         console.error("Error fetching ideas:", error);
@@ -879,7 +882,7 @@ const entrepreneurId = userData?.id;
                         </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                      <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-500">
                           Last updated:{" "}
                           {new Date(idea.updated_at).toLocaleString("en-IN", {
@@ -892,48 +895,84 @@ const entrepreneurId = userData?.id;
                             hour12: true,
                           })}
                         </span>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex space-x-2">
                           {/* View Proposals */}
                           <Link
                             to={`/manage-proposals/${idea.id}`}
-                            className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm"
+                            className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
                           >
                             <FileText className="w-4 h-4" />
                             <span>View Proposals</span>
                           </Link>
 
                           {/* Preview Attachments */}
-                          <button
-                            onClick={() => {
-                              const attachments = idea.attachments?.flat() || [];
+                        
+<button
+  onClick={async () => {
+  try {
+    setPreviewLoading(true);
 
-                              if (attachments.length === 0) {
-                                alert("No attachments available for this idea.");
-                                return;
-                              }
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const entrepreneurId = userData?.id;
 
-                              // Open each attachment in a new tab
-                              attachments.forEach((file: any) => {
-                                try {
-                                  // Use the S3 URL directly from the attachment object
-                                  const fileUrl = file.url || file.path;
-                                  if (fileUrl) {
-                                    window.open(fileUrl, "_blank");
-                                  } else {
-                                    console.error("Attachment missing URL:", file);
-                                  }
-                                } catch (error) {
-                                  console.error("Error opening attachment:", error);
-                                  alert(`Failed to open attachment: ${file.name || "Unknown"}`);
-                                }
-                              });
-                            }}
-                            className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={!idea.attachments || idea.attachments.flat().length === 0}
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span>Preview Attachments ({idea.attachments?.flat().length || 0})</span>
-                          </button>
+    // Fetch ideas (each idea has attachments)
+    const response = await axiosLocal.get(
+      `/entrepreneur-dashboard/${entrepreneurId}`
+    );
+
+    // Get ALL attachments from ALL ideas
+    const allAttachments = response.data.flatMap(
+      (idea) => idea.attachments || []
+    );
+
+    if (!allAttachments.length) {
+      alert("No documents available");
+      setPreviewLoading(false);
+      return;
+    }
+
+    // Open each attachment
+    allAttachments.forEach((file) => {
+      if (file.url) window.open(file.url, "_blank");
+    });
+
+    setPreviewLoading(false);
+  } catch (err) {
+    console.error("Preview error:", err);
+    setPreviewLoading(false);
+  }
+}}
+
+  className="flex items-center space-x-2 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+>
+  {previewLoading ? (
+    <svg
+      className="animate-spin h-5 w-5 text-skyblue"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+  ) : (
+    <Eye className="w-5 h-5" />
+  )}
+
+  <span>{previewLoading ? "Loading..." : "Preview Attachments"}</span>
+</button>
+
                         </div>
                       </div>
                     </div>
