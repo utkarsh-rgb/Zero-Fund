@@ -41,6 +41,7 @@ import EditIdea from "./pages/EditIdea";
 import Layout from "./layout/Layout";
 import Messages from "./pages/Messages";
 import DeveloperMessages from "./pages/DeveloperMessages";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -121,7 +122,8 @@ export default function App() {
           <Route path="/notifications/:developerId" element={<Notifications />} />
           <Route path="/entrepreneur-dashboard/message" element={<Messages/>} />
           <Route path="/developer-dashboard/message" element={<DeveloperMessages/>} />
-          
+          <Route path="/analytics" element={<Analytics />} />
+
         </Route>
 
         {/* Catch all */}

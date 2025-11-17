@@ -11,6 +11,7 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  BarChart3,
 } from "lucide-react";
 
 const Layout: React.FC = () => {
@@ -75,6 +76,15 @@ const Layout: React.FC = () => {
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   <span className="text-sm">Dashboard</span>
+                </Link>
+
+                {/* Analytics Button */}
+                <Link
+                  to="/analytics"
+                  className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="text-sm">Analytics</span>
                 </Link>
 
                 {/* Notifications */}
@@ -145,6 +155,15 @@ const Layout: React.FC = () => {
                 >
                   <LayoutDashboard className="w-5 h-5" />
                   <span>Dashboard</span>
+                </Link>
+
+                <Link
+                  to="/analytics"
+                  className="flex items-center space-x-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Analytics</span>
                 </Link>
 
                 <Link
