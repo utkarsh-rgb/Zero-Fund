@@ -51,6 +51,8 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const collaborationsRoutes = require("./routes/collaborationsRoutes");
 const contractBuilderController = require("./routes/contractBuilderRoutes");
 const signedRoutes = require("./routes/signedRoutes");
+const geminiRoutes = require("./routes/geminiRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 
 app.use("/", forgotPasswordRouter);
 app.use("/", resetPasswordRouter);
@@ -64,6 +66,8 @@ app.use("/", notificationRoutes);
 app.use("/", collaborationsRoutes);
 app.use("/", contractBuilderController);
 app.use("/", signedRoutes);
+app.use("/ai", geminiRoutes);
+app.use("/analytics", analyticsRoutes);
 
 // ------------------------
 // HTTP server + Socket.IO
