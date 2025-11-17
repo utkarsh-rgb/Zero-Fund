@@ -2,6 +2,33 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
 
+// Password strength validation function
+const validatePassword = (password) => {
+  const requirements = {
+    minLength: password.length >= 8,
+    hasUpperCase: /[A-Z]/.test(password),
+    hasLowerCase: /[a-z]/.test(password),
+    hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+  };
+
+  const isValid = Object.values(requirements).every(Boolean);
+
+  if (!isValid) {
+    const errors = [];
+    if (!requirements.minLength) errors.push("minimum 8 characters");
+    if (!requirements.hasUpperCase) errors.push("at least one uppercase letter");
+    if (!requirements.hasLowerCase) errors.push("at least one lowercase letter");
+    if (!requirements.hasSpecialChar) errors.push("at least one special character");
+
+    return {
+      isValid: false,
+      message: `Password must contain: ${errors.join(", ")}`,
+    };
+  }
+
+  return { isValid: true };
+};
+
 // Developer signup
 // app.post("/developers/signup",
 const developerSignup =  async (req, res) => {
@@ -9,6 +36,12 @@ const developerSignup =  async (req, res) => {
     const { fullName, email, password } = req.body;
     if (!fullName || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ message: passwordValidation.message });
+    }
 
     const [existing] = await pool.execute(
       "SELECT * FROM developers WHERE email = ?",
@@ -36,6 +69,12 @@ const developerSignup =  async (req, res) => {
     const { fullName, email, password } = req.body;
     if (!fullName || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ message: passwordValidation.message });
+    }
 
     const [existing] = await pool.execute(
       "SELECT * FROM entrepreneur WHERE email = ?",
