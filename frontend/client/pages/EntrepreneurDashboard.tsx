@@ -879,7 +879,7 @@ const entrepreneurId = userData?.id;
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <span className="text-sm text-gray-500">
                           Last updated:{" "}
                           {new Date(idea.updated_at).toLocaleString("en-IN", {
@@ -892,11 +892,11 @@ const entrepreneurId = userData?.id;
                             hour12: true,
                           })}
                         </span>
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2">
                           {/* View Proposals */}
                           <Link
                             to={`/manage-proposals/${idea.id}`}
-                            className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+                            className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm"
                           >
                             <FileText className="w-4 h-4" />
                             <span>View Proposals</span>
@@ -914,7 +914,7 @@ const entrepreneurId = userData?.id;
                                   ),
                                 );
                             }}
-                            className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+                            className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm"
                           >
                             <Eye className="w-4 h-4" />
                             <span>Preview Attachments</span>
