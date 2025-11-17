@@ -29,6 +29,7 @@ import {
   Trash,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 interface Milestone {
   id: number;
@@ -493,6 +494,22 @@ const entrepreneurId = userData?.id;
                   <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                     3
                   </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab("analytics");
+                    navigate("/analytics");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === "analytics"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Analytics</span>
                 </button>
 
                 <button

@@ -26,6 +26,7 @@ import {
   Shield,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 
 interface Idea {
@@ -307,20 +308,25 @@ export default function DeveloperDashboard() {
           `}>
             <div className="h-full lg:h-auto overflow-y-auto bg-gray-50 lg:bg-transparent pt-6 lg:pt-0">
             <nav className="bg-white rounded-lg shadow-sm p-4">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <button
                   onClick={() => {
                     setActiveTab("feed");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "feed"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
+                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
                   }`}
                 >
-                  <TrendingUp className="w-5 h-5" />
-                  <span>Idea Feed</span>
+                  <TrendingUp className={`w-5 h-5 transition-transform duration-200 ${
+                    activeTab === "feed" ? "" : "group-hover:scale-110"
+                  }`} />
+                  <span className="font-medium">Idea Feed</span>
+                  {activeTab === "feed" && (
+                    <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                  )}
                 </button>
 
                 <button
@@ -328,15 +334,21 @@ export default function DeveloperDashboard() {
                     setActiveTab("bookmarks");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "bookmarks"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
+                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
                   }`}
                 >
-                  <Bookmark className="w-5 h-5" />
-                  <span>Bookmarked Ideas</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  <Bookmark className={`w-5 h-5 transition-transform duration-200 ${
+                    activeTab === "bookmarks" ? "" : "group-hover:scale-110 group-hover:rotate-12"
+                  }`} />
+                  <span className="font-medium">Bookmarked Ideas</span>
+                  <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold transition-colors ${
+                    activeTab === "bookmarks"
+                      ? "bg-white text-skyblue"
+                      : "bg-red-500 text-white"
+                  }`}>
                     {count}
                   </span>
                 </button>
@@ -346,15 +358,21 @@ export default function DeveloperDashboard() {
                     setActiveTab("proposals");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "proposals"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
+                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
                   }`}
                 >
-                  <FileText className="w-5 h-5" />
-                  <span>My Proposals</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  <FileText className={`w-5 h-5 transition-transform duration-200 ${
+                    activeTab === "proposals" ? "" : "group-hover:scale-110"
+                  }`} />
+                  <span className="font-medium">My Proposals</span>
+                  <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold transition-colors ${
+                    activeTab === "proposals"
+                      ? "bg-white text-skyblue"
+                      : "bg-red-500 text-white"
+                  }`}>
                     {proposals.length}
                   </span>
                 </button>
@@ -364,14 +382,19 @@ export default function DeveloperDashboard() {
                     setActiveTab("collaborations");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "collaborations"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
+                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
                   }`}
                 >
-                  <Briefcase className="w-5 h-5" />
-                  <span>Collaborations</span>
+                  <Briefcase className={`w-5 h-5 transition-transform duration-200 ${
+                    activeTab === "collaborations" ? "" : "group-hover:scale-110 group-hover:-rotate-12"
+                  }`} />
+                  <span className="font-medium">Collaborations</span>
+                  {activeTab === "collaborations" && (
+                    <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                  )}
                 </button>
 
               <button
@@ -380,18 +403,45 @@ export default function DeveloperDashboard() {
         navigate("/developer-dashboard/message");
         setIsSidebarOpen(false);
       }}
-      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+      className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
         activeTab === "messages"
-          ? "bg-skyblue text-white"
-          : "text-gray-700 hover:bg-gray-100"
+          ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
+          : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
       }`}
     >
-      <MessageCircle className="w-5 h-5" />
-      <span>Messages</span>
-      <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+      <MessageCircle className={`w-5 h-5 transition-transform duration-200 ${
+        activeTab === "messages" ? "" : "group-hover:scale-110 group-hover:rotate-12"
+      }`} />
+      <span className="font-medium">Messages</span>
+      <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold transition-colors ${
+        activeTab === "messages"
+          ? "bg-white text-skyblue"
+          : "bg-red-500 text-white"
+      }`}>
         2
       </span>
     </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab("analytics");
+                    navigate("/analytics");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                    activeTab === "analytics"
+                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
+                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
+                  }`}
+                >
+                  <BarChart3 className={`w-5 h-5 transition-transform duration-200 ${
+                    activeTab === "analytics" ? "" : "group-hover:scale-110"
+                  }`} />
+                  <span className="font-medium">Analytics</span>
+                  {activeTab === "analytics" && (
+                    <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                  )}
+                </button>
 
                 {/* <Link
                   to="/notifications"
@@ -406,10 +456,11 @@ export default function DeveloperDashboard() {
 
                 <Link
                   to="/contract-review"
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors text-gray-700 hover:bg-gray-100"
+                  className="group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
                 >
-                  <FileText className="w-5 h-5" />
-                  <span>Contracts</span>
+                  <FileText className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
+                  <span className="font-medium">Contracts</span>
+                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </div>
             </nav>
