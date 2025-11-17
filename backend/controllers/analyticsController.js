@@ -542,6 +542,5 @@ module.exports = {
   getTopEntrepreneurs,
   getEquityAnalytics,
   getCollaborationMetrics,
-  getUserGrowth,
   getRecentActivity
 };
