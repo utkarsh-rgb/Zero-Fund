@@ -27,6 +27,8 @@ import {
   Menu,
   X,
   BarChart3,
+  Lightbulb,
+  Plus,
 } from "lucide-react";
 
 interface Idea {
@@ -69,7 +71,7 @@ interface Collaboration {
 
 
 export default function DeveloperDashboard() {
-  const [activeTab, setActiveTab] = useState("feed");
+  const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -82,9 +84,24 @@ export default function DeveloperDashboard() {
    const [selectedContract, setSelectedContract] = useState(null); // for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [analytics, setAnalytics] = useState<any>(null);
 
   const developer_id = userData.id;
     const navigate = useNavigate();
+
+  // Fetch analytics data
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const response = await axiosLocal.get("/analytics/overview");
+        setAnalytics(response.data);
+      } catch (err) {
+        console.error("Failed to fetch analytics:", err);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
   useEffect(() => {
     if (activeTab !="collaborations") return;
 
@@ -308,25 +325,35 @@ export default function DeveloperDashboard() {
           `}>
             <div className="h-full lg:h-auto overflow-y-auto bg-gray-50 lg:bg-transparent pt-6 lg:pt-0">
             <nav className="bg-white rounded-lg shadow-sm p-4">
-              <div className="space-y-1">
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setActiveTab("overview");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === "overview"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Overview</span>
+                </button>
+
                 <button
                   onClick={() => {
                     setActiveTab("feed");
                     setIsSidebarOpen(false);
                   }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "feed"
-                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
-                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <TrendingUp className={`w-5 h-5 transition-transform duration-200 ${
-                    activeTab === "feed" ? "" : "group-hover:scale-110"
-                  }`} />
-                  <span className="font-medium">Idea Feed</span>
-                  {activeTab === "feed" && (
-                    <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
-                  )}
+                  <Lightbulb className="w-5 h-5" />
+                  <span>Idea Feed</span>
                 </button>
 
                 <button
@@ -334,21 +361,15 @@ export default function DeveloperDashboard() {
                     setActiveTab("bookmarks");
                     setIsSidebarOpen(false);
                   }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "bookmarks"
-                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
-                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <Bookmark className={`w-5 h-5 transition-transform duration-200 ${
-                    activeTab === "bookmarks" ? "" : "group-hover:scale-110 group-hover:rotate-12"
-                  }`} />
-                  <span className="font-medium">Bookmarked Ideas</span>
-                  <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold transition-colors ${
-                    activeTab === "bookmarks"
-                      ? "bg-white text-skyblue"
-                      : "bg-red-500 text-white"
-                  }`}>
+                  <Bookmark className="w-5 h-5" />
+                  <span>Bookmarked Ideas</span>
+                  <span className="ml-auto bg-skyblue text-white text-xs px-2 py-1 rounded-full">
                     {count}
                   </span>
                 </button>
@@ -358,21 +379,15 @@ export default function DeveloperDashboard() {
                     setActiveTab("proposals");
                     setIsSidebarOpen(false);
                   }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "proposals"
-                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
-                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <FileText className={`w-5 h-5 transition-transform duration-200 ${
-                    activeTab === "proposals" ? "" : "group-hover:scale-110"
-                  }`} />
-                  <span className="font-medium">My Proposals</span>
-                  <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold transition-colors ${
-                    activeTab === "proposals"
-                      ? "bg-white text-skyblue"
-                      : "bg-red-500 text-white"
-                  }`}>
+                  <FileText className="w-5 h-5" />
+                  <span>Proposals</span>
+                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                     {proposals.length}
                   </span>
                 </button>
@@ -382,45 +397,34 @@ export default function DeveloperDashboard() {
                     setActiveTab("collaborations");
                     setIsSidebarOpen(false);
                   }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "collaborations"
-                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
-                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <Briefcase className={`w-5 h-5 transition-transform duration-200 ${
-                    activeTab === "collaborations" ? "" : "group-hover:scale-110 group-hover:-rotate-12"
-                  }`} />
-                  <span className="font-medium">Collaborations</span>
-                  {activeTab === "collaborations" && (
-                    <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
-                  )}
+                  <Users className="w-5 h-5" />
+                  <span>Collaborations</span>
                 </button>
 
-              <button
-      onClick={() => {
-        setActiveTab("messages");
-        navigate("/developer-dashboard/message");
-        setIsSidebarOpen(false);
-      }}
-      className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-        activeTab === "messages"
-          ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
-          : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
-      }`}
-    >
-      <MessageCircle className={`w-5 h-5 transition-transform duration-200 ${
-        activeTab === "messages" ? "" : "group-hover:scale-110 group-hover:rotate-12"
-      }`} />
-      <span className="font-medium">Messages</span>
-      <span className={`ml-auto text-xs px-2 py-1 rounded-full font-semibold transition-colors ${
-        activeTab === "messages"
-          ? "bg-white text-skyblue"
-          : "bg-red-500 text-white"
-      }`}>
-        2
-      </span>
-    </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("messages");
+                    navigate("/developer-dashboard/message");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === "messages"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Messages</span>
+                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    2
+                  </span>
+                </button>
 
                 <button
                   onClick={() => {
@@ -428,40 +432,15 @@ export default function DeveloperDashboard() {
                     navigate("/analytics");
                     setIsSidebarOpen(false);
                   }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "analytics"
-                      ? "bg-gradient-to-r from-skyblue to-navy text-white shadow-md scale-105"
-                      : "text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  <BarChart3 className={`w-5 h-5 transition-transform duration-200 ${
-                    activeTab === "analytics" ? "" : "group-hover:scale-110"
-                  }`} />
-                  <span className="font-medium">Analytics</span>
-                  {activeTab === "analytics" && (
-                    <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
-                  )}
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Analytics</span>
                 </button>
-
-                {/* <Link
-                  to="/notifications"
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors text-gray-700 hover:bg-gray-100"
-                >
-                  <Bell className="w-5 h-5" />
-                  <span>Notifications</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    5
-                  </span>
-                </Link> */}
-
-                <Link
-                  to="/contract-review"
-                  className="group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform text-gray-700 hover:bg-gray-100 hover:scale-102 hover:shadow-sm"
-                >
-                  <FileText className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="font-medium">Contracts</span>
-                  <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
               </div>
             </nav>
 
@@ -519,6 +498,155 @@ export default function DeveloperDashboard() {
 
           {/* Main Content */}
           <div className="flex-1">
+            {/* Overview Tab */}
+            {activeTab === "overview" && (
+              <div>
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold text-navy mb-2">
+                    Dashboard Overview
+                  </h1>
+                  <p className="text-gray-600">
+                    Track your proposals, collaborations and discover new opportunities
+                  </p>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Total Proposals</p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          {proposals.length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">
+                          Accepted Proposals
+                        </p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          {proposals.filter((p) => p.status === "Accepted").length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Users className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">
+                          Active Collaborations
+                        </p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          {collaborations.filter((c) => c.status === "Active").length}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-skyblue/20 rounded-lg flex items-center justify-center">
+                        <Bookmark className="w-5 h-5 text-skyblue" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Bookmarked Ideas</p>
+                        <p className="text-2xl font-bold text-gray-800">
+                          {count || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-semibold text-navy mb-4">
+                      Recent Proposals
+                    </h3>
+                    <div className="space-y-4">
+                      {proposals.slice(0, 3).map((proposal) => (
+                        <div
+                          key={proposal.id}
+                          className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {proposal.ideaTitle}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {proposal.founderName}
+                            </p>
+                          </div>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              proposal.status === "Accepted"
+                                ? "bg-green-100 text-green-800"
+                                : proposal.status === "Rejected"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {proposal.status}
+                          </span>
+                        </div>
+                      ))}
+                      {proposals.length === 0 && (
+                        <p className="text-gray-500 text-sm">No proposals yet</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h3 className="text-lg font-semibold text-navy mb-4">
+                      Available Opportunities
+                    </h3>
+                    <div className="space-y-4">
+                      {ideas.slice(0, 3).map((idea) => (
+                        <div
+                          key={idea.id}
+                          className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {idea.title}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Equity: {idea.equity_offering}%
+                            </p>
+                          </div>
+                          <Link
+                            to={`/idea-details/${idea.id}`}
+                            className="text-skyblue hover:text-navy transition-colors text-sm font-medium"
+                          >
+                            View
+                          </Link>
+                        </div>
+                      ))}
+                      {ideas.length === 0 && (
+                        <p className="text-gray-500 text-sm">No ideas available</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Idea Feed Tab */}
             {activeTab === "feed" && (
               <div>
