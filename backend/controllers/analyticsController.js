@@ -1,4 +1,4 @@
-const pool = require("../config/database");
+const pool = require("../db");
 
 /**
  * Get overview statistics for specific user
@@ -183,7 +183,7 @@ const getProposalTrends = async (req, res) => {
 
     res.json({
       success: true,
-      trends: trends.reverse()
+      trends: trends.reverse(),
     });
   } catch (error) {
     console.error("Error getting proposal trends:", error);
@@ -225,7 +225,7 @@ const getTopDevelopers = async (req, res) => {
 
     res.json({
       success: true,
-      developers: developers
+      developers,
     });
   } catch (error) {
     console.error("Error getting top developers:", error);
@@ -267,7 +267,7 @@ const getTopEntrepreneurs = async (req, res) => {
 
     res.json({
       success: true,
-      entrepreneurs: entrepreneurs
+      entrepreneurs,
     });
   } catch (error) {
     console.error("Error getting top entrepreneurs:", error);
@@ -526,7 +526,7 @@ const getRecentActivity = async (req, res) => {
 
     res.json({
       success: true,
-      activities: activities
+      activities,
     });
   } catch (error) {
     console.error("Error getting recent activity:", error);
