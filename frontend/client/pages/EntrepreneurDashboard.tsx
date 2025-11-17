@@ -27,6 +27,8 @@ import {
   Shield,
   Send,
   Trash,
+  Menu,
+  X,
 } from "lucide-react";
 interface Milestone {
   id: number;
@@ -93,6 +95,7 @@ export default function EntrepreneurDashboard() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [pendingContracts, setPendingContracts] = useState([]);
 const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   useEffect(() => {
     if (activeTab !== "contract") return;
@@ -386,13 +389,29 @@ const entrepreneurId = userData?.id;
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex space-x-8">
+        {/* Mobile menu button */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="lg:hidden fixed bottom-6 right-6 z-50 p-3 bg-skyblue text-white rounded-full shadow-lg hover:bg-navy transition-colors"
+        >
+          {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
+          <div className={`
+            fixed lg:static inset-y-0 left-0 z-40 w-64 flex-shrink-0
+            transform transition-transform duration-300 ease-in-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          `}>
+            <div className="h-full lg:h-auto overflow-y-auto bg-gray-50 lg:bg-transparent pt-6 lg:pt-0">
             <nav className="bg-white rounded-lg shadow-sm p-4">
               <div className="space-y-2">
                 <button
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => {
+                    setActiveTab("overview");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "overview"
                       ? "bg-skyblue text-white"
@@ -404,7 +423,10 @@ const entrepreneurId = userData?.id;
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("ideas")}
+                  onClick={() => {
+                    setActiveTab("ideas");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "ideas"
                       ? "bg-skyblue text-white"
@@ -419,7 +441,10 @@ const entrepreneurId = userData?.id;
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("proposals")}
+                  onClick={() => {
+                    setActiveTab("proposals");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "proposals"
                       ? "bg-skyblue text-white"
@@ -434,7 +459,10 @@ const entrepreneurId = userData?.id;
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("collaboration")}
+                  onClick={() => {
+                    setActiveTab("collaboration");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "collaboration"
                       ? "bg-skyblue text-white"
@@ -447,8 +475,9 @@ const entrepreneurId = userData?.id;
 
                 <button
                   onClick={() => {
-                    setActiveTab("messages"); // optional if you still want to manage state
-                    navigate("/entrepreneur-dashboard/message"); // redirect to /message
+                    setActiveTab("messages");
+                    navigate("/entrepreneur-dashboard/message");
+                    setIsSidebarOpen(false);
                   }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "messages"
@@ -464,7 +493,10 @@ const entrepreneurId = userData?.id;
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("contract")}
+                  onClick={() => {
+                    setActiveTab("contract");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "contract"
                       ? "bg-skyblue text-white"
@@ -514,7 +546,16 @@ const entrepreneurId = userData?.id;
                 </div>
               </div>
             </div>
+            </div>
           </div>
+
+          {/* Backdrop overlay for mobile */}
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
 
           {/* Main Content */}
           <div className="flex-1">
@@ -797,7 +838,7 @@ const entrepreneurId = userData?.id;
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                         <div className="text-center">
                           <p className="text-sm text-gray-500 mb-2">
                             Skills Required

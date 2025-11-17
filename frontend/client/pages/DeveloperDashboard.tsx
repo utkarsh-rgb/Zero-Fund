@@ -24,6 +24,8 @@ import {
   ChevronRight,
   TrendingUp,
   Shield,
+  Menu,
+  X,
 } from "lucide-react";
 
 interface Idea {
@@ -78,6 +80,7 @@ export default function DeveloperDashboard() {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
    const [selectedContract, setSelectedContract] = useState(null); // for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const developer_id = userData.id;
     const navigate = useNavigate();
@@ -287,13 +290,29 @@ export default function DeveloperDashboard() {
       </header> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex space-x-8">
+        {/* Mobile menu button */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="lg:hidden fixed bottom-6 right-6 z-50 p-3 bg-skyblue text-white rounded-full shadow-lg hover:bg-navy transition-colors"
+        >
+          {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar Navigation */}
-          <div className="w-64 flex-shrink-0">
+          <div className={`
+            fixed lg:static inset-y-0 left-0 z-40 w-64 flex-shrink-0
+            transform transition-transform duration-300 ease-in-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          `}>
+            <div className="h-full lg:h-auto overflow-y-auto bg-gray-50 lg:bg-transparent pt-6 lg:pt-0">
             <nav className="bg-white rounded-lg shadow-sm p-4">
               <div className="space-y-2">
                 <button
-                  onClick={() => setActiveTab("feed")}
+                  onClick={() => {
+                    setActiveTab("feed");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "feed"
                       ? "bg-skyblue text-white"
@@ -305,7 +324,10 @@ export default function DeveloperDashboard() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("bookmarks")}
+                  onClick={() => {
+                    setActiveTab("bookmarks");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "bookmarks"
                       ? "bg-skyblue text-white"
@@ -320,7 +342,10 @@ export default function DeveloperDashboard() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("proposals")}
+                  onClick={() => {
+                    setActiveTab("proposals");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "proposals"
                       ? "bg-skyblue text-white"
@@ -335,7 +360,10 @@ export default function DeveloperDashboard() {
                 </button>
 
                 <button
-                  onClick={() => setActiveTab("collaborations")}
+                  onClick={() => {
+                    setActiveTab("collaborations");
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     activeTab === "collaborations"
                       ? "bg-skyblue text-white"
@@ -350,6 +378,7 @@ export default function DeveloperDashboard() {
       onClick={() => {
         setActiveTab("messages");
         navigate("/developer-dashboard/message");
+        setIsSidebarOpen(false);
       }}
       className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
         activeTab === "messages"
@@ -404,14 +433,14 @@ export default function DeveloperDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Active Projects</span>
-                 
-                 
+
+
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">
                     Total Equity Earned
                   </span>
-                 
+
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Success Rate</span>
@@ -426,7 +455,16 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
+
+          {/* Backdrop overlay for mobile */}
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
 
           {/* Main Content */}
           <div className="flex-1">
@@ -678,7 +716,7 @@ export default function DeveloperDashboard() {
                         <StatusBadge status={proposal.status} />
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                         <div>
                           <span className="text-gray-500">
                             Equity Proposed:
@@ -703,8 +741,8 @@ export default function DeveloperDashboard() {
                             )}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <button className="flex items-center space-x-1 text-skyblue hover:text-navy transition-colors ml-auto">
+                        <div className="sm:col-span-2 lg:col-span-1 lg:text-right">
+                          <button className="flex items-center space-x-1 text-skyblue hover:text-navy transition-colors lg:ml-auto">
                             <span>View Details</span>
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -755,8 +793,8 @@ export default function DeveloperDashboard() {
 
     {/* Contract Details Modal */}
     {isModalOpen && selectedContract && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="bg-white rounded-lg w-11/12 md:w-2/3 max-h-[80vh] overflow-y-auto p-6 relative">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+        <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 relative">
           <button
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl"
             onClick={closeModal}

@@ -157,7 +157,7 @@ const Messages: React.FC = () => {
       .join(" ");
   }
   return (
-    <div className="flex flex-col md:flex-row gap-4 max-w-5xl mx-auto my-5 h-[80vh]">
+    <div className="flex flex-col md:flex-row gap-4 max-w-5xl mx-auto my-5 min-h-[500px] md:h-[80vh]">
       {/* Developer list sidebar */}
       <div className="w-full md:w-64 border md:border-r border-gray-300 rounded-lg md:rounded-none bg-gray-100 p-3 overflow-y-auto">
         <h3 className="mb-3 font-semibold">💻 Developers</h3>

@@ -126,7 +126,7 @@ const fetchEntrepreneurs = async () => {
   };
 
   return (
-  <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto h-[80vh]">
+  <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto min-h-[500px] md:h-[80vh]">
   {/* Entrepreneur list sidebar */}
   <div className="w-full md:w-52 border border-gray-300 rounded-lg p-3 bg-gray-50 overflow-y-auto">
     <h4 className="mb-3 font-semibold">👔 Entrepreneurs</h4>

@@ -255,7 +255,7 @@ export default function ManageProposals() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex space-x-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="flex-1">
             <div className="mb-6">
@@ -387,7 +387,7 @@ export default function ManageProposals() {
                   </div>
 
                   {/* Proposal Details */}
-                  <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 text-sm">
                     <div>
                       <span className="text-gray-500">Equity Requested:</span>
                       <p className="font-semibold text-skyblue">
@@ -420,7 +420,7 @@ export default function ManageProposals() {
 
                   {/* Actions */}
                   {proposal.status === "Pending" && (
-                    <div className="flex space-x-3">
+                    <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => setSelectedProposal(proposal)}
                         className="flex items-center space-x-2 px-4 py-2 border border-skyblue text-skyblue rounded-lg hover:bg-skyblue/10 transition-colors"
@@ -455,7 +455,7 @@ export default function ManageProposals() {
                   )}
 
                   {proposal.status === "Reviewed" && (
-                    <div className="flex space-x-3">
+                    <div className="flex flex-wrap gap-3">
                       <Link
                         to={`/entrepreneur-chat?developer=${proposal.developer.id}`}
                         className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
@@ -475,7 +475,7 @@ export default function ManageProposals() {
 
                   {(proposal.status === "Approved" ||
                     proposal.status === "Rejected") && (
-                    <div className="flex space-x-3">
+                    <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => setSelectedProposal(proposal)}
                         className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
@@ -537,7 +537,7 @@ export default function ManageProposals() {
           </div>
 
           {/* Sidebar Stats */}
-          <div className="w-80 flex-shrink-0">
+          <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-8">
               <h3 className="font-semibold text-navy mb-4">Proposal Summary</h3>
               <div className="space-y-4">
@@ -596,7 +596,7 @@ export default function ManageProposals() {
       {/* Proposal Detail Modal */}
       {selectedProposal && !showRejectModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="border-b border-gray-200 p-6">
               <div className="flex justify-between items-start">
@@ -733,7 +733,7 @@ export default function ManageProposals() {
                 <h3 className="font-semibold text-gray-800 mb-3">
                   Proposal Details
                 </h3>
-                <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 text-sm">
                   <div>
                     <span className="text-gray-500">Equity Requested:</span>
                     <p className="font-semibold text-skyblue text-lg">
@@ -840,7 +840,7 @@ export default function ManageProposals() {
 
               {/* Actions */}
               {selectedProposal.status === "Pending" && (
-                <div className="flex space-x-4">
+                <div className="flex flex-wrap gap-4">
                   <Link
                     to={`/entrepreneur-chat?developer=${selectedProposal.developer.id}`}
                     className="flex items-center space-x-2 px-6 py-3 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
