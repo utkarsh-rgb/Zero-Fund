@@ -14,6 +14,8 @@ import {
   FileText,
   TrendingUp,
   ChevronRight,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 
 interface FormData {
@@ -68,6 +70,27 @@ export default function EntrepreneurSignup() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Password strength validation
+  const getPasswordStrength = (password: string) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    };
+
+    const metRequirements = Object.values(requirements).filter(Boolean).length;
+
+    return {
+      requirements,
+      strength: metRequirements === 4 ? 'strong' : metRequirements >= 2 ? 'medium' : 'weak',
+      score: metRequirements,
+      isValid: metRequirements === 4,
+    };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
 
 
   const handleSubmit = async () => {
@@ -79,10 +102,13 @@ export default function EntrepreneurSignup() {
     alert("Enter a valid email address.");
     return;
   }
-  if (formData.password.length < 6) {
-    alert("Password must be at least 6 characters long.");
+
+  // Enhanced password validation
+  if (!passwordStrength.isValid) {
+    alert("Password must meet all requirements:\n- Minimum 8 characters\n- At least one uppercase letter\n- At least one lowercase letter\n- At least one special character");
     return;
   }
+
   if (formData.password !== formData.confirmPassword) {
     alert("Passwords do not match.");
     return;
@@ -283,6 +309,59 @@ export default function EntrepreneurSignup() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-3">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          passwordStrength.strength === 'strong'
+                            ? 'bg-green-500 w-full'
+                            : passwordStrength.strength === 'medium'
+                            ? 'bg-yellow-500 w-2/3'
+                            : 'bg-red-500 w-1/3'
+                        }`}
+                      />
+                    </div>
+                    <span
+                      className={`text-xs font-semibold ${
+                        passwordStrength.strength === 'strong'
+                          ? 'text-green-600'
+                          : passwordStrength.strength === 'medium'
+                          ? 'text-yellow-600'
+                          : 'text-red-600'
+                      }`}
+                    >
+                      {passwordStrength.strength === 'strong'
+                        ? 'Strong'
+                        : passwordStrength.strength === 'medium'
+                        ? 'Medium'
+                        : 'Weak'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className={`flex items-center text-xs ${passwordStrength.requirements.minLength ? 'text-green-600' : 'text-gray-500'}`}>
+                      {passwordStrength.requirements.minLength ? <Check className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      Minimum 8 characters
+                    </div>
+                    <div className={`flex items-center text-xs ${passwordStrength.requirements.hasUpperCase ? 'text-green-600' : 'text-gray-500'}`}>
+                      {passwordStrength.requirements.hasUpperCase ? <Check className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      At least one uppercase letter
+                    </div>
+                    <div className={`flex items-center text-xs ${passwordStrength.requirements.hasLowerCase ? 'text-green-600' : 'text-gray-500'}`}>
+                      {passwordStrength.requirements.hasLowerCase ? <Check className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      At least one lowercase letter
+                    </div>
+                    <div className={`flex items-center text-xs ${passwordStrength.requirements.hasSpecialChar ? 'text-green-600' : 'text-gray-500'}`}>
+                      {passwordStrength.requirements.hasSpecialChar ? <Check className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                      At least one special character (!@#$%^&*)
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}
