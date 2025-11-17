@@ -907,26 +907,48 @@ const entrepreneurId = userData?.id;
                             onClick={() => {
                               const attachments = idea.attachments?.flat() || [];
 
+                              console.log("Attachments data:", attachments);
+
                               if (attachments.length === 0) {
                                 alert("No attachments available for this idea.");
                                 return;
                               }
 
                               // Open each attachment in a new tab
+                              let successCount = 0;
+                              let failCount = 0;
+
                               attachments.forEach((file: any) => {
                                 try {
+                                  console.log("Processing file:", file);
+
                                   // Use the S3 URL directly from the attachment object
                                   const fileUrl = file.url || file.path;
+
+                                  console.log("File URL:", fileUrl);
+
                                   if (fileUrl) {
-                                    window.open(fileUrl, "_blank");
+                                    const opened = window.open(fileUrl, "_blank", "noopener,noreferrer");
+                                    if (opened) {
+                                      successCount++;
+                                    } else {
+                                      console.error("Popup blocked for:", fileUrl);
+                                      failCount++;
+                                    }
                                   } else {
                                     console.error("Attachment missing URL:", file);
+                                    failCount++;
                                   }
                                 } catch (error) {
                                   console.error("Error opening attachment:", error);
-                                  alert(`Failed to open attachment: ${file.name || "Unknown"}`);
+                                  failCount++;
                                 }
                               });
+
+                              // Show result to user
+                              if (failCount > 0) {
+                                alert(`Opened ${successCount} attachment(s). ${failCount} failed. Check browser console for details or allow popups.`);
+                              }
                             }}
                             className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!idea.attachments || idea.attachments.flat().length === 0}
