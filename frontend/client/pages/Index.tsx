@@ -15,6 +15,10 @@ import {
   Target,
   CheckCircle,
   Lock,
+  Menu,
+  X,
+  LayoutDashboard,
+  LogIn,
 } from "lucide-react";
 
 const HERO_QUOTES = [
@@ -100,6 +104,7 @@ export default function Index() {
   const [isQuoteAnimating, setIsQuoteAnimating] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isCardAnimating, setIsCardAnimating] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const quoteInterval = setInterval(() => {
@@ -143,8 +148,10 @@ const userType = userData?.userType;
               <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-navy">Zero Fund Venture</span>
+              <span className="text-lg sm:text-xl font-bold text-navy">Zero Fund Venture</span>
             </div>
+
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <a
                 href="#how-it-works"
@@ -159,36 +166,78 @@ const userType = userData?.userType;
                 Trust & Safety
               </a>
 
-              {/* <Link
-                to="/login"
-                className="bg-skyblue text-white px-6 py-2 rounded-lg hover:bg-navy transition-all duration-300 font-semibold transform hover:scale-105"
-              >
-                Sign In
-              </Link> */}
-
- {userType ? (
-  <div
-    onClick={() => {
-      // Navigate or perform any action
-      // Example: redirect to dashboard
-      window.location.href = userType === "developer" ? "/developer-dashboard" : "/entrepreneur-dashboard";
-    }}
-    className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center text-white font-semibold text-xs sm:text-sm hover:opacity-90 transition-opacity cursor-pointer shadow-sm ml-2"
-    title={userType === "developer" ? "Developer Dashboard" : "Entrepreneur Dashboard"} // optional tooltip
-  >
-    {userType === "developer" ? "D" : "E"}
-  </div>
-) : (
-  <Link
-    to="/login"
-    className="bg-skyblue text-white px-6 py-2 rounded-lg hover:bg-navy transition-all duration-300 font-semibold transform hover:scale-105"
-  >
-    Sign In
-  </Link>
-)}
-
+              {userType ? (
+                <div
+                  onClick={() => {
+                    window.location.href = userType === "developer" ? "/developer-dashboard" : "/entrepreneur-dashboard";
+                  }}
+                  className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center text-white font-semibold text-xs sm:text-sm hover:opacity-90 transition-opacity cursor-pointer shadow-sm ml-2"
+                  title={userType === "developer" ? "Developer Dashboard" : "Entrepreneur Dashboard"}
+                >
+                  {userType === "developer" ? "D" : "E"}
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="bg-skyblue text-white px-6 py-2 rounded-lg hover:bg-navy transition-all duration-300 font-semibold transform hover:scale-105"
+                >
+                  Sign In
+                </Link>
+              )}
             </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-600 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 py-4 space-y-3">
+              <a
+                href="#how-it-works"
+                className="block px-4 py-2 text-gray-600 hover:text-navy hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                How it Works
+              </a>
+              <a
+                href="#trust"
+                className="block px-4 py-2 text-gray-600 hover:text-navy hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Trust & Safety
+              </a>
+
+              <div className="px-4 pt-3 border-t border-gray-200 space-y-3">
+                {userType ? (
+                  <Link
+                    to={userType === "developer" ? "/developer-dashboard" : "/entrepreneur-dashboard"}
+                    className="flex items-center space-x-3 px-4 py-3 bg-gradient-to-r from-skyblue to-navy text-white rounded-lg hover:opacity-90 transition-opacity shadow-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <LayoutDashboard className="w-5 h-5" />
+                    <span className="font-semibold">
+                      {userType === "developer" ? "Developer Dashboard" : "Entrepreneur Dashboard"}
+                    </span>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="flex items-center justify-center space-x-2 px-4 py-3 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors shadow-sm font-semibold"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <LogIn className="w-5 h-5" />
+                    <span>Sign In</span>
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

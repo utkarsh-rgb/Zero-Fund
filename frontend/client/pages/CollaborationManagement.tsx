@@ -507,7 +507,7 @@ export default function CollaborationManagement() {
                   </div>
 
                   {/* Key Info */}
-                  <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 text-sm">
                     <div>
                       <span className="text-gray-500">Equity Allocated:</span>
                       <p className="font-semibold text-skyblue">
@@ -533,8 +533,8 @@ export default function CollaborationManagement() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                    <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-4 border-t border-gray-200">
+                    <div className="flex flex-wrap gap-3">
                       <Link
                         to={`/entrepreneur-chat?developer=${collaboration.developer.id}`}
                         className="flex items-center space-x-2 px-3 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
@@ -559,7 +559,7 @@ export default function CollaborationManagement() {
                     </div>
 
                     {collaboration.status === "active" && (
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() =>
                             handlePauseCollaboration(collaboration.id)
@@ -713,7 +713,7 @@ export default function CollaborationManagement() {
                             ></div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                           <div>
                             <span className="text-gray-500">Milestones:</span>
                             <p className="font-semibold">
