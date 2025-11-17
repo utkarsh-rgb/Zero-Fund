@@ -18,6 +18,11 @@ import {
   CheckCircle,
   AlertCircle,
   DollarSign,
+  Sparkles,
+  TrendingUp,
+  Brain,
+  X,
+  Copy,
 } from "lucide-react";
 
 interface FormData {
@@ -84,7 +89,16 @@ export default function PostIdea() {
     budget: "",
     additionalRequirements: "",
   });
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // AI-powered assistance state
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiModalContent, setAiModalContent] = useState<{
+    title: string;
+    content: string;
+    type: "analysis" | "names" | "insights";
+  } | null>(null);
 
   const handleInputChange = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -113,6 +127,96 @@ const [loading, setLoading] = useState(false);
       ...prev,
       attachments: prev.attachments.filter((_, i) => i !== index),
     }));
+  };
+
+  // AI-powered assistance functions
+  const handleAnalyzeIdea = async () => {
+    if (!formData.title || !formData.overview) {
+      alert("Please enter title and overview first!");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const response = await axiosLocal.post('/ai/analyze-idea', {
+        title: formData.title,
+        description: formData.overview,
+        category: formData.stage || "General",
+        equityOffered: formData.equityOffering || "Not specified"
+      });
+
+      setAiModalContent({
+        title: "AI Analysis of Your Idea",
+        content: response.data.analysis,
+        type: "analysis"
+      });
+      setShowAiModal(true);
+
+    } catch (error) {
+      console.error("AI Analysis failed:", error);
+      alert("Failed to analyze idea. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleSuggestNames = async () => {
+    if (!formData.overview) {
+      alert("Please enter an overview first!");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const response = await axiosLocal.post('/ai/suggest-names', {
+        description: formData.overview,
+        category: formData.stage || "General",
+        keywords: formData.requiredSkills.length > 0
+          ? formData.requiredSkills.join(", ")
+          : "technology, startup"
+      });
+
+      setAiModalContent({
+        title: "AI Name Suggestions",
+        content: response.data.suggestions,
+        type: "names"
+      });
+      setShowAiModal(true);
+
+    } catch (error) {
+      console.error("Name suggestions failed:", error);
+      alert("Failed to get name suggestions. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleGetMarketInsights = async () => {
+    if (!formData.stage) {
+      alert("Please select a project stage first!");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const response = await axiosLocal.post('/ai/market-insights', {
+        category: formData.stage,
+        ideaTitle: formData.title || "Your startup idea"
+      });
+
+      setAiModalContent({
+        title: "Market Insights & Trends",
+        content: response.data.insights,
+        type: "insights"
+      });
+      setShowAiModal(true);
+
+    } catch (error) {
+      console.error("Market insights failed:", error);
+      alert("Failed to get market insights. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handlePublish = async () => {
@@ -546,6 +650,90 @@ const [loading, setLoading] = useState(false);
                 </div>
               </div>
 
+              {/* AI-Powered Assistance Section */}
+              {formData.title && formData.overview && (
+                <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200 shadow-sm">
+                  <div className="flex items-start space-x-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 mb-1 text-lg">
+                        AI-Powered Assistance
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Get instant AI feedback and insights on your idea before posting
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-3">
+                    <button
+                      type="button"
+                      onClick={handleAnalyzeIdea}
+                      disabled={aiLoading}
+                      className="group relative overflow-hidden flex flex-col items-center justify-center space-y-2 px-4 py-4 bg-white border-2 border-purple-200 rounded-xl hover:border-purple-400 hover:shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Brain className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <span className="font-semibold text-gray-800 text-sm">
+                        Analyze Idea
+                      </span>
+                      <span className="text-xs text-gray-500 text-center">
+                        Get AI insights
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSuggestNames}
+                      disabled={aiLoading}
+                      className="group relative overflow-hidden flex flex-col items-center justify-center space-y-2 px-4 py-4 bg-white border-2 border-purple-200 rounded-xl hover:border-purple-400 hover:shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Lightbulb className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <span className="font-semibold text-gray-800 text-sm">
+                        Suggest Names
+                      </span>
+                      <span className="text-xs text-gray-500 text-center">
+                        Creative ideas
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleGetMarketInsights}
+                      disabled={aiLoading || !formData.stage}
+                      className="group relative overflow-hidden flex flex-col items-center justify-center space-y-2 px-4 py-4 bg-white border-2 border-purple-200 rounded-xl hover:border-purple-400 hover:shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <TrendingUp className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <span className="font-semibold text-gray-800 text-sm">
+                        Market Insights
+                      </span>
+                      <span className="text-xs text-gray-500 text-center">
+                        Trends & data
+                      </span>
+                    </button>
+                  </div>
+
+                  {aiLoading && (
+                    <div className="mt-4 flex items-center justify-center space-x-3 py-3 bg-white/60 backdrop-blur-sm rounded-lg border border-purple-200">
+                      <div className="relative">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                        <div className="absolute inset-0 rounded-full border-2 border-purple-200"></div>
+                      </div>
+                      <span className="text-sm font-medium text-purple-600 animate-pulse">
+                        AI is analyzing...
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 onClick={() => setCurrentStep(2)}
                 disabled={!isStepValid(1)}
@@ -822,6 +1010,98 @@ const [loading, setLoading] = useState(false);
           </div>
         )}
       </div>
+
+      {/* AI Results Modal */}
+      {showAiModal && aiModalContent && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-slideUp">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {aiModalContent.type === "analysis" && (
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                {aiModalContent.type === "names" && (
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Lightbulb className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                {aiModalContent.type === "insights" && (
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                <h2 className="text-2xl font-bold text-white">
+                  {aiModalContent.title}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <div className="prose prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed font-sans text-sm">
+                    {aiModalContent.content}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Helpful Tips */}
+              <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">Pro Tip</p>
+                    {aiModalContent.type === "analysis" && (
+                      <p>Use these insights to refine your idea description and highlight your strengths when posting.</p>
+                    )}
+                    {aiModalContent.type === "names" && (
+                      <p>Choose a name that's memorable, easy to spell, and reflects your startup's mission.</p>
+                    )}
+                    {aiModalContent.type === "insights" && (
+                      <p>Use these market insights to position your startup effectively and identify your competitive advantage.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-gray-200 px-6 py-4 bg-white flex justify-between items-center">
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="px-6 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(aiModalContent.content);
+                  const btn = event?.target as HTMLButtonElement;
+                  const originalText = btn.textContent;
+                  btn.textContent = "Copied!";
+                  setTimeout(() => {
+                    btn.textContent = originalText || "Copy to Clipboard";
+                  }, 2000);
+                }}
+                className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Copy to Clipboard</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
