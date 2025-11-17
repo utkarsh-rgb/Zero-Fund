@@ -6,11 +6,11 @@ const pool = require("../config/database");
 const getOverviewStats = async (req, res) => {
   try {
     const [totalIdeas] = await pool.execute("SELECT COUNT(*) as count FROM entrepreneur_idea");
-    const [totalDevelopers] = await pool.execute("SELECT COUNT(*) as count FROM developer");
+    const [totalDevelopers] = await pool.execute("SELECT COUNT(*) as count FROM developers");
     const [totalEntrepreneurs] = await pool.execute("SELECT COUNT(*) as count FROM entrepreneur");
     const [totalProposals] = await pool.execute("SELECT COUNT(*) as count FROM proposals");
-    const [acceptedProposals] = await pool.execute("SELECT COUNT(*) as count FROM proposals WHERE status = 'accepted'");
-    const [activeCollaborations] = await pool.execute("SELECT COUNT(*) as count FROM collaborations WHERE status = 'active'");
+    const [acceptedProposals] = await pool.execute("SELECT COUNT(*) as count FROM proposals WHERE status = 'Approved'");
+    const [activeContracts] = await pool.execute("SELECT COUNT(*) as count FROM contracts WHERE status = 'signed'");
 
     res.json({
       success: true,
@@ -20,7 +20,7 @@ const getOverviewStats = async (req, res) => {
         totalEntrepreneurs: totalEntrepreneurs[0].count,
         totalProposals: totalProposals[0].count,
         acceptedProposals: acceptedProposals[0].count,
-        activeCollaborations: activeCollaborations[0].count,
+        activeCollaborations: activeContracts[0].count,
         proposalAcceptanceRate: totalProposals[0].count > 0
           ? ((acceptedProposals[0].count / totalProposals[0].count) * 100).toFixed(1)
           : 0
@@ -33,25 +33,25 @@ const getOverviewStats = async (req, res) => {
 };
 
 /**
- * Get ideas by category distribution
+ * Get ideas by stage distribution (Idea, MVP, Prototype, etc.)
  */
 const getIdeasByCategory = async (req, res) => {
   try {
-    const [categories] = await pool.execute(`
-      SELECT category, COUNT(*) as count
+    const [stages] = await pool.execute(`
+      SELECT stage as category, COUNT(*) as count
       FROM entrepreneur_idea
-      WHERE category IS NOT NULL AND category != ''
-      GROUP BY category
+      WHERE stage IS NOT NULL AND stage != ''
+      GROUP BY stage
       ORDER BY count DESC
     `);
 
     res.json({
       success: true,
-      categories: categories
+      categories: stages
     });
   } catch (error) {
-    console.error("Error getting ideas by category:", error);
-    res.status(500).json({ error: "Failed to get category distribution" });
+    console.error("Error getting ideas by stage:", error);
+    res.status(500).json({ error: "Failed to get stage distribution" });
   }
 };
 
@@ -64,9 +64,9 @@ const getProposalTrends = async (req, res) => {
       SELECT
         DATE_FORMAT(created_at, '%Y-%m') as month,
         COUNT(*) as total,
-        SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) as accepted,
-        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+        SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as accepted,
+        SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejected,
+        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending
       FROM proposals
       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
       GROUP BY month
@@ -92,14 +92,14 @@ const getTopDevelopers = async (req, res) => {
     const [developers] = await pool.execute(`
       SELECT
         d.id,
-        d.name,
+        d.fullName as name,
         d.email,
-        d.skills,
+        d.bio,
         COUNT(p.id) as proposalCount,
-        SUM(CASE WHEN p.status = 'accepted' THEN 1 ELSE 0 END) as acceptedCount
-      FROM developer d
+        SUM(CASE WHEN p.status = 'Approved' THEN 1 ELSE 0 END) as acceptedCount
+      FROM developers d
       LEFT JOIN proposals p ON d.id = p.developer_id
-      GROUP BY d.id, d.name, d.email, d.skills
+      GROUP BY d.id, d.fullName, d.email, d.bio
       HAVING proposalCount > 0
       ORDER BY acceptedCount DESC, proposalCount DESC
       LIMIT 10
@@ -123,14 +123,14 @@ const getTopEntrepreneurs = async (req, res) => {
     const [entrepreneurs] = await pool.execute(`
       SELECT
         e.id,
-        e.name,
+        e.fullName as name,
         e.email,
         COUNT(ei.id) as ideaCount,
         COUNT(DISTINCT p.id) as proposalCount
       FROM entrepreneur e
       LEFT JOIN entrepreneur_idea ei ON e.id = ei.entrepreneur_id
       LEFT JOIN proposals p ON ei.id = p.idea_id
-      GROUP BY e.id, e.name, e.email
+      GROUP BY e.id, e.fullName, e.email
       HAVING ideaCount > 0
       ORDER BY ideaCount DESC, proposalCount DESC
       LIMIT 10
@@ -151,31 +151,37 @@ const getTopEntrepreneurs = async (req, res) => {
  */
 const getEquityAnalytics = async (req, res) => {
   try {
+    // Get equity stats by stage
     const [equityStats] = await pool.execute(`
       SELECT
-        AVG(equity_percentage) as avgEquity,
-        MIN(equity_percentage) as minEquity,
-        MAX(equity_percentage) as maxEquity,
-        category
+        stage as category,
+        AVG(CAST(equity_offering AS DECIMAL(10,2))) as avgEquity,
+        MIN(CAST(equity_offering AS DECIMAL(10,2))) as minEquity,
+        MAX(CAST(equity_offering AS DECIMAL(10,2))) as maxEquity
       FROM entrepreneur_idea
-      WHERE equity_percentage IS NOT NULL AND equity_percentage > 0
-      GROUP BY category
+      WHERE equity_offering IS NOT NULL
+        AND equity_offering != ''
+        AND equity_offering REGEXP '^[0-9]+(\\.[0-9]+)?$'
+      GROUP BY stage
     `);
 
+    // Get overall equity stats
     const [overallStats] = await pool.execute(`
       SELECT
-        AVG(equity_percentage) as avgEquity,
-        MIN(equity_percentage) as minEquity,
-        MAX(equity_percentage) as maxEquity,
+        AVG(CAST(equity_offering AS DECIMAL(10,2))) as avgEquity,
+        MIN(CAST(equity_offering AS DECIMAL(10,2))) as minEquity,
+        MAX(CAST(equity_offering AS DECIMAL(10,2))) as maxEquity,
         COUNT(*) as totalIdeas
       FROM entrepreneur_idea
-      WHERE equity_percentage IS NOT NULL AND equity_percentage > 0
+      WHERE equity_offering IS NOT NULL
+        AND equity_offering != ''
+        AND equity_offering REGEXP '^[0-9]+(\\.[0-9]+)?$'
     `);
 
     res.json({
       success: true,
       byCategory: equityStats,
-      overall: overallStats[0]
+      overall: overallStats[0] || { avgEquity: 0, minEquity: 0, maxEquity: 0, totalIdeas: 0 }
     });
   } catch (error) {
     console.error("Error getting equity analytics:", error);
@@ -184,36 +190,36 @@ const getEquityAnalytics = async (req, res) => {
 };
 
 /**
- * Get collaboration success metrics
+ * Get collaboration success metrics (using contracts as proxy)
  */
 const getCollaborationMetrics = async (req, res) => {
   try {
     const [metrics] = await pool.execute(`
       SELECT
         COUNT(*) as totalCollaborations,
-        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
-        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
-        AVG(DATEDIFF(COALESCE(end_date, NOW()), start_date)) as avgDurationDays
-      FROM collaborations
-      WHERE start_date IS NOT NULL
+        SUM(CASE WHEN status = 'signed' THEN 1 ELSE 0 END) as active,
+        SUM(CASE WHEN status = 'terminated' THEN 1 ELSE 0 END) as cancelled,
+        SUM(CASE WHEN status = 'pending_signature' THEN 1 ELSE 0 END) as pending
+      FROM contracts
     `);
 
-    const [categoriesMetrics] = await pool.execute(`
+    // Get contracts by stage
+    const [stageMetrics] = await pool.execute(`
       SELECT
-        ei.category,
+        ei.stage as category,
         COUNT(c.id) as collaborationCount,
-        SUM(CASE WHEN c.status = 'completed' THEN 1 ELSE 0 END) as completedCount
-      FROM collaborations c
-      JOIN entrepreneur_idea ei ON c.idea_id = ei.id
-      GROUP BY ei.category
+        SUM(CASE WHEN c.status = 'signed' THEN 1 ELSE 0 END) as signedCount
+      FROM contracts c
+      JOIN proposals p ON c.proposal_id = p.id
+      JOIN entrepreneur_idea ei ON p.idea_id = ei.id
+      GROUP BY ei.stage
       ORDER BY collaborationCount DESC
     `);
 
     res.json({
       success: true,
       overall: metrics[0],
-      byCategory: categoriesMetrics
+      byCategory: stageMetrics
     });
   } catch (error) {
     console.error("Error getting collaboration metrics:", error);
@@ -231,7 +237,7 @@ const getUserGrowth = async (req, res) => {
         DATE_FORMAT(created_at, '%Y-%m') as month,
         COUNT(*) as count,
         'developer' as userType
-      FROM developer
+      FROM developers
       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
       GROUP BY month
       ORDER BY month
@@ -267,26 +273,41 @@ const getRecentActivity = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
 
     const [activities] = await pool.execute(`
-      (SELECT 'idea' as type, ei.id, ei.title as description, e.name as user, ei.created_at as timestamp
+      (SELECT
+        'idea' as type,
+        ei.id,
+        ei.title as description,
+        e.fullName as user,
+        ei.created_at as timestamp
        FROM entrepreneur_idea ei
        JOIN entrepreneur e ON ei.entrepreneur_id = e.id
        ORDER BY ei.created_at DESC
-       LIMIT ${limit})
+       LIMIT ?)
       UNION ALL
-      (SELECT 'proposal' as type, p.id, CONCAT('Proposal for idea #', p.idea_id) as description, d.name as user, p.created_at as timestamp
+      (SELECT
+        'proposal' as type,
+        p.id,
+        CONCAT('Proposal for idea #', p.idea_id) as description,
+        d.fullName as user,
+        p.created_at as timestamp
        FROM proposals p
-       JOIN developer d ON p.developer_id = d.id
+       JOIN developers d ON p.developer_id = d.id
        ORDER BY p.created_at DESC
-       LIMIT ${limit})
+       LIMIT ?)
       UNION ALL
-      (SELECT 'collaboration' as type, c.id, CONCAT('Collaboration started') as description, e.name as user, c.created_at as timestamp
-       FROM collaborations c
+      (SELECT
+        'contract' as type,
+        c.id,
+        CONCAT('Contract for: ', c.project_title) as description,
+        e.fullName as user,
+        c.created_at as timestamp
+       FROM contracts c
        JOIN entrepreneur e ON c.entrepreneur_id = e.id
        ORDER BY c.created_at DESC
-       LIMIT ${limit})
+       LIMIT ?)
       ORDER BY timestamp DESC
-      LIMIT ${limit}
-    `);
+      LIMIT ?
+    `, [limit, limit, limit, limit]);
 
     res.json({
       success: true,
