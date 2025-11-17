@@ -154,7 +154,7 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
     const checkUserAndFetchIdeas = async () => {
       // 1️⃣ Check user
       const userData = JSON.parse(localStorage.getItem("userData"));
-
+const entrepreneurId = userData?.id;
       if (!userData) {
         navigate("/login");
         return;
@@ -167,8 +167,9 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
 
       // 2️⃣ Fetch ideas
       try {
+           
         const response = await axiosLocal.get(
-          "/entrepreneur-dashboard",
+          `/entrepreneur-dashboard/${entrepreneurId}`,
         );
         setIdeas(response.data);
       } catch (error) {

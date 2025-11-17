@@ -2,11 +2,14 @@ const pool = require("../db");
 
 const entrepreneurDashboard = async (req, res) => {
   try {
+    const { id } = req.params;  // this is entrepreneur_id
+    console.log("entrepreneur id", id);
+
     const [rows] = await pool.query(
-      "SELECT * FROM entrepreneur_idea ORDER BY created_at DESC"
+      "SELECT * FROM entrepreneur_idea WHERE entrepreneur_id = ? ORDER BY created_at DESC",
+      [id]
     );
 
-    // convert JSON fields back to JS objects
     const ideas = rows.map((row) => {
       let requiredSkills = [];
       let attachments = [];
@@ -38,6 +41,7 @@ const entrepreneurDashboard = async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 };
+
 
 // DELETE /api/ideas/:id
 const entrepreneurDeleteIdea = async (req, res) => {

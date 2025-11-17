@@ -59,17 +59,17 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsLoading(true);
 
   try {
-const res = await fetch("http://localhost:5000/api/login", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(formData),
-});
-
+    const res = await fetch("https://bd.zerofundventure.com/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
     const data = await res.json();
 
-    if (!res.ok) {
-      setErrors({ form: data.message });
+    // FIX: backend always returns 200, so check message
+    if (!data || data.message !== "Login successful") {
+      setErrors({ form: data?.message || "Login failed" });
       setIsLoading(false);
       return;
     }
@@ -81,12 +81,17 @@ const res = await fetch("http://localhost:5000/api/login", {
       token: data.token,
       userType: data.userType,
     };
-     localStorage.setItem("jwt_token", data.token);
+
+    localStorage.setItem("jwt_token", data.token);
     localStorage.setItem("userData", JSON.stringify(userData));
 
     // Redirect based on user type
-    if (data.userType === "developer") navigate("/developer-dashboard");
-    else if (data.userType === "entrepreneur") navigate("/entrepreneur-dashboard");
+    if (data.userType === "developer") {
+      navigate("/developer-dashboard");
+    } else if (data.userType === "entrepreneur") {
+      navigate("/entrepreneur-dashboard");
+    }
+
   } catch (err) {
     console.error(err);
     setErrors({ form: "Server error. Try again later." });
