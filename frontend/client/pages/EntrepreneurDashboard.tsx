@@ -30,6 +30,10 @@ import {
   Menu,
   X,
   BarChart3,
+  ChevronRight,
+  Sparkles,
+  Zap,
+  Target,
 } from "lucide-react";
 interface Milestone {
   id: number;
@@ -416,14 +420,15 @@ const entrepreneurId = userData?.id;
                     setActiveTab("overview");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "overview"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <TrendingUp className="w-5 h-5" />
-                  <span>Overview</span>
+                  <TrendingUp className={`w-5 h-5 transition-transform ${activeTab === "overview" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Overview</span>
+                  {activeTab === "overview" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
                 </button>
 
                 <button
@@ -431,15 +436,17 @@ const entrepreneurId = userData?.id;
                     setActiveTab("ideas");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "ideas"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <Lightbulb className="w-5 h-5" />
-                  <span>My Ideas</span>
-                  <span className="ml-auto bg-skyblue text-white text-xs px-2 py-1 rounded-full">
+                  <Lightbulb className={`w-5 h-5 transition-transform ${activeTab === "ideas" ? "" : "group-hover:scale-110 group-hover:rotate-12"}`} />
+                  <span className="font-medium">My Ideas</span>
+                  <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${
+                    activeTab === "ideas" ? "bg-white/20 text-white" : "bg-skyblue text-white"
+                  }`}>
                     {ideas.length}
                   </span>
                 </button>
@@ -449,17 +456,21 @@ const entrepreneurId = userData?.id;
                     setActiveTab("proposals");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "proposals"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <FileText className="w-5 h-5" />
-                  <span>Proposals</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {proposals.filter((p) => p.status === "Pending").length}
-                  </span>
+                  <FileText className={`w-5 h-5 transition-transform ${activeTab === "proposals" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Proposals</span>
+                  {proposals.filter((p) => p.status === "Pending").length > 0 && (
+                    <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold animate-pulse ${
+                      activeTab === "proposals" ? "bg-white/20 text-white" : "bg-red-500 text-white"
+                    }`}>
+                      {proposals.filter((p) => p.status === "Pending").length}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -467,14 +478,15 @@ const entrepreneurId = userData?.id;
                     setActiveTab("collaboration");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "collaboration"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <Users className="w-5 h-5" />
-                  <span>Collaborations</span>
+                  <Users className={`w-5 h-5 transition-transform ${activeTab === "collaboration" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Collaborations</span>
+                  {activeTab === "collaboration" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
                 </button>
 
                 <button
@@ -483,15 +495,17 @@ const entrepreneurId = userData?.id;
                     navigate("/entrepreneur-dashboard/message");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "messages"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Messages</span>
-                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                  <MessageCircle className={`w-5 h-5 transition-transform ${activeTab === "messages" ? "" : "group-hover:scale-110 group-hover:rotate-12"}`} />
+                  <span className="font-medium">Messages</span>
+                  <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold animate-pulse ${
+                    activeTab === "messages" ? "bg-white/20 text-white" : "bg-red-500 text-white"
+                  }`}>
                     3
                   </span>
                 </button>
@@ -502,14 +516,15 @@ const entrepreneurId = userData?.id;
                     navigate("/analytics");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "analytics"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <BarChart3 className="w-5 h-5" />
-                  <span>Analytics</span>
+                  <BarChart3 className={`w-5 h-5 transition-transform ${activeTab === "analytics" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Analytics</span>
+                  {activeTab === "analytics" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
                 </button>
 
                 <button
@@ -517,14 +532,15 @@ const entrepreneurId = userData?.id;
                     setActiveTab("contract");
                     setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
                     activeTab === "contract"
-                      ? "bg-skyblue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
                   }`}
                 >
-                  <FileText className="w-5 h-5" />
-                  <span>Contract</span>
+                  <FileText className={`w-5 h-5 transition-transform ${activeTab === "contract" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Contracts</span>
+                  {activeTab === "contract" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
                 </button>
               </div>
             </nav>
@@ -590,81 +606,94 @@ const entrepreneurId = userData?.id;
                     Manage your startup ideas and collaborate with developers
                   </p>
                 </div>
-                <div>
+                <div className="flex justify-between items-center mb-8">
                   <Link
                     to="/post-idea"
-                    className="bg-skyblue text-white px-4 py-2 rounded-lg hover:bg-navy transition-colors font-semibold flex items-center space-x-2"
+                    className="group bg-gradient-to-r from-skyblue to-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold flex items-center space-x-2"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200" />
                     <span>Post New Idea</span>
+                    <Sparkles className="w-4 h-4 group-hover:animate-pulse" />
                   </Link>
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Lightbulb className="w-5 h-5 text-blue-600" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-blue-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                        <Lightbulb className="w-7 h-7 text-white" />
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Ideas Posted</p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          {ideas.length}
-                        </p>
+                      <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Target className="w-5 h-5" />
                       </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Ideas Posted</p>
+                    <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {ideas.length}
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500 flex items-center">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      <span>Active campaigns</span>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-green-600" />
+                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-green-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                        <FileText className="w-7 h-7 text-white" />
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          Pending Proposals
-                        </p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          {
-                            proposals.filter((p) => p.status === "Pending")
-                              .length
-                          }
-                        </p>
-                      </div>
+                      {proposals.filter((p) => p.status === "Pending").length > 0 && (
+                        <div className="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
+                          New!
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Pending Proposals</p>
+                    <p className="text-3xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                      {proposals.filter((p) => p.status === "Pending").length}
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500 flex items-center">
+                      <Clock className="w-3 h-3 mr-1" />
+                      <span>Awaiting review</span>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Users className="w-5 h-5 text-purple-600" />
+                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-purple-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                        <Users className="w-7 h-7 text-white" />
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          Active Collaborations
-                        </p>
-                        {/* <p className="text-2xl font-bold text-gray-800">
-                          {collaborations.length}
-                        </p> */}
+                      <div className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <Zap className="w-5 h-5" />
                       </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Active Collaborations</p>
+                    <p className="text-3xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                      {collaboration.length}
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500 flex items-center">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      <span>In progress</span>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-skyblue/20 rounded-lg flex items-center justify-center">
-                        <TrendingUp className="w-5 h-5 text-skyblue" />
+                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-skyblue/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-skyblue to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                        <Eye className="w-7 h-7 text-white" />
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Total Views</p>
-                        <p className="text-2xl font-bold text-gray-800">
-                          {ideas.reduce(
-                            (sum, idea) => sum + idea.viewsCount,
-                            0,
-                          )}
-                        </p>
+                      <div className="text-skyblue opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <TrendingUp className="w-5 h-5" />
                       </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Views</p>
+                    <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
+                      {ideas.reduce((sum, idea) => sum + idea.viewsCount, 0)}
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500 flex items-center">
+                      <Eye className="w-3 h-3 mr-1" />
+                      <span>Across all ideas</span>
                     </div>
                   </div>
                 </div>
