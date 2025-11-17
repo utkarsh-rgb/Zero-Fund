@@ -26,6 +26,7 @@ import {
   Shield,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 
 interface Idea {
@@ -392,6 +393,22 @@ export default function DeveloperDashboard() {
         2
       </span>
     </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab("analytics");
+                    navigate("/analytics");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeTab === "analytics"
+                      ? "bg-skyblue text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Analytics</span>
+                </button>
 
                 {/* <Link
                   to="/notifications"
