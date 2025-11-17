@@ -879,7 +879,7 @@ const entrepreneurId = userData?.id;
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <span className="text-sm text-gray-500">
                           Last updated:{" "}
                           {new Date(idea.updated_at).toLocaleString("en-IN", {
@@ -892,11 +892,11 @@ const entrepreneurId = userData?.id;
                             hour12: true,
                           })}
                         </span>
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2">
                           {/* View Proposals */}
                           <Link
                             to={`/manage-proposals/${idea.id}`}
-                            className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+                            className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm"
                           >
                             <FileText className="w-4 h-4" />
                             <span>View Proposals</span>
@@ -905,19 +905,34 @@ const entrepreneurId = userData?.id;
                           {/* Preview Attachments */}
                           <button
                             onClick={() => {
-                              idea.attachments
-                                ?.flat()
-                                .forEach((file: any) =>
-                                  window.open(
-                                    `http://localhost:5000/${file.path}`,
-                                    "_blank",
-                                  ),
-                                );
+                              const attachments = idea.attachments?.flat() || [];
+
+                              if (attachments.length === 0) {
+                                alert("No attachments available for this idea.");
+                                return;
+                              }
+
+                              // Open each attachment in a new tab
+                              attachments.forEach((file: any) => {
+                                try {
+                                  // Use the S3 URL directly from the attachment object
+                                  const fileUrl = file.url || file.path;
+                                  if (fileUrl) {
+                                    window.open(fileUrl, "_blank");
+                                  } else {
+                                    console.error("Attachment missing URL:", file);
+                                  }
+                                } catch (error) {
+                                  console.error("Error opening attachment:", error);
+                                  alert(`Failed to open attachment: ${file.name || "Unknown"}`);
+                                }
+                              });
                             }}
-                            className="flex items-center space-x-1 px-3 py-1 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+                            className="flex items-center space-x-1 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!idea.attachments || idea.attachments.flat().length === 0}
                           >
                             <Eye className="w-4 h-4" />
-                            <span>Preview Attachments</span>
+                            <span>Preview Attachments ({idea.attachments?.flat().length || 0})</span>
                           </button>
                         </div>
                       </div>
