@@ -2,7 +2,7 @@ const pool = require("../db");
 
 const entrepreneurDashboard = async (req, res) => {
   try {
-    const { id } = req.params;  // this is entrepreneur_id
+    const { id } = req.params; // entrepreneur_id
     console.log("entrepreneur id", id);
 
     const [rows] = await pool.query(
@@ -11,27 +11,41 @@ const entrepreneurDashboard = async (req, res) => {
     );
 
     const ideas = rows.map((row) => {
+      // ---------- Required Skills ----------
       let requiredSkills = [];
-      let attachments = [];
-
       try {
-        requiredSkills = row.required_skills
-          ? JSON.parse(row.required_skills)
-          : [];
-      } catch (err) {
-        requiredSkills = row.required_skills ? [row.required_skills] : [];
+        requiredSkills =
+          typeof row.required_skills === "string"
+            ? JSON.parse(row.required_skills)
+            : row.required_skills || [];
+      } catch {
+        requiredSkills = [];
       }
 
-      try {
-        attachments = row.attachments ? JSON.parse(row.attachments) : [];
-      } catch (err) {
-        attachments = row.attachments ? [row.attachments] : [];
-      }
+// ---------- Attachments ----------
+let attachments = [];
+try {
+  attachments =
+    typeof row.attachments === "string"
+      ? JSON.parse(row.attachments)
+      : row.attachments || [];
+} catch {
+  attachments = [];
+}
+
+// Fix broken attachments like "undefined/undefined"
+attachments = attachments.map((file) => {
+  if (!file.url || file.url.includes("undefined")) {
+    return { ...file, url: null };
+  }
+  return file;
+});
+
 
       return {
         ...row,
         required_skills: requiredSkills,
-        attachments: attachments,
+        attachments,
       };
     });
 
