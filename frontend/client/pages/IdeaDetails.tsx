@@ -22,6 +22,8 @@ import {
   MapPin,
   Clock,
   ListChecks,
+  Home,
+  ChevronRight,
 } from "lucide-react";
 
 interface IdeaDetails {
@@ -124,21 +126,23 @@ export default function IdeaDetails() {
   // Loading skeleton component
   const LoadingSkeleton = () => (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {/* Navigation Header Skeleton */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
-              <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse" />
-              <div className="w-24 h-6 bg-gray-200 rounded animate-pulse" />
-            </div>
+          {/* Breadcrumb Skeleton */}
+          <div className="flex items-center space-x-2 py-3">
+            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
+          </div>
+          {/* Back Button Skeleton */}
+          <div className="pb-4">
+            <div className="w-40 h-9 bg-gray-200 rounded-lg animate-pulse" />
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -260,28 +264,46 @@ export default function IdeaDetails() {
   if (!hasAcceptedNDA && idea.nda_accepted === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200">
+        {/* Navigation Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center space-x-2 py-3 text-sm">
+              <Link
+                to="/"
+                className="text-gray-500 hover:text-navy transition-colors flex items-center space-x-1"
+              >
+                <Home className="w-4 h-4" />
+                <span>Home</span>
+              </Link>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
               <Link
                 to="/developer-dashboard"
-                className="flex items-center space-x-2"
+                className="text-gray-500 hover:text-navy transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-600">Back to Dashboard</span>
+                Ideas
               </Link>
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                  <Code className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-navy">
-                  Skill Invest
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <span className="text-navy font-medium flex items-center space-x-2">
+                <Shield className="w-4 h-4" />
+                <span>NDA Required</span>
+              </span>
+            </div>
+
+            {/* Back Button */}
+            <div className="pb-4">
+              <Link
+                to="/developer-dashboard"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-navy transition-colors" />
+                <span className="text-gray-700 group-hover:text-navy font-medium transition-colors">
+                  Back to All Ideas
                 </span>
               </Link>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* NDA Gate */}
         <div className="max-w-4xl mx-auto px-4 py-16">
@@ -420,26 +442,45 @@ export default function IdeaDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {/* Navigation Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center space-x-2 py-3 text-sm">
+            <Link
+              to="/"
+              className="text-gray-500 hover:text-navy transition-colors flex items-center space-x-1"
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Link>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
             <Link
               to="/developer-dashboard"
-              className="flex items-center space-x-2"
+              className="text-gray-500 hover:text-navy transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-600">Back to Dashboard</span>
+              Ideas
             </Link>
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                <Code className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-navy">Zero Fund</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <span className="text-navy font-medium truncate max-w-xs">
+              {idea.title}
+            </span>
+          </div>
+
+          {/* Back Button */}
+          <div className="pb-4">
+            <Link
+              to="/developer-dashboard"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-navy transition-colors" />
+              <span className="text-gray-700 group-hover:text-navy font-medium transition-colors">
+                Back to All Ideas
+              </span>
             </Link>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
