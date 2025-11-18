@@ -1,10 +1,35 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const axios = require("axios");
+const dotenv = require("dotenv");
 
-// Initialize Gemini AI with API key from environment
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+dotenv.config();
+
+const API_KEY = process.env.GEMINI_API_KEY;
+const MODEL = "gemini-2.5-flash";
+
+// Helper function: send query to Gemini REST API
+async function askGemini(prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+  try {
+    const response = await axios.post(
+      url,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+      },
+      {
+        timeout: 60000, // 60 seconds timeout
+      }
+    );
+
+    return response.data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  } catch (err) {
+    console.error("Gemini API ERROR:", err.response?.data || err.message);
+    throw err;
+  }
+}
 
 /**
- * Analyze a startup idea and provide AI-powered feedback
+ * ANALYZE STARTUP IDEA
  */
 const analyzeIdea = async (req, res) => {
   try {
@@ -14,233 +39,173 @@ const analyzeIdea = async (req, res) => {
       return res.status(400).json({ error: "Title and description are required" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `As a startup advisor, analyze the following startup idea and provide detailed feedback:
+    const prompt = `
+As a startup advisor, analyze the following startup idea:
 
 Title: ${title}
 Description: ${description}
 Category: ${category || "Not specified"}
 Equity Offered: ${equityOffered || "Not specified"}%
 
-Please provide:
-1. Strengths: Key advantages and unique value propositions
-2. Weaknesses: Potential challenges and risks
-3. Market Potential: Target market size and opportunities
-4. Recommendations: 3-5 actionable suggestions for improvement
-5. Success Probability: Rate from 1-10 with brief explanation
+Provide:
+1. Strengths
+2. Weaknesses
+3. Market Potential
+4. Recommendations
+5. Success Probability (1–10)
+    `;
 
-Format the response in clear sections.`;
+    const text = await askGemini(prompt);
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const analysis = response.text();
-
-    res.json({
-      success: true,
-      analysis: analysis,
-      ideaTitle: title
-    });
+    res.json({ success: true, analysis: text, ideaTitle: title });
 
   } catch (error) {
     console.error("Error analyzing idea:", error);
-    res.status(500).json({
-      error: "Failed to analyze idea",
-      details: error.message
-    });
+    res.status(500).json({ error: "Failed to analyze idea", details: error.message });
   }
 };
 
 /**
- * Match developers with a startup idea based on required skills
+ * MATCH DEVELOPERS
  */
 const matchDevelopers = async (req, res) => {
   try {
     const { ideaDescription, requiredSkills, developers } = req.body;
 
-    if (!ideaDescription || !developers || developers.length === 0) {
+    if (!ideaDescription || !developers?.length) {
       return res.status(400).json({ error: "Idea description and developers list are required" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const developersInfo = developers
+      .map(
+        (dev, index) => `Developer ${index + 1}:
+- Name: ${dev.name}
+- Skills: ${dev.skills}
+- Experience: ${dev.experience}
+- Bio: ${dev.bio}`
+      )
+      .join("\n\n");
 
-    const developersInfo = developers.map((dev, index) =>
-      `Developer ${index + 1}:
-       - Name: ${dev.name || "Anonymous"}
-       - Skills: ${dev.skills || "Not specified"}
-       - Experience: ${dev.experience || "Not specified"}
-       - Bio: ${dev.bio || "Not specified"}`
-    ).join("\n\n");
-
-    const prompt = `As a technical recruiter, analyze which developers are the best fit for this startup idea:
+    const prompt = `
+As a technical recruiter, analyze matching developers:
 
 Startup Idea: ${ideaDescription}
-Required Skills: ${requiredSkills || "Not specified"}
+Required Skills: ${requiredSkills}
 
-Available Developers:
+Developers:
 ${developersInfo}
 
-Please provide:
-1. Top 3 best matches with reasons why they're suitable
-2. Skill gap analysis for each developer
-3. Recommended team composition
-4. Additional skills needed
+Provide:
+1. Top 3 matches
+2. Skill gap analysis
+3. Recommended team
+4. Missing skills
+`;
 
-Format as a structured analysis.`;
+    const text = await askGemini(prompt);
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const matching = response.text();
-
-    res.json({
-      success: true,
-      matching: matching,
-      totalDevelopers: developers.length
-    });
+    res.json({ success: true, matching: text, totalDevelopers: developers.length });
 
   } catch (error) {
     console.error("Error matching developers:", error);
-    res.status(500).json({
-      error: "Failed to match developers",
-      details: error.message
-    });
+    res.status(500).json({ error: "Failed to match developers", details: error.message });
   }
 };
 
 /**
- * Evaluate a collaboration proposal
+ * EVALUATE PROPOSAL
  */
 const evaluateProposal = async (req, res) => {
   try {
     const { proposalText, developerSkills, equityOffered, timeline } = req.body;
 
-    if (!proposalText) {
-      return res.status(400).json({ error: "Proposal text is required" });
-    }
+    if (!proposalText) return res.status(400).json({ error: "Proposal text is required" });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `As a business advisor, evaluate this collaboration proposal:
+    const prompt = `
+Evaluate this collaboration proposal:
 
 Proposal: ${proposalText}
-Developer Skills: ${developerSkills || "Not specified"}
-Equity Offered: ${equityOffered || "Not specified"}%
-Timeline: ${timeline || "Not specified"}
+Developer Skills: ${developerSkills}
+Equity Offered: ${equityOffered}%
+Timeline: ${timeline}
 
-Please provide:
-1. Fairness Assessment: Is the equity offer fair given the scope?
-2. Risk Analysis: Potential risks for both parties
-3. Timeline Feasibility: Is the timeline realistic?
-4. Terms Evaluation: Are the terms clear and balanced?
-5. Recommendations: Suggestions for improvement
-6. Overall Score: Rate from 1-10 with explanation
+Provide:
+1. Fairness assessment
+2. Risks
+3. Timeline feasibility
+4. Terms clarity
+5. Recommendations
+6. Score (1–10)
+`;
 
-Provide a balanced, professional evaluation.`;
+    const text = await askGemini(prompt);
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const evaluation = response.text();
-
-    res.json({
-      success: true,
-      evaluation: evaluation
-    });
+    res.json({ success: true, evaluation: text });
 
   } catch (error) {
     console.error("Error evaluating proposal:", error);
-    res.status(500).json({
-      error: "Failed to evaluate proposal",
-      details: error.message
-    });
+    res.status(500).json({ error: "Failed to evaluate proposal", details: error.message });
   }
 };
 
 /**
- * Get market insights and trends for a startup category
+ * GET MARKET INSIGHTS
  */
 const getMarketInsights = async (req, res) => {
   try {
     const { category, ideaTitle } = req.body;
 
-    if (!category) {
-      return res.status(400).json({ error: "Category is required" });
-    }
+    if (!category) return res.status(400).json({ error: "Category is required" });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = `
+Provide market insights for the ${category} sector
+${ideaTitle ? `(focused on: ${ideaTitle})` : ""}
 
-    const prompt = `As a market research analyst, provide insights for the ${category} startup sector${ideaTitle ? ` (specifically for: ${ideaTitle})` : ""}:
+Include:
+1. Trends
+2. Competition
+3. Target audience
+4. Growth potential
+5. Challenges
+6. Success factors
+`;
 
-Please provide:
-1. Current Market Trends: Latest developments and opportunities
-2. Competition Landscape: Key players and market dynamics
-3. Target Audience: Primary customer segments
-4. Growth Potential: Market size and growth projections
-5. Challenges: Common obstacles in this sector
-6. Success Factors: What makes startups succeed in this space
+    const text = await askGemini(prompt);
 
-Provide data-driven, actionable insights.`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const insights = response.text();
-
-    res.json({
-      success: true,
-      insights: insights,
-      category: category
-    });
+    res.json({ success: true, insights: text, category });
 
   } catch (error) {
     console.error("Error getting market insights:", error);
-    res.status(500).json({
-      error: "Failed to get market insights",
-      details: error.message
-    });
+    res.status(500).json({ error: "Failed to get market insights", details: error.message });
   }
 };
 
 /**
- * Generate startup name suggestions based on idea
+ * SUGGEST STARTUP NAMES
  */
 const suggestNames = async (req, res) => {
   try {
     const { description, category, keywords } = req.body;
 
-    if (!description) {
-      return res.status(400).json({ error: "Description is required" });
-    }
+    if (!description) return res.status(400).json({ error: "Description is required" });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `Generate 10 creative, memorable startup names based on:
+    const prompt = `
+Generate 10 startup names based on:
 
 Description: ${description}
-Category: ${category || "Not specified"}
-Keywords: ${keywords || "Not specified"}
+Category: ${category}
+Keywords: ${keywords}
 
-Requirements:
-- Names should be unique, catchy, and easy to remember
-- Ideally 1-2 words
-- Should reflect the startup's mission
-- Include brief explanation for each name
+Requirements: 1–2 words, unique, memorable.
+`;
 
-Provide the list in a clear format.`;
+    const text = await askGemini(prompt);
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const suggestions = response.text();
-
-    res.json({
-      success: true,
-      suggestions: suggestions
-    });
+    res.json({ success: true, suggestions: text });
 
   } catch (error) {
     console.error("Error suggesting names:", error);
-    res.status(500).json({
-      error: "Failed to suggest names",
-      details: error.message
-    });
+    res.status(500).json({ error: "Failed to suggest names", details: error.message });
   }
 };
 
@@ -249,5 +214,5 @@ module.exports = {
   matchDevelopers,
   evaluateProposal,
   getMarketInsights,
-  suggestNames
+  suggestNames,
 };
