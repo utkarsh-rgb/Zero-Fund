@@ -3,12 +3,18 @@ import axios from "axios";
 
 // Determine the API base URL based on environment
 const getBaseURL = () => {
-  // Check if we're in production
-  if (import.meta.env.PROD) {
-    return "https://bd.zerofundventure.com";
+  // Always prioritize the environment variable if set
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
   }
-  // Development environment
-  return import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // Fallback to production URL if in production mode
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_PROD_API_URL || "https://bd.zerofundventure.com";
+  }
+
+  // Development environment fallback
+  return "http://localhost:5000";
 };
 
 const BASE_URL = getBaseURL();
