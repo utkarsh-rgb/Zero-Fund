@@ -18,6 +18,10 @@ import {
   CheckCircle,
   AlertTriangle,
   MessageCircle,
+  DollarSign,
+  MapPin,
+  Clock,
+  ListChecks,
 } from "lucide-react";
 
 interface IdeaDetails {
@@ -28,6 +32,8 @@ interface IdeaDetails {
   founderAvatar: string;
   founderBio: string;
   founderLinkedIn: string;
+  founderLocation?: string;
+  founderEmail?: string;
   skills: string[];
   equityRange: string;
   fullDescription: string;
@@ -38,7 +44,10 @@ interface IdeaDetails {
   isNDA: boolean;
   visibility: "Public" | "Invite Only" | "NDA Required";
   created_at: string;
+  updated_at?: string;
   timeline: string;
+  budget?: number;
+  additional_requirements?: string;
   isBookmarked: boolean;
   hasAcceptedNDA: boolean;
 }
@@ -443,21 +452,34 @@ export default function IdeaDetails() {
                   <h1 className="text-3xl font-bold text-navy mb-2">
                     {idea.title}
                   </h1>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 flex-wrap">
                     <StageBadge stage={idea.stage} />
 
-                    <span className="text-gray-600">
-                      Posted:{" "}
-                      {new Date(idea.created_at).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: true, // set false for 24-hour format
-                      })}
+                    <span className="text-gray-600 text-sm flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        Posted:{" "}
+                        {new Date(idea.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
                     </span>
+
+                    {idea.updated_at && idea.updated_at !== idea.created_at && (
+                      <span className="text-gray-500 text-sm flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          Updated:{" "}
+                          {new Date(idea.updated_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </span>
+                    )}
 
                     {idea.isNDA && (
                       <>
@@ -508,6 +530,21 @@ export default function IdeaDetails() {
                 ))}
               </ul>
             </div>
+
+            {/* Additional Requirements */}
+            {idea.additional_requirements && (
+              <div className="bg-white rounded-lg shadow-sm p-8">
+                <h2 className="text-xl font-bold text-navy mb-6 flex items-center space-x-2">
+                  <ListChecks className="w-5 h-5" />
+                  <span>Additional Requirements</span>
+                </h2>
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {idea.additional_requirements}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Tech Stack */}
             <div className="bg-white rounded-lg shadow-sm p-8">
@@ -591,6 +628,12 @@ export default function IdeaDetails() {
                   <p className="font-semibold text-gray-800">
                     {idea.founderName}
                   </p>
+                  {idea.founderLocation && (
+                    <p className="text-xs text-gray-500 flex items-center space-x-1 mb-1">
+                      <MapPin className="w-3 h-3" />
+                      <span>{idea.founderLocation}</span>
+                    </p>
+                  )}
                   <a
                     href={idea.founderLinkedIn}
                     className="text-sm text-skyblue hover:text-navy transition-colors flex items-center space-x-1"
@@ -617,6 +660,17 @@ export default function IdeaDetails() {
                     {idea.equityRange}
                   </p>
                 </div>
+                {idea.budget && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Budget</span>
+                    </p>
+                    <p className="font-semibold text-green-600 text-lg">
+                      ${idea.budget.toLocaleString()}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Timeline</p>
                   <p className="font-semibold text-gray-800">{idea.timeline}</p>
