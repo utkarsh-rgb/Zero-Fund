@@ -535,14 +535,16 @@ export default function IdeaDetails() {
   <div className="space-y-3">
     {idea.attachments && idea.attachments.length > 0 ? (
       idea.attachments.map((attachment, index) => (
-        <a
+        <div
           key={index}
-          href={attachment.url} // use the full URL from backend
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-skyblue"
+          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
         >
-          <div className="flex items-center space-x-3">
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-3 flex-1 focus:outline-none focus:ring-2 focus:ring-skyblue rounded"
+          >
             <div className="w-10 h-10 bg-skyblue/10 rounded-lg flex items-center justify-center">
               <FileText className="w-5 h-5 text-skyblue" />
             </div>
@@ -554,18 +556,17 @@ export default function IdeaDetails() {
                 {attachment.type || "Unknown Type"} • {attachment.size || "—"}
               </p>
             </div>
-          </div>
+          </a>
 
           <a
-            href={attachment.url} // use the full URL here too
+            href={attachment.url}
             download={attachment.name}
             className="p-2 text-gray-400 hover:text-skyblue transition-colors"
             title="Download File"
-            onClick={(e) => e.stopPropagation()} // prevent outer <a> click
           >
             <Download className="w-5 h-5" />
           </a>
-        </a>
+        </div>
       ))
     ) : (
       <p className="text-gray-500 text-sm">No documents uploaded yet.</p>
