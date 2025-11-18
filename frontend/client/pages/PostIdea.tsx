@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosLocal from "../api/axiosLocal";
+import ReactMarkdown from "react-markdown";
 import {
   ArrowLeft,
   Lightbulb,
@@ -1048,10 +1049,8 @@ export default function PostIdea() {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
               <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed font-sans text-sm">
-                    {aiModalContent.content}
-                  </pre>
+                <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
+                  <ReactMarkdown>{aiModalContent.content}</ReactMarkdown>
                 </div>
               </div>
 
