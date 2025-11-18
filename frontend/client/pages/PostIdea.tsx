@@ -143,6 +143,10 @@ export default function PostIdea() {
         description: formData.overview,
         category: formData.stage || "General",
         equityOffered: formData.equityOffering || "Not specified"
+      },{
+         
+    timeout: 60000 // ⬅ allow up to 60 seconds for AI response
+  
       });
 
       setAiModalContent({
@@ -174,7 +178,9 @@ export default function PostIdea() {
         keywords: formData.requiredSkills.length > 0
           ? formData.requiredSkills.join(", ")
           : "technology, startup"
-      });
+      }, {
+    timeout: 60000 // ⬅ allow up to 60 seconds for AI response
+  });
 
       setAiModalContent({
         title: "AI Name Suggestions",
@@ -202,7 +208,9 @@ export default function PostIdea() {
       const response = await axiosLocal.post('/ai/market-insights', {
         category: formData.stage,
         ideaTitle: formData.title || "Your startup idea"
-      });
+      }, {
+    timeout: 60000 // ⬅ allow up to 60 seconds for AI response
+  });
 
       setAiModalContent({
         title: "Market Insights & Trends",
@@ -261,6 +269,7 @@ export default function PostIdea() {
             "Content-Type": "multipart/form-data",
           },
         },
+        
       );
 
       // Log full response
