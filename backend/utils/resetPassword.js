@@ -1,6 +1,8 @@
 const express = require("express");
 const dbPromise = require("../db"); // mysql2/promise pool
 const bcrypt = require("bcryptjs");
+require("dotenv").config();
+
 const router = express.Router();
 
 router.get('/reset-password/:role/:token', async (req, res) => {
@@ -17,7 +19,9 @@ router.get('/reset-password/:role/:token', async (req, res) => {
 
     if (rows.length === 0) return res.status(400).send('Invalid or expired token');
 
-    res.redirect(`http://localhost:3000/reset-password/${role}/${token}`);
+    // Use frontend URL from environment variable
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    res.redirect(`${frontendUrl}/reset-password/${role}/${token}`);
 });
 
 router.post("/reset-password/:role/:token", async (req, res) => {
