@@ -4,9 +4,16 @@ const dbPromise = require("../db"); // returns a promise
 const bodyParser = require("body-parser");
 const sendResetMail = require("./sendResetMail");
 const crypto = require("crypto");
+require("dotenv").config();
 
 const router = express.Router();
-router.use(cors({ origin: "http://localhost:8080", credentials: true }));
+
+// Use CORS_ORIGINS from environment variable (same as in server.js)
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
+  : ["http://localhost:8080", "http://localhost:3000"];
+
+router.use(cors({ origin: allowedOrigins, credentials: true }));
 router.use(bodyParser.json());
 router.use(express.json());
 
@@ -35,11 +42,15 @@ router.post("/forgot-password", async (req, res) => {
     );
 
     if (updateResult.affectedRows === 0) return res.status(404).json({ message: "Email not found in database" });
-let resetLink = "";
+
+    // Use frontend URL from environment variable
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    let resetLink = "";
+
     if (role === "developer") {
-      resetLink = `http://localhost:8080/reset-password/d/${token}`;
+      resetLink = `${frontendUrl}/reset-password/d/${token}`;
     } else if (role === "entrepreneur") {
-      resetLink = `http://localhost:8080/reset-password/e/${token}`;
+      resetLink = `${frontendUrl}/reset-password/e/${token}`;
     } else {
       return res.status(400).json({ message: "Invalid role" });
     }

@@ -336,8 +336,8 @@ const entrepreneurId = userData?.id;
 
     try {
       // 🔹 API call to update backend
-      const res = await axios.post(
-        `http://localhost:5000/proposal/${proposalId}/status`,
+      const res = await axiosLocal.post(
+        `/proposal/${proposalId}/status`,
         { action },
       );
 
