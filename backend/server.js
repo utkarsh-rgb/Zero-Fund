@@ -11,9 +11,13 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
+  : ["http://localhost:8080", "http://localhost:3000", "https://zero-fund-frontend.onrender.com"];
+
 app.use(
   cors({
-    origin: ["http://localhost:8080", "http://localhost:3000","https://zero-fund-frontend.onrender.com"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
