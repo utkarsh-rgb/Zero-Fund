@@ -27,6 +27,9 @@ Edit `.env` file with your production values:
 # Server Configuration
 PORT=5000
 
+# Frontend URL (for password reset links and redirects)
+FRONTEND_URL=https://your-frontend-domain.com
+
 # CORS Configuration
 # Add your production frontend domain(s)
 CORS_ORIGINS=https://your-frontend-domain.com,https://www.your-frontend-domain.com
@@ -165,6 +168,7 @@ VITE_API_URL=http://localhost:5000
 Backend `.env`:
 ```env
 PORT=5000
+FRONTEND_URL=http://localhost:8080
 CORS_ORIGINS=http://localhost:8080,http://localhost:3000
 ```
 
@@ -178,6 +182,7 @@ VITE_API_URL=https://api.zerofundventure.com
 Backend `.env`:
 ```env
 PORT=5000
+FRONTEND_URL=https://zerofundventure.com
 CORS_ORIGINS=https://zerofundventure.com,https://www.zerofundventure.com
 ```
 
