@@ -156,6 +156,10 @@ const getIdeaById = async (req, res) => {
           }
         })();
 
+    // Map database field names to frontend expected names
+    idea.fullDescription = idea.overview;
+    idea.equityRange = idea.equity_offering;
+
     // Add default values for optional fields
     idea.founderAvatar = idea.founderName ? idea.founderName.charAt(0).toUpperCase() : "?";
     idea.founderLinkedIn = idea.founderLinkedIn || "#";

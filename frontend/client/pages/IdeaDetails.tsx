@@ -18,6 +18,12 @@ import {
   CheckCircle,
   AlertTriangle,
   MessageCircle,
+  DollarSign,
+  MapPin,
+  Clock,
+  ListChecks,
+  Home,
+  ChevronRight,
 } from "lucide-react";
 
 interface IdeaDetails {
@@ -28,6 +34,8 @@ interface IdeaDetails {
   founderAvatar: string;
   founderBio: string;
   founderLinkedIn: string;
+  founderLocation?: string;
+  founderEmail?: string;
   skills: string[];
   equityRange: string;
   fullDescription: string;
@@ -38,7 +46,10 @@ interface IdeaDetails {
   isNDA: boolean;
   visibility: "Public" | "Invite Only" | "NDA Required";
   created_at: string;
+  updated_at?: string;
   timeline: string;
+  budget?: number;
+  additional_requirements?: string;
   isBookmarked: boolean;
   hasAcceptedNDA: boolean;
 }
@@ -115,21 +126,23 @@ export default function IdeaDetails() {
   // Loading skeleton component
   const LoadingSkeleton = () => (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {/* Navigation Header Skeleton */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
-              <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse" />
-              <div className="w-24 h-6 bg-gray-200 rounded animate-pulse" />
-            </div>
+          {/* Breadcrumb Skeleton */}
+          <div className="flex items-center space-x-2 py-3">
+            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
+          </div>
+          {/* Back Button Skeleton */}
+          <div className="pb-4">
+            <div className="w-40 h-9 bg-gray-200 rounded-lg animate-pulse" />
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -251,28 +264,46 @@ export default function IdeaDetails() {
   if (!hasAcceptedNDA && idea.nda_accepted === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200">
+        {/* Navigation Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center space-x-2 py-3 text-sm">
+              <Link
+                to="/"
+                className="text-gray-500 hover:text-navy transition-colors flex items-center space-x-1"
+              >
+                <Home className="w-4 h-4" />
+                <span>Home</span>
+              </Link>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
               <Link
                 to="/developer-dashboard"
-                className="flex items-center space-x-2"
+                className="text-gray-500 hover:text-navy transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-600">Back to Dashboard</span>
+                Ideas
               </Link>
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                  <Code className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-navy">
-                  Skill Invest
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <span className="text-navy font-medium flex items-center space-x-2">
+                <Shield className="w-4 h-4" />
+                <span>NDA Required</span>
+              </span>
+            </div>
+
+            {/* Back Button */}
+            <div className="pb-4">
+              <Link
+                to="/developer-dashboard"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-navy transition-colors" />
+                <span className="text-gray-700 group-hover:text-navy font-medium transition-colors">
+                  Back to All Ideas
                 </span>
               </Link>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* NDA Gate */}
         <div className="max-w-4xl mx-auto px-4 py-16">
@@ -411,26 +442,45 @@ export default function IdeaDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      {/* Navigation Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          {/* Breadcrumb Navigation */}
+          <div className="flex items-center space-x-2 py-3 text-sm">
+            <Link
+              to="/"
+              className="text-gray-500 hover:text-navy transition-colors flex items-center space-x-1"
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Link>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
             <Link
               to="/developer-dashboard"
-              className="flex items-center space-x-2"
+              className="text-gray-500 hover:text-navy transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-600">Back to Dashboard</span>
+              Ideas
             </Link>
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                <Code className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-navy">Zero Fund</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <span className="text-navy font-medium truncate max-w-xs">
+              {idea.title}
+            </span>
+          </div>
+
+          {/* Back Button */}
+          <div className="pb-4">
+            <Link
+              to="/developer-dashboard"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-navy transition-colors" />
+              <span className="text-gray-700 group-hover:text-navy font-medium transition-colors">
+                Back to All Ideas
+              </span>
             </Link>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -443,21 +493,34 @@ export default function IdeaDetails() {
                   <h1 className="text-3xl font-bold text-navy mb-2">
                     {idea.title}
                   </h1>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 flex-wrap">
                     <StageBadge stage={idea.stage} />
 
-                    <span className="text-gray-600">
-                      Posted:{" "}
-                      {new Date(idea.created_at).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: true, // set false for 24-hour format
-                      })}
+                    <span className="text-gray-600 text-sm flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        Posted:{" "}
+                        {new Date(idea.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
                     </span>
+
+                    {idea.updated_at && idea.updated_at !== idea.created_at && (
+                      <span className="text-gray-500 text-sm flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          Updated:{" "}
+                          {new Date(idea.updated_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </span>
+                    )}
 
                     {idea.isNDA && (
                       <>
@@ -509,6 +572,21 @@ export default function IdeaDetails() {
               </ul>
             </div>
 
+            {/* Additional Requirements */}
+            {idea.additional_requirements && (
+              <div className="bg-white rounded-lg shadow-sm p-8">
+                <h2 className="text-xl font-bold text-navy mb-6 flex items-center space-x-2">
+                  <ListChecks className="w-5 h-5" />
+                  <span>Additional Requirements</span>
+                </h2>
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {idea.additional_requirements}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Tech Stack */}
             <div className="bg-white rounded-lg shadow-sm p-8">
               <h2 className="text-xl font-bold text-navy mb-6">
@@ -535,14 +613,16 @@ export default function IdeaDetails() {
   <div className="space-y-3">
     {idea.attachments && idea.attachments.length > 0 ? (
       idea.attachments.map((attachment, index) => (
-        <a
+        <div
           key={index}
-          href={attachment.url} // use the full URL from backend
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-skyblue"
+          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
         >
-          <div className="flex items-center space-x-3">
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-3 flex-1 focus:outline-none focus:ring-2 focus:ring-skyblue rounded"
+          >
             <div className="w-10 h-10 bg-skyblue/10 rounded-lg flex items-center justify-center">
               <FileText className="w-5 h-5 text-skyblue" />
             </div>
@@ -554,18 +634,17 @@ export default function IdeaDetails() {
                 {attachment.type || "Unknown Type"} • {attachment.size || "—"}
               </p>
             </div>
-          </div>
+          </a>
 
           <a
-            href={attachment.url} // use the full URL here too
+            href={attachment.url}
             download={attachment.name}
             className="p-2 text-gray-400 hover:text-skyblue transition-colors"
             title="Download File"
-            onClick={(e) => e.stopPropagation()} // prevent outer <a> click
           >
             <Download className="w-5 h-5" />
           </a>
-        </a>
+        </div>
       ))
     ) : (
       <p className="text-gray-500 text-sm">No documents uploaded yet.</p>
@@ -590,6 +669,12 @@ export default function IdeaDetails() {
                   <p className="font-semibold text-gray-800">
                     {idea.founderName}
                   </p>
+                  {idea.founderLocation && (
+                    <p className="text-xs text-gray-500 flex items-center space-x-1 mb-1">
+                      <MapPin className="w-3 h-3" />
+                      <span>{idea.founderLocation}</span>
+                    </p>
+                  )}
                   <a
                     href={idea.founderLinkedIn}
                     className="text-sm text-skyblue hover:text-navy transition-colors flex items-center space-x-1"
@@ -616,6 +701,17 @@ export default function IdeaDetails() {
                     {idea.equityRange}
                   </p>
                 </div>
+                {idea.budget && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Budget</span>
+                    </p>
+                    <p className="font-semibold text-green-600 text-lg">
+                      ${idea.budget.toLocaleString()}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Timeline</p>
                   <p className="font-semibold text-gray-800">{idea.timeline}</p>
