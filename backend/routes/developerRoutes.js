@@ -6,7 +6,8 @@ const {
   updateDeveloperProfile,
   developerDashboardById,
   uploadDeveloperProfile,
-  removeProfilePic
+  removeProfilePic,
+  getDeveloperStats
 } = require("../controllers/developerController");
 
 // Protected routes
@@ -16,5 +17,6 @@ router.post("/developer/:id/upload",  uploadDeveloperProfile);
 router.delete("/developer/:id/remove",  removeProfilePic);
 
 router.get("/developer-dashboard/:developerId", developerDashboardById);
+router.get("/developer-stats/:developerId", getDeveloperStats);
 
 module.exports = router;
