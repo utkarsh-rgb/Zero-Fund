@@ -217,9 +217,9 @@ const getDeveloperStats = async (req, res) => {
       [developerId]
     );
 
-    // Get total ideas viewed (you can track this with a views table if needed)
+    // Get total ideas viewed from bookmarks (approximation until views tracking is implemented)
     const [ideasViewedResult] = await pool.execute(
-      "SELECT COUNT(DISTINCT idea_id) as count FROM idea_views WHERE developer_id = ?",
+      "SELECT COUNT(DISTINCT idea_id) as count FROM bookmarks WHERE developer_id = ?",
       [developerId]
     );
 

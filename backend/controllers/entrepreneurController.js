@@ -232,13 +232,12 @@ const getEntrepreneurStats = async (req, res) => {
       [entrepreneurId]
     );
 
-    // Get total views across all ideas (if you have a views tracking table)
-    const [viewsResult] = await pool.execute(
-      `SELECT COUNT(*) as totalViews FROM idea_views iv
-       JOIN entrepreneur_idea ei ON iv.idea_id = ei.id
-       WHERE ei.entrepreneur_id = ?`,
-      [entrepreneurId]
-    );
+    // Calculate total views from all ideas
+    const totalViews = ideas.reduce((sum, idea) => {
+      // Check for both possible column names: views and viewsCount
+      const views = idea.views || idea.viewsCount || 0;
+      return sum + views;
+    }, 0);
 
     // Calculate idea stats
     const totalIdeas = ideas.length;
@@ -366,7 +365,7 @@ const getEntrepreneurStats = async (req, res) => {
         avgResponseTime: avgResponseTime
       },
       activity: {
-        totalViews: viewsResult[0]?.totalViews || 0,
+        totalViews: totalViews,
         profileCompletion: profileCompletion,
         mostPopularIdea: mostPopularIdea || null
       },
