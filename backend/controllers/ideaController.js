@@ -109,13 +109,22 @@ const postIdeaHandler = async (req, res) => {
 };
 
 // --- GET /idea/:id ---
-// --- GET /idea/:id ---
+// Optimized with JOIN to fetch entrepreneur details in single query
 const getIdeaById = async (req, res) => {
   const ideaId = req.params.id;
 
   try {
+    // Use JOIN to fetch idea with entrepreneur details in one query
     const [rows] = await pool.execute(
-      "SELECT * FROM entrepreneur_idea WHERE id = ?",
+      `SELECT
+        ei.*,
+        e.fullName as founderName,
+        e.bio as founderBio,
+        e.location as founderLocation,
+        e.email as founderEmail
+      FROM entrepreneur_idea ei
+      JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+      WHERE ei.id = ?`,
       [ideaId]
     );
 
@@ -146,6 +155,14 @@ const getIdeaById = async (req, res) => {
             return [];
           }
         })();
+
+    // Map database field names to frontend expected names
+    idea.fullDescription = idea.overview;
+    idea.equityRange = idea.equity_offering;
+
+    // Add default values for optional fields
+    idea.founderAvatar = idea.founderName ? idea.founderName.charAt(0).toUpperCase() : "?";
+    idea.founderLinkedIn = idea.founderLinkedIn || "#";
 
     res.json({ idea });
   } catch (error) {

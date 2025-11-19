@@ -88,9 +88,32 @@ export default function DeveloperDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState<boolean>(true);
 
   const developer_id = userData.id;
     const navigate = useNavigate();
+
+  // Fetch developer stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStatsLoading(true);
+        const response = await axiosLocal.get(`/developer-stats/${developer_id}`);
+        if (response.data.success) {
+          setStats(response.data.stats);
+        }
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    if (developer_id) {
+      fetchStats();
+    }
+  }, [developer_id]);
 
   // Fetch analytics data
   useEffect(() => {
@@ -461,42 +484,60 @@ export default function DeveloperDashboard() {
 
             {/* Quick Stats */}
             <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                Quick Stats
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center justify-between">
+                <span>Quick Stats</span>
+                {statsLoading && (
+                  <div className="w-4 h-4 border-2 border-skyblue border-t-transparent rounded-full animate-spin"></div>
+                )}
               </h3>
               <div className="space-y-3">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">
                     Pending Proposals
                   </span>
                   <span className="text-sm font-semibold text-orange-600">
-                    {
-                      proposals.filter((p) => p.status === "Under Review")
-                        .length
-                    }
+                    {stats?.proposals?.pending || 0}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Active Projects</span>
-
-
+                  <span className="text-sm font-semibold text-purple-600">
+                    {stats?.collaborations?.active || 0}
+                  </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">
                     Total Equity Earned
                   </span>
-
+                  <span className="text-sm font-semibold text-green-600">
+                    {stats?.equity?.totalEarned || 0}%
+                  </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Success Rate</span>
                   <span className="text-sm font-semibold text-purple-600">
-                    {Math.round(
-                      (proposals.filter((p) => p.status === "Accepted").length /
-                        proposals.length) *
-                        100,
-                    )}
-                    %
+                    {stats?.performance?.successRate || 0}%
                   </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                  <span className="text-sm text-gray-600">Portfolio Value</span>
+                  <span className="text-sm font-semibold text-navy">
+                    ${(stats?.performance?.estimatedPortfolioValue || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Profile Complete</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-skyblue to-green-500 transition-all duration-500"
+                        style={{ width: `${stats?.activity?.profileCompletion || 0}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs font-semibold text-skyblue">
+                      {stats?.activity?.profileCompletion || 0}%
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -597,11 +638,74 @@ export default function DeveloperDashboard() {
                     </div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Bookmarked Ideas</p>
                     <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
-                      {count || 0}
+                      {stats?.activity?.bookmarksCount || count || 0}
                     </p>
                     <div className="mt-2 text-xs text-gray-500 flex items-center">
                       <Sparkles className="w-3 h-3 mr-1" />
                       <span>Saved opportunities</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Stats Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="group bg-gradient-to-br from-orange-50 to-white rounded-xl shadow-sm p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-orange-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center shadow-md">
+                        <Clock className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Avg Response Time</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats?.performance?.avgResponseTime || 0} days
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      From proposal to feedback
+                    </div>
+                  </div>
+
+                  <div className="group bg-gradient-to-br from-green-50 to-white rounded-xl shadow-sm p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center shadow-md">
+                        <TrendingUp className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Equity</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {stats?.equity?.totalEarned || 0}%
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      Avg {stats?.equity?.avgPerProject || 0}% per project
+                    </div>
+                  </div>
+
+                  <div className="group bg-gradient-to-br from-indigo-50 to-white rounded-xl shadow-sm p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-indigo-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-indigo-500 rounded-lg flex items-center justify-center shadow-md">
+                        <Eye className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Ideas Viewed</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stats?.activity?.ideasViewed || 0}
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      Opportunities explored
+                    </div>
+                  </div>
+
+                  <div className="group bg-gradient-to-br from-amber-50 to-white rounded-xl shadow-sm p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-amber-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center shadow-md">
+                        <BarChart3 className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Portfolio Value</p>
+                    <p className="text-2xl font-bold text-amber-600">
+                      ${((stats?.performance?.estimatedPortfolioValue || 0) / 1000).toFixed(0)}k
+                    </p>
+                    <div className="mt-2 text-xs text-gray-500">
+                      Estimated equity value
                     </div>
                   </div>
                 </div>

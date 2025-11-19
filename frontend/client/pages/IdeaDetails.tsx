@@ -18,6 +18,12 @@ import {
   CheckCircle,
   AlertTriangle,
   MessageCircle,
+  DollarSign,
+  MapPin,
+  Clock,
+  ListChecks,
+  Home,
+  ChevronRight,
 } from "lucide-react";
 
 interface IdeaDetails {
@@ -28,6 +34,8 @@ interface IdeaDetails {
   founderAvatar: string;
   founderBio: string;
   founderLinkedIn: string;
+  founderLocation?: string;
+  founderEmail?: string;
   skills: string[];
   equityRange: string;
   fullDescription: string;
@@ -38,7 +46,10 @@ interface IdeaDetails {
   isNDA: boolean;
   visibility: "Public" | "Invite Only" | "NDA Required";
   created_at: string;
+  updated_at?: string;
   timeline: string;
+  budget?: number;
+  additional_requirements?: string;
   isBookmarked: boolean;
   hasAcceptedNDA: boolean;
 }
@@ -112,33 +123,174 @@ export default function IdeaDetails() {
       </span>
     );
   };
-  if (!idea) return <div>Loading...</div>;
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="min-h-screen bg-gray-50">
+      {/* Breadcrumb Skeleton */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center space-x-2">
+            <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-32 h-4 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content Skeleton */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Header Section */}
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="space-y-4">
+                <div className="w-3/4 h-8 bg-gray-200 rounded animate-pulse" />
+                <div className="flex items-center space-x-4">
+                  <div className="w-20 h-6 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="w-40 h-4 bg-gray-200 rounded animate-pulse" />
+                </div>
+                <div className="space-y-2 mt-6">
+                  <div className="w-full h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="w-full h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="w-3/4 h-4 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Objectives Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="w-48 h-6 bg-gray-200 rounded animate-pulse mb-6" />
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse" />
+                    <div className="flex-1 h-4 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tech Stack Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="w-48 h-6 bg-gray-200 rounded animate-pulse mb-6" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-12 bg-gray-200 rounded-lg animate-pulse"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Skeleton */}
+          <div className="space-y-6">
+            {/* Founder Info Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="w-32 h-5 bg-gray-200 rounded animate-pulse mb-4" />
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="w-24 h-4 bg-gray-200 rounded animate-pulse" />
+                  <div className="w-20 h-3 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="w-full h-3 bg-gray-200 rounded animate-pulse" />
+                <div className="w-full h-3 bg-gray-200 rounded animate-pulse" />
+                <div className="w-3/4 h-3 bg-gray-200 rounded animate-pulse" />
+              </div>
+            </div>
+
+            {/* Project Details Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="w-32 h-5 bg-gray-200 rounded animate-pulse mb-4" />
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i}>
+                    <div className="w-20 h-3 bg-gray-200 rounded animate-pulse mb-2" />
+                    <div className="w-32 h-5 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="space-y-3">
+                <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse" />
+                <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) return <LoadingSkeleton />;
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-navy mb-2">Error Loading Idea</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Link
+            to="/developer-dashboard"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Dashboard</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!idea) return <LoadingSkeleton />;
 
   if (!hasAcceptedNDA && idea.nda_accepted === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
+        {/* Breadcrumb Navigation */}
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              {/* Breadcrumbs */}
+              <div className="flex items-center space-x-2 text-sm">
+                <Link
+                  to="/developer-dashboard"
+                  className="text-gray-500 hover:text-navy transition-colors"
+                >
+                  Ideas
+                </Link>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+                <span className="text-navy font-medium flex items-center space-x-1">
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>NDA Required</span>
+                </span>
+              </div>
+
+              {/* Back Button */}
               <Link
                 to="/developer-dashboard"
-                className="flex items-center space-x-2"
+                className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-600">Back to Dashboard</span>
-              </Link>
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                  <Code className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-navy">
-                  Skill Invest
+                <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-navy transition-colors" />
+                <span className="text-gray-700 group-hover:text-navy font-medium transition-colors">
+                  Back to Ideas
                 </span>
               </Link>
             </div>
           </div>
-        </header>
+        </div>
 
         {/* NDA Gate */}
         <div className="max-w-4xl mx-auto px-4 py-16">
@@ -277,26 +429,37 @@ export default function IdeaDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+      {/* Breadcrumb Navigation */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            {/* Breadcrumbs */}
+            <div className="flex items-center space-x-2 text-sm">
+              <Link
+                to="/developer-dashboard"
+                className="text-gray-500 hover:text-navy transition-colors"
+              >
+                Ideas
+              </Link>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <span className="text-navy font-medium truncate max-w-[200px] sm:max-w-xs">
+                {idea.title}
+              </span>
+            </div>
+
+            {/* Back Button */}
             <Link
               to="/developer-dashboard"
-              className="flex items-center space-x-2"
+              className="inline-flex items-center space-x-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-400" />
-              <span className="text-gray-600">Back to Dashboard</span>
-            </Link>
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center">
-                <Code className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-navy">Zero Fund</span>
+              <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-navy transition-colors" />
+              <span className="text-gray-700 group-hover:text-navy font-medium transition-colors">
+                Back to Ideas
+              </span>
             </Link>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -309,21 +472,34 @@ export default function IdeaDetails() {
                   <h1 className="text-3xl font-bold text-navy mb-2">
                     {idea.title}
                   </h1>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 flex-wrap">
                     <StageBadge stage={idea.stage} />
 
-                    <span className="text-gray-600">
-                      Posted:{" "}
-                      {new Date(idea.created_at).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: true, // set false for 24-hour format
-                      })}
+                    <span className="text-gray-600 text-sm flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        Posted:{" "}
+                        {new Date(idea.created_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
                     </span>
+
+                    {idea.updated_at && idea.updated_at !== idea.created_at && (
+                      <span className="text-gray-500 text-sm flex items-center space-x-1">
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          Updated:{" "}
+                          {new Date(idea.updated_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </span>
+                    )}
 
                     {idea.isNDA && (
                       <>
@@ -375,6 +551,21 @@ export default function IdeaDetails() {
               </ul>
             </div>
 
+            {/* Additional Requirements */}
+            {idea.additional_requirements && (
+              <div className="bg-white rounded-lg shadow-sm p-8">
+                <h2 className="text-xl font-bold text-navy mb-6 flex items-center space-x-2">
+                  <ListChecks className="w-5 h-5" />
+                  <span>Additional Requirements</span>
+                </h2>
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {idea.additional_requirements}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Tech Stack */}
             <div className="bg-white rounded-lg shadow-sm p-8">
               <h2 className="text-xl font-bold text-navy mb-6">
@@ -401,14 +592,16 @@ export default function IdeaDetails() {
   <div className="space-y-3">
     {idea.attachments && idea.attachments.length > 0 ? (
       idea.attachments.map((attachment, index) => (
-        <a
+        <div
           key={index}
-          href={attachment.url} // use the full URL from backend
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-skyblue"
+          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
         >
-          <div className="flex items-center space-x-3">
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-3 flex-1 focus:outline-none focus:ring-2 focus:ring-skyblue rounded"
+          >
             <div className="w-10 h-10 bg-skyblue/10 rounded-lg flex items-center justify-center">
               <FileText className="w-5 h-5 text-skyblue" />
             </div>
@@ -420,18 +613,17 @@ export default function IdeaDetails() {
                 {attachment.type || "Unknown Type"} • {attachment.size || "—"}
               </p>
             </div>
-          </div>
+          </a>
 
           <a
-            href={attachment.url} // use the full URL here too
+            href={attachment.url}
             download={attachment.name}
             className="p-2 text-gray-400 hover:text-skyblue transition-colors"
             title="Download File"
-            onClick={(e) => e.stopPropagation()} // prevent outer <a> click
           >
             <Download className="w-5 h-5" />
           </a>
-        </a>
+        </div>
       ))
     ) : (
       <p className="text-gray-500 text-sm">No documents uploaded yet.</p>
@@ -456,6 +648,12 @@ export default function IdeaDetails() {
                   <p className="font-semibold text-gray-800">
                     {idea.founderName}
                   </p>
+                  {idea.founderLocation && (
+                    <p className="text-xs text-gray-500 flex items-center space-x-1 mb-1">
+                      <MapPin className="w-3 h-3" />
+                      <span>{idea.founderLocation}</span>
+                    </p>
+                  )}
                   <a
                     href={idea.founderLinkedIn}
                     className="text-sm text-skyblue hover:text-navy transition-colors flex items-center space-x-1"
@@ -482,6 +680,17 @@ export default function IdeaDetails() {
                     {idea.equityRange}
                   </p>
                 </div>
+                {idea.budget && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1 flex items-center space-x-1">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Budget</span>
+                    </p>
+                    <p className="font-semibold text-green-600 text-lg">
+                      ${idea.budget.toLocaleString()}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Timeline</p>
                   <p className="font-semibold text-gray-800">{idea.timeline}</p>

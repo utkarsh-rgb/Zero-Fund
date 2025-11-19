@@ -179,11 +179,154 @@ const removeProfilePic = async (req, res) => {
   }
 };
 
+// Get developer stats for dashboard
+const getDeveloperStats = async (req, res) => {
+  const { developerId } = req.params;
+
+  try {
+    // Get all proposals for this developer
+    const [proposals] = await pool.execute(
+      `SELECT
+        p.*,
+        ei.title as ideaTitle,
+        e.fullName as founderName
+      FROM proposals p
+      JOIN entrepreneur_idea ei ON p.idea_id = ei.id
+      JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+      WHERE p.developer_id = ?
+      ORDER BY p.created_at DESC`,
+      [developerId]
+    );
+
+    // Get active collaborations (accepted proposals)
+    const [collaborations] = await pool.execute(
+      `SELECT
+        p.*,
+        ei.title as projectTitle,
+        e.fullName as founderName
+      FROM proposals p
+      JOIN entrepreneur_idea ei ON p.idea_id = ei.id
+      JOIN entrepreneur e ON ei.entrepreneur_id = e.id
+      WHERE p.developer_id = ? AND p.status = 'Accepted'`,
+      [developerId]
+    );
+
+    // Get bookmarks count
+    const [bookmarks] = await pool.execute(
+      "SELECT COUNT(*) as count FROM bookmarks WHERE developer_id = ?",
+      [developerId]
+    );
+
+    // Get total ideas viewed from bookmarks (approximation until views tracking is implemented)
+    const [ideasViewedResult] = await pool.execute(
+      "SELECT COUNT(DISTINCT idea_id) as count FROM bookmarks WHERE developer_id = ?",
+      [developerId]
+    );
+
+    // Calculate stats
+    const totalProposals = proposals.length;
+    const acceptedProposals = proposals.filter(p => p.status === 'Accepted').length;
+    const pendingProposals = proposals.filter(p => p.status === 'Pending' || p.status === 'Under Review').length;
+    const rejectedProposals = proposals.filter(p => p.status === 'Rejected').length;
+
+    // Calculate total equity from accepted proposals
+    const totalEquity = proposals
+      .filter(p => p.status === 'Accepted')
+      .reduce((sum, p) => {
+        const equity = parseFloat(p.equity_requested) || 0;
+        return sum + equity;
+      }, 0);
+
+    // Calculate success rate
+    const successRate = totalProposals > 0
+      ? Math.round((acceptedProposals / totalProposals) * 100)
+      : 0;
+
+    // Calculate average response time (in days)
+    const proposalsWithResponse = proposals.filter(p =>
+      p.status !== 'Pending' && p.status !== 'Under Review' && p.updated_at
+    );
+
+    let avgResponseTime = 0;
+    if (proposalsWithResponse.length > 0) {
+      const totalResponseTime = proposalsWithResponse.reduce((sum, p) => {
+        const submitted = new Date(p.created_at);
+        const responded = new Date(p.updated_at);
+        const diffTime = Math.abs(responded - submitted);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return sum + diffDays;
+      }, 0);
+      avgResponseTime = Math.round(totalResponseTime / proposalsWithResponse.length);
+    }
+
+    // Get recent proposals (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentProposals = proposals.filter(p =>
+      new Date(p.created_at) >= thirtyDaysAgo
+    ).length;
+
+    // Calculate estimated portfolio value (equity * estimated average startup value)
+    // Using a conservative estimate of $100k per accepted project
+    const estimatedPortfolioValue = acceptedProposals * 100000 * (totalEquity / 100);
+
+    // Get developer profile completion
+    const [developer] = await pool.execute(
+      "SELECT fullName, email, bio, location, profile_pic FROM developers WHERE id = ?",
+      [developerId]
+    );
+
+    let profileCompletion = 40; // base (email + name)
+    if (developer[0]?.bio) profileCompletion += 20;
+    if (developer[0]?.location) profileCompletion += 20;
+    if (developer[0]?.profile_pic) profileCompletion += 20;
+
+    // Compile stats
+    const stats = {
+      proposals: {
+        total: totalProposals,
+        accepted: acceptedProposals,
+        pending: pendingProposals,
+        rejected: rejectedProposals,
+        recent: recentProposals
+      },
+      collaborations: {
+        active: collaborations.length,
+        total: acceptedProposals
+      },
+      equity: {
+        totalEarned: totalEquity.toFixed(2),
+        avgPerProject: acceptedProposals > 0 ? (totalEquity / acceptedProposals).toFixed(2) : 0
+      },
+      performance: {
+        successRate: successRate,
+        avgResponseTime: avgResponseTime,
+        estimatedPortfolioValue: Math.round(estimatedPortfolioValue)
+      },
+      activity: {
+        bookmarksCount: bookmarks[0].count || 0,
+        ideasViewed: ideasViewedResult[0]?.count || 0,
+        profileCompletion: profileCompletion
+      },
+      recentActivity: {
+        lastProposal: proposals[0]?.created_at || null,
+        lastAcceptance: proposals.find(p => p.status === 'Accepted')?.updated_at || null
+      }
+    };
+
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error("Error fetching developer stats:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch stats" });
+  }
+};
+
 
 module.exports = {
   getDeveloperProfile,
   updateDeveloperProfile,
   developerDashboardById,
   removeProfilePic,
-  uploadDeveloperProfile
+  uploadDeveloperProfile,
+  getDeveloperStats
 };
