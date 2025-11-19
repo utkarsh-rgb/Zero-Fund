@@ -102,6 +102,8 @@ export default function EntrepreneurDashboard() {
 const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
    const [previewLoading, setPreviewLoading] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState<boolean>(true);
 
   
   useEffect(() => {
@@ -185,9 +187,40 @@ const entrepreneurId = userData?.id;
       }
     };
 
- 
+
     checkUserAndFetchIdeas();
   }, [navigate]);
+
+  // Fetch entrepreneur stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        const entrepreneurId = userData?.id;
+
+        if (!entrepreneurId) {
+          console.error("Entrepreneur ID not found");
+          setStatsLoading(false);
+          return;
+        }
+
+        const response = await axiosLocal.get(
+          `/entrepreneur-stats/${entrepreneurId}`
+        );
+
+        if (response.data.success) {
+          setStats(response.data.stats);
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const handleAcceptContract = async (contractId: number) => {
     try {
       const res = await axiosLocal.post<{ success: boolean; message?: string }>(
@@ -300,8 +333,8 @@ const entrepreneurId = userData?.id;
 
     try {
       // 🔹 API call to update backend
-      const res = await axios.post(
-        `http://localhost:5000/proposal/${proposalId}/status`,
+      const res = await axiosLocal.post(
+        `/proposal/${proposalId}/status`,
         { action },
       );
 
@@ -547,37 +580,57 @@ const entrepreneurId = userData?.id;
               <h3 className="text-sm font-semibold text-gray-800 mb-3">
                 Quick Stats
               </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">
-                    Pending Proposals
-                  </span>
-                  <span className="text-sm font-semibold text-orange-600">
-                    {proposals.filter((p) => p.status === "Pending").length}
-                  </span>
+              {statsLoading ? (
+                <div className="space-y-3 animate-pulse">
+                  <div className="h-5 bg-gray-200 rounded"></div>
+                  <div className="h-5 bg-gray-200 rounded"></div>
+                  <div className="h-5 bg-gray-200 rounded"></div>
+                  <div className="h-5 bg-gray-200 rounded"></div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Active Projects</span>
-                  {/* <span className="text-sm font-semibold text-green-600">
-                    {collaborations.filter((c) => c.status === "Active").length}
-                  </span> */}
+              ) : stats ? (
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">
+                      Pending Proposals
+                    </span>
+                    <span className="text-sm font-semibold text-orange-600">
+                      {stats.proposals?.pending || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Active Ideas</span>
+                    <span className="text-sm font-semibold text-green-600">
+                      {stats.ideas?.active || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Total Views</span>
+                    <span className="text-sm font-semibold text-purple-600">
+                      {stats.activity?.totalViews || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Review Rate</span>
+                    <span className="text-sm font-semibold text-skyblue">
+                      {stats.performance?.reviewRate || 0}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Equity Offered</span>
+                    <span className="text-sm font-semibold text-blue-600">
+                      {stats.equity?.totalOffered || 0}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Hiring Rate</span>
+                    <span className="text-sm font-semibold text-green-600">
+                      {stats.performance?.hiringRate || 0}%
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Views</span>
-                  <span className="text-sm font-semibold text-purple-600">
-                    {ideas.reduce((sum, idea) => sum + idea.viewsCount, 0)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Response Rate</span>
-                  <span className="text-sm font-semibold text-skyblue">
-                    {ideas.length > 0
-                      ? Math.round((proposals.length / ideas.length) * 100)
-                      : 0}
-                    %
-                  </span>
-                </div>
-              </div>
+              ) : (
+                <div className="text-sm text-gray-500">No stats available</div>
+              )}
             </div>
             </div>
           </div>
@@ -615,85 +668,192 @@ const entrepreneurId = userData?.id;
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-blue-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <Lightbulb className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Target className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Ideas Posted</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {ideas.length}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      <span>Active campaigns</span>
-                    </div>
-                  </div>
-
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-green-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <FileText className="w-7 h-7 text-white" />
-                      </div>
-                      {proposals.filter((p) => p.status === "Pending").length > 0 && (
-                        <div className="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
-                          New!
+                {statsLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
                         </div>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Pending Proposals</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
-                      {proposals.filter((p) => p.status === "Pending").length}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      <span>Awaiting review</span>
-                    </div>
+                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    ))}
                   </div>
+                ) : stats ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    {/* Total Ideas */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <Lightbulb className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Target className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Ideas</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {stats.ideas?.total || 0}
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        <span>{stats.ideas?.active || 0} active</span>
+                      </div>
+                    </div>
 
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-purple-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <Users className="w-7 h-7 text-white" />
+                    {/* Pending Proposals */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-green-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <FileText className="w-7 h-7 text-white" />
+                        </div>
+                        {(stats.proposals?.pending || 0) > 0 && (
+                          <div className="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
+                            New!
+                          </div>
+                        )}
                       </div>
-                      <div className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Zap className="w-5 h-5" />
+                      <p className="text-sm font-medium text-gray-600 mb-1">Pending Proposals</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+                        {stats.proposals?.pending || 0}
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>{stats.proposals?.total || 0} total received</span>
                       </div>
                     </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Active Collaborations</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
-                      {collaboration.length}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      <span>In progress</span>
-                    </div>
-                  </div>
 
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-skyblue/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-skyblue to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <Eye className="w-7 h-7 text-white" />
+                    {/* Total Proposals */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-purple-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <FileText className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Zap className="w-5 h-5" />
+                        </div>
                       </div>
-                      <div className="text-skyblue opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <TrendingUp className="w-5 h-5" />
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Proposals</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                        {stats.proposals?.total || 0}
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        <span>{stats.proposals?.avgPerIdea || 0} avg per idea</span>
                       </div>
                     </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Views</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
-                      {ideas.reduce((sum, idea) => sum + idea.viewsCount, 0)}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <Eye className="w-3 h-3 mr-1" />
-                      <span>Across all ideas</span>
+
+                    {/* Total Views */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-skyblue/30">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-skyblue to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <Eye className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-skyblue opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <TrendingUp className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Views</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
+                        {stats.activity?.totalViews || 0}
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <Eye className="w-3 h-3 mr-1" />
+                        <span>Across all ideas</span>
+                      </div>
+                    </div>
+
+                    {/* Equity Offered */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-amber-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <TrendingUp className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Target className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Total Equity Offered</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
+                        {stats.equity?.totalOffered || 0}%
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        <span>{stats.equity?.remaining || 0}% remaining</span>
+                      </div>
+                    </div>
+
+                    {/* Hiring Rate */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-emerald-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <Users className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <CheckCircle className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Hiring Rate</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
+                        {stats.performance?.hiringRate || 0}%
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        <span>{stats.proposals?.accepted || 0} accepted</span>
+                      </div>
+                    </div>
+
+                    {/* Review Rate */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-indigo-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <Clock className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Sparkles className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Review Rate</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        {stats.performance?.reviewRate || 0}%
+                      </p>
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <Clock className="w-3 h-3 mr-1" />
+                        <span>Proposal responses</span>
+                      </div>
+                    </div>
+
+                    {/* Profile Completion */}
+                    <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-pink-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                          <Star className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="text-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Sparkles className="w-5 h-5" />
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600 mb-1">Profile Completion</p>
+                      <p className="text-3xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">
+                        {stats.activity?.profileCompletion || 0}%
+                      </p>
+                      <div className="mt-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-gradient-to-r from-pink-500 to-pink-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${stats.activity?.profileCompletion || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No stats available</p>
+                  </div>
+                )}
 
                 {/* Recent Activity */}
                 <div className="grid md:grid-cols-2 gap-6">

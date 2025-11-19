@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axiosLocal from "../api/axiosLocal";
 import {
   ArrowLeft,
   Code,
@@ -59,13 +60,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsLoading(true);
 
   try {
-    const res = await fetch("https://bd.zerofundventure.com/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
+    const res = await axiosLocal.post("/api/login", formData);
+    const data = res.data;
 
     // FIX: backend always returns 200, so check message
     if (!data || data.message !== "Login successful") {

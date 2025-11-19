@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import io, { Socket } from "socket.io-client";
-import axiosLocal from "../api/axiosLocal";
+import axiosLocal, { SOCKET_URL } from "../api/axiosLocal";
 import {
   Send,
   Phone,
@@ -100,7 +100,7 @@ const SecureChat: React.FC<SecureChatProps> = ({ userType }) => {
   useEffect(() => {
     if (!userId || !token) return;
 
-    const socket = io("https://bd.zerofundventure.com", {
+    const socket = io(SOCKET_URL, {
       auth: { token }
     });
 

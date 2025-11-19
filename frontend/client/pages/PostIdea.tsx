@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosLocal from "../api/axiosLocal";
+import ReactMarkdown from "react-markdown";
 import {
   ArrowLeft,
   Lightbulb,
@@ -143,6 +144,10 @@ export default function PostIdea() {
         description: formData.overview,
         category: formData.stage || "General",
         equityOffered: formData.equityOffering || "Not specified"
+      },{
+         
+    timeout: 60000 // ⬅ allow up to 60 seconds for AI response
+  
       });
 
       setAiModalContent({
@@ -174,7 +179,9 @@ export default function PostIdea() {
         keywords: formData.requiredSkills.length > 0
           ? formData.requiredSkills.join(", ")
           : "technology, startup"
-      });
+      }, {
+    timeout: 60000 // ⬅ allow up to 60 seconds for AI response
+  });
 
       setAiModalContent({
         title: "AI Name Suggestions",
@@ -202,7 +209,9 @@ export default function PostIdea() {
       const response = await axiosLocal.post('/ai/market-insights', {
         category: formData.stage,
         ideaTitle: formData.title || "Your startup idea"
-      });
+      }, {
+    timeout: 60000 // ⬅ allow up to 60 seconds for AI response
+  });
 
       setAiModalContent({
         title: "Market Insights & Trends",
@@ -261,6 +270,7 @@ export default function PostIdea() {
             "Content-Type": "multipart/form-data",
           },
         },
+        
       );
 
       // Log full response
@@ -1048,10 +1058,8 @@ export default function PostIdea() {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
               <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed font-sans text-sm">
-                    {aiModalContent.content}
-                  </pre>
+                <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
+                  <ReactMarkdown>{aiModalContent.content}</ReactMarkdown>
                 </div>
               </div>
 
