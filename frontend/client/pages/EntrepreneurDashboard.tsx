@@ -122,7 +122,6 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
         );
 
         if (res.data.success) {
-          console.log(res.data);
           setPendingContracts(res.data.contracts);
         }
       } catch (err) {
@@ -140,14 +139,12 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
     try {
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
       const entrepreneurId = userData?.id;
-      console.log("entrepreneurId:", entrepreneurId);
+
       if (!entrepreneurId) return;
 
       const response = await axiosLocal.get(
         `/entrepreneur-collaboration/${entrepreneurId}`
       );
-
-      console.log("Collaboration Fetched:", response.data);
 
       // Only set the contracts array
       setCollaboration(response.data.contracts || []);
@@ -181,7 +178,7 @@ const entrepreneurId = userData?.id;
         const response = await axiosLocal.get(
           `/entrepreneur-dashboard/${entrepreneurId}`,
         );
-        console.log(response.data);
+
         setIdeas(response.data);
       } catch (error) {
         console.error("Error fetching ideas:", error);
@@ -252,7 +249,7 @@ const entrepreneurId = userData?.id;
       const response = await axiosLocal.get(
         `/entrepreneur-proposals/${entrepreneurId}`,
       );
-      console.log("Proposals fetched:", response.data);
+
       setProposals(response.data.proposals); // store in state
     } catch (error: any) {
       console.error("Failed to fetch proposals:", error);

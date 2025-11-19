@@ -3,7 +3,6 @@ const pool = require("../db");
 const entrepreneurDashboard = async (req, res) => {
   try {
     const { id } = req.params; // entrepreneur_id
-    console.log("entrepreneur id", id);
 
     const [rows] = await pool.query(
       "SELECT * FROM entrepreneur_idea WHERE entrepreneur_id = ? ORDER BY created_at DESC",
@@ -171,9 +170,6 @@ const entrepreneurProfile = async (req, res) => {
 
     const entrepreneur = rows[0];
 
-    // Optional: log what was fetched
-    console.log("Entrepreneur fetched:", entrepreneur);
-
     res.status(200).json(entrepreneur);
   } catch (err) {
     console.error("Error fetching entrepreneur:", err);
@@ -184,9 +180,6 @@ const entrepreneurProfileUpdate = async (req, res) => {
   try {
     const { id } = req.params;
     const { fullName, email, location, bio } = req.body;
-
-    console.log("Request body:", req.body);
-    console.log("Entrepreneur ID:", id);
 
     // Update query
     const [rows] = await pool.query(

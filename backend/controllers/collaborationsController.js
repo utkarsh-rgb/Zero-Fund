@@ -2,9 +2,7 @@ const pool = require("../db");
 
 
 const getCollaborations = async (req, res) => {
-
- const entrepreneurId = req.params.entrepreneurId; // 👈 get from URL
-  console.log("Received entrepreneurId:", entrepreneurId);
+  const entrepreneurId = req.params.entrepreneurId;
 
   if (!entrepreneurId) {
     return res.status(400).json({ success: false, message: "entrepreneurId is required" });
@@ -39,8 +37,6 @@ const getCollaborations = async (req, res) => {
   [entrepreneurId]
 );
 
-    console.log("Fetched signed contracts:", contracts); // log fetched contracts
-
     res.json({ success: true, contracts });
   } catch (err) {
     console.error("Error fetching signed collaborations:", err);
@@ -52,7 +48,6 @@ const getCollaborations = async (req, res) => {
 
 const getDeveloperCollaborations = async (req, res) => {
   const developerId = req.params.developerId;
-  console.log("Received developerId:", developerId);
 
   if (!developerId) {
     return res.status(400).json({ success: false, message: "developerId is required" });
@@ -86,8 +81,6 @@ const getDeveloperCollaborations = async (req, res) => {
        WHERE developer_id = ? AND status = 'signed'`,
       [developerId]
     );
-
-    console.log("Fetched signed contracts for developer:", contracts);
 
     res.json({ success: true, contracts });
   } catch (err) {

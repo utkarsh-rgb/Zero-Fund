@@ -23,7 +23,6 @@ const notificationGet = async (req, res) => {
 // Mark single notification as read
 const markAsRead = async (req, res) => {
   const { id } = req.params;
-  console.log(id);
 
   try {
     await pool.execute(`UPDATE notifications SET is_read = 1 WHERE id = ?`, [id]);
@@ -37,7 +36,6 @@ const markAsRead = async (req, res) => {
 // Mark all notifications as read for a developer
 const markAllAsRead = async (req, res) => {
   const { developerId } = req.params;
-  console.log(developerId);
 
   try {
     await pool.execute(`UPDATE notifications SET is_read = 1 WHERE developer_id = ?`, [developerId]);

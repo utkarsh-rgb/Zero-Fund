@@ -74,7 +74,7 @@ export default function ProposalSubmit() {
             `/proposal/${ideaId}`,
           );
           const data = response.data;
-            console.log(data);
+
           setIdea({
             id: data.id,
             title: data.title,

@@ -235,8 +235,6 @@ const getUniqueDeveloperIds= async (req, res) => {
       JOIN proposals p ON d.id = p.developer_id
     `);
 
-    console.log(rows);
-
     res.json({ developers: rows });
   } catch (err) {
     console.error(err);

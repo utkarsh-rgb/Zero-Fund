@@ -49,7 +49,7 @@ const entrepreneurAcceptContract = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Contract not found or not signed by developer" });
     }
-console.log("signed");
+
     res.json({ success: true, message: "Contract accepted successfully" });
   } catch (err) {
     console.error("Error accepting contract:", err);
@@ -75,7 +75,7 @@ const entrepreneurRejectContract = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Contract not found" });
     }
-    console.log("terminated");
+
     res.json({ success: true, message: "Contract rejected successfully" });
   } catch (err) {
     console.error("Error rejecting contract:", err);
@@ -86,7 +86,6 @@ const entrepreneurRejectContract = async (req, res) => {
 
 const getPendingContracts = async (req, res) => {
   const { entrepreneurId } = req.body;
-  console.log("Received entrepreneurId (body):", entrepreneurId);
 
   if (!entrepreneurId) {
     return res.status(400).json({ success: false, message: "entrepreneurId is required" });
