@@ -62,11 +62,13 @@ interface Proposal {
   id: string;
   ideaTitle: string;
   developerName: string;
+  developerId: number;
   developerAvatar: string;
   skills: string[];
   equityRequested: string;
   timeline: string;
-  status: "Pending" | "Reviewed" | "Accepted" | "Rejected";
+  scope?: string;
+  status: "Pending" | "Reviewed" | "Accepted" | "Rejected" | "Approved";
   submittedAt: string;
   rating?: number;
 }
@@ -1392,7 +1394,7 @@ const entrepreneurId = userData?.id;
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div>
                                   <span className="text-gray-500 text-sm">Developer:</span>
-                                  <p className="font-semibold">{proposal.developer.name}</p>
+                                  <p className="font-semibold">{proposal.developerName}</p>
                                 </div>
                                 <div>
                                   <span className="text-gray-500 text-sm">Equity:</span>
@@ -1402,7 +1404,7 @@ const entrepreneurId = userData?.id;
                                 </div>
                                 <div>
                                   <span className="text-gray-500 text-sm">Timeline:</span>
-                                  <p className="font-semibold">{proposal.proposedTimeline}</p>
+                                  <p className="font-semibold">{proposal.timeline}</p>
                                 </div>
                               </div>
 
@@ -1421,7 +1423,7 @@ const entrepreneurId = userData?.id;
                                 <span className="font-medium">Generate Contract</span>
                               </Link>
                               <Link
-                                to={`/entrepreneur-chat?developer=${proposal.developer.id}`}
+                                to={`/entrepreneur-chat?developer=${proposal.developerId}`}
                                 className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
                               >
                                 <MessageCircle className="w-4 h-4" />
