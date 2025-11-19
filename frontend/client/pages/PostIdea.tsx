@@ -1057,8 +1057,19 @@ export default function PostIdea() {
 
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="prose prose-gray max-w-none
+                  prose-headings:font-bold prose-headings:text-navy prose-headings:mb-3 prose-headings:mt-5 first:prose-headings:mt-0
+                  prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+                  prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
+                  prose-strong:text-gray-900 prose-strong:font-semibold
+                  prose-ul:my-4 prose-ul:space-y-2
+                  prose-ol:my-4 prose-ol:space-y-2
+                  prose-li:text-gray-700 prose-li:leading-relaxed
+                  prose-a:text-skyblue prose-a:no-underline hover:prose-a:underline
+                  prose-blockquote:border-l-4 prose-blockquote:border-skyblue prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
+                  prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:text-purple-600
+                ">
                   <ReactMarkdown>{aiModalContent.content}</ReactMarkdown>
                 </div>
               </div>
@@ -1084,28 +1095,54 @@ export default function PostIdea() {
             </div>
 
             {/* Modal Footer */}
-            <div className="border-t border-gray-200 px-6 py-4 bg-white flex justify-between items-center">
+            <div className="border-t border-gray-200 px-6 py-4 bg-white flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
               <button
                 onClick={() => setShowAiModal(false)}
                 className="px-6 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 Close
               </button>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(aiModalContent.content);
-                  const btn = event?.target as HTMLButtonElement;
-                  const originalText = btn.textContent;
-                  btn.textContent = "Copied!";
-                  setTimeout(() => {
-                    btn.textContent = originalText || "Copy to Clipboard";
-                  }, 2000);
-                }}
-                className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
-              >
-                <Copy className="w-4 h-4" />
-                <span>Copy to Clipboard</span>
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                {aiModalContent.type === "analysis" && (
+                  <button
+                    onClick={() => {
+                      // Extract clean text from markdown (remove markdown formatting)
+                      const cleanText = aiModalContent.content
+                        .replace(/[#*_`~\[\]]/g, '') // Remove markdown symbols
+                        .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with double
+                        .trim();
+                      handleInputChange("overview", cleanText);
+                      setShowAiModal(false);
+                      // Show success message
+                      const btn = event?.target as HTMLButtonElement;
+                      const originalText = btn.innerHTML;
+                      btn.innerHTML = '✓ Added to Overview!';
+                      setTimeout(() => {
+                        btn.innerHTML = originalText;
+                      }, 2000);
+                    }}
+                    className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Use in Overview</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(aiModalContent.content);
+                    const btn = event?.target as HTMLButtonElement;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✓ Copied!';
+                    setTimeout(() => {
+                      btn.innerHTML = originalText;
+                    }, 2000);
+                  }}
+                  className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>Copy to Clipboard</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
