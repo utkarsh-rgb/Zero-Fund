@@ -142,7 +142,6 @@ export default function DeveloperDashboard() {
           `/developer-collaboration/${developerId}`
         );
 
-        console.log("Developer collaborations:", response.data);
         setCollaborations(response.data.contracts || []);
       } catch (err) {
         console.error("Failed to fetch developer collaborations:", err);
@@ -173,7 +172,7 @@ export default function DeveloperDashboard() {
         const res = await axiosLocal.get(
           `/developer-dashboard/${developer_id}`,
         );
-        console.log(res.data);
+
         if (res.data.success) {
           const ideasWithBookmark = res.data.data.map((idea: any) => ({
             ...idea,
@@ -210,7 +209,6 @@ export default function DeveloperDashboard() {
         `/api/developer/${developer_id}/bookmarks/count`,
       );
       setCount(response.data.totalBookmarks);
-      console.log("Total bookmarks:", response.data.totalBookmarks); // ✅ correct value
     } catch (err) {
       console.error("Error fetching bookmarks:", err);
     } finally {

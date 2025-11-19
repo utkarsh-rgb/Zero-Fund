@@ -16,7 +16,7 @@ const getContractOrProposal = async (req, res) => {
       "SELECT * FROM contracts WHERE proposal_id = ?",
       [proposalId]
     );
-    console.log(contractRows);
+
     if (contractRows.length > 0) {
       const contract = contractRows[0];
 
@@ -100,7 +100,7 @@ const getContractOrProposal = async (req, res) => {
         message: "Proposal not found",
       });
     }
-console.log(proposalRows);
+
     const proposal = proposalRows[0];
 
     const contractData = {
@@ -199,8 +199,6 @@ const contractDetailsController = async (req, res) => {
     ];
 
     const [result] = await pool.query(query, values);
-
-    console.log(`Saved contract for proposalId: ${data.proposalId}`);
 
     res.json({
       success: true,
@@ -313,7 +311,7 @@ const contractDraft = async (req, res) => {
       `;
 
       await pool.query(updateQuery, updateValues);
-      console.log(`Updated contract draft for proposalId: ${data.proposalId}`);
+
       return res.json({ success: true, message: "Draft Saved (Updated)" });
     }
 
@@ -371,7 +369,7 @@ const contractDraft = async (req, res) => {
     `;
 
     await pool.query(insertQuery, insertValues);
-    console.log(`Saved new contract draft for proposalId: ${data.proposalId}`);
+
     res.json({ success: true, message: "Draft Saved (New)" });
 
   } catch (error) {
@@ -384,7 +382,6 @@ const contractDraft = async (req, res) => {
 };
 const getContractWithSections = async (req, res) => {
   const developerId = req.query.developerId;
-  console.log("➡️ Received developerId:", developerId);
 
   if (!developerId) {
     return res.status(400).json({ success: false, message: "developerId is required" });
@@ -402,7 +399,6 @@ const getContractWithSections = async (req, res) => {
     }
 
     const contract = contractRows[0];
-    console.log("📋 Contract fetched:", contract);
 
     // 2️⃣ Safely parse JSON fields (handle both string and object formats)
     const parseJSONField = (field) => {
@@ -467,8 +463,6 @@ const getContractWithSections = async (req, res) => {
       success: true,
       data: CONTRACT_DATA,
     });
-
-    console.log("✅ Contract data sent successfully");
   } catch (err) {
     console.error("❌ Database error:", err);
     res.status(500).json({ success: false, message: "Server error" });

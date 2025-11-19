@@ -31,7 +31,6 @@ import ContractBuilder from "./pages/ContractBuilder";
 import ReviewContributions from "./pages/ReviewContributions";
 import CollaborationManagement from "./pages/CollaborationManagement";
 import EntrepreneurProfile from "./pages/EntrepreneurProfile";
-//import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import RedirectIfAuth from "./RedirectIfAuth";
