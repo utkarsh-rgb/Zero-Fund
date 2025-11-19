@@ -209,9 +209,9 @@ const contractDetailsController = async (req, res) => {
     const notificationMessage = `🎉 Contract Ready! ${data.entrepreneurName} has prepared a contract for "${data.projectTitle}". Please review and sign to start your collaboration.`;
 
     await connection.execute(
-      `INSERT INTO notifications (developer_id, message, type)
-       VALUES (?, ?, 'contract_status')`,
-      [data.developer_id, notificationMessage]
+      `INSERT INTO notifications (developer_id, proposal_id, message, type)
+       VALUES (?, ?, ?, 'contract_status')`,
+      [data.developer_id, data.proposalId, notificationMessage]
     );
 
     // Log activity
