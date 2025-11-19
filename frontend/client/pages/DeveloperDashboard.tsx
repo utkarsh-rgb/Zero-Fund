@@ -1171,11 +1171,11 @@ export default function DeveloperDashboard() {
                                 <span>View Details</span>
                               </button>
                               <button
-                                onClick={() => navigate("/developer-dashboard/message")}
+                                onClick={() => navigate(`/developer-chat?entrepreneur=${c.entrepreneur_id}`)}
                                 className="flex items-center space-x-2 px-6 py-3 border border-skyblue text-skyblue rounded-lg hover:bg-skyblue/10 transition-colors"
                               >
                                 <MessageCircle className="w-4 h-4" />
-                                <span>Chat</span>
+                                <span>Chat with Entrepreneur</span>
                               </button>
                             </div>
                           </div>
@@ -1189,7 +1189,7 @@ export default function DeveloperDashboard() {
            {/* Collaborations Tab */}
 {activeTab === "collaborations" && (
   <div className="space-y-3">
-    {collaborations.filter((c: any) => c.signed_by_developer).length === 0 ? (
+    {collaborations.filter((c: any) => c.signed_by_developer && c.signed_by_entrepreneur).length === 0 ? (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
         <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -1200,7 +1200,7 @@ export default function DeveloperDashboard() {
         </p>
       </div>
     ) : (
-      collaborations.filter((c: any) => c.signed_by_developer).map((c: any) => (
+      collaborations.filter((c: any) => c.signed_by_developer && c.signed_by_entrepreneur).map((c: any) => (
         <div
           key={c.id}
           className="p-3 border rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
@@ -1222,9 +1222,9 @@ export default function DeveloperDashboard() {
 
             <button
               className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-              onClick={() => navigate("/developer-dashboard/message")}
+              onClick={() => navigate(`/developer-chat?entrepreneur=${c.entrepreneur_id}`)}
             >
-              Chat
+              Chat with Entrepreneur
             </button>
           </div>
         </div>
