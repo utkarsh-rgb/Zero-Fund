@@ -1305,7 +1305,7 @@ const entrepreneurId = userData?.id;
                             <span>Chat</span>
                           </button>
                           <Link
-                            to="/contract-builder"
+                            to={`/contract-builder?proposalId=${proposal.id}`}
                             className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                           >
                             <FileText className="w-4 h-4" />
