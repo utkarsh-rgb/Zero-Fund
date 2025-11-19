@@ -55,9 +55,10 @@ const getDeveloperCollaborations = async (req, res) => {
 
   try {
     const [contracts] = await pool.query(
-      `SELECT 
+      `SELECT
           id,
           project_title,
+          entrepreneur_id,
           entrepreneur_name,
           entrepreneur_email,
           timeline,
@@ -78,7 +79,8 @@ const getDeveloperCollaborations = async (req, res) => {
           revisions,
           created_at
        FROM contracts
-       WHERE developer_id = ? AND status = 'signed'`,
+       WHERE developer_id = ?
+       ORDER BY created_at DESC`,
       [developerId]
     );
 
