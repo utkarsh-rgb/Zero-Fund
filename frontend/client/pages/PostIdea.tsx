@@ -24,6 +24,7 @@ import {
   Brain,
   X,
   Copy,
+  Loader,
 } from "lucide-react";
 
 interface FormData {
@@ -485,34 +486,19 @@ export default function PostIdea() {
               <button
   onClick={handlePublish}
   disabled={loading}
-  className={`w-full bg-skyblue text-white py-3 rounded-lg font-semibold transition-colors mb-3 
+  className={`w-full bg-skyblue text-white py-3 rounded-lg font-semibold transition-colors mb-3 flex items-center justify-center space-x-2
     ${loading ? "opacity-70 cursor-not-allowed" : "hover:bg-navy"}`}
 >
   {loading ? (
-    <div className="flex items-center justify-center">
-      <svg
-        className="animate-spin h-5 w-5 text-white"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        ></circle>
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-        ></path>
-      </svg>
-    </div>
+    <>
+      <Loader className="w-5 h-5 animate-spin" />
+      <span>Publishing...</span>
+    </>
   ) : (
-    "Publish Idea"
+    <>
+      <CheckCircle className="w-5 h-5" />
+      <span>Publish Idea</span>
+    </>
   )}
 </button>
 
@@ -1010,10 +996,20 @@ export default function PostIdea() {
                 </button>
                 <button
                   onClick={handlePublish}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                  disabled={loading}
+                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Publish Idea</span>
+                  {loading ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Publish Idea</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
