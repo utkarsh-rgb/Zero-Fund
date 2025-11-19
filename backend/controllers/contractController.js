@@ -63,12 +63,12 @@ const developerSignContract = async (req, res) => {
     );
     const developerName = developerRows[0]?.fullName || "Developer";
 
-    // Update contract - developer signs
+    // Update contract - developer signs (contract becomes fully signed since entrepreneur signed when creating)
     await connection.execute(
       `UPDATE contracts
        SET signed_by_developer = 1,
            signed_by_developer_at = NOW(),
-           status = 'pending_entrepreneur_signature'
+           status = 'signed'
        WHERE id = ?`,
       [contractId]
     );
@@ -81,7 +81,18 @@ const developerSignContract = async (req, res) => {
       [
         contract.entrepreneur_id,
         contractId,
-        `${developerName} has signed the contract for "${contract.project_title}". Review and sign to finalize the agreement.`
+        `🎉 Contract Fully Signed! ${developerName} has signed the contract for "${contract.project_title}". Your collaboration is now active!`
+      ]
+    );
+
+    // Create confirmation notification for developer
+    await connection.execute(
+      `INSERT INTO notifications (developer_id, proposal_id, message, type)
+       VALUES (?, (SELECT proposal_id FROM contracts WHERE id = ?), ?, 'contract_status')`,
+      [
+        developerId,
+        contractId,
+        `✅ Success! You have signed the contract for "${contract.project_title}". Collaboration with ${contract.entrepreneur_name} is now active. Check the Collaborations tab to get started!`
       ]
     );
 
@@ -97,7 +108,7 @@ const developerSignContract = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Contract signed successfully. Waiting for entrepreneur's signature."
+      message: "Contract signed successfully! Your collaboration is now active."
     });
   } catch (err) {
     await connection.rollback();
