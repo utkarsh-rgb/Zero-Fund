@@ -1,6 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
+const {
+  generateVerificationToken,
+  getTokenExpiry,
+  sendVerificationEmail,
+} = require("../utils/emailService");
 
 // Password strength validation function
 const validatePassword = (password) => {
@@ -51,12 +56,29 @@ const developerSignup =  async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const tokenExpiry = getTokenExpiry();
+
+    // Insert user with verification token
     await pool.execute(
-      "INSERT INTO developers (fullName, email, password) VALUES (?, ?, ?)",
-      [fullName, email, hashedPassword]
+      "INSERT INTO developers (fullName, email, password, verification_token, token_expiry, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
+      [fullName, email, hashedPassword, verificationToken, tokenExpiry]
     );
 
-    res.status(201).json({ message: "Developer account created successfully" });
+    // Send verification email
+    const emailResult = await sendVerificationEmail(email, fullName, verificationToken, "developer");
+
+    if (!emailResult.success) {
+      console.error("Failed to send verification email:", emailResult.error);
+      // Don't fail the signup, but log the error
+    }
+
+    res.status(201).json({
+      message: "Developer account created successfully. Please check your email to verify your account.",
+      emailSent: emailResult.success
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -84,14 +106,29 @@ const developerSignup =  async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate verification token
+    const verificationToken = generateVerificationToken();
+    const tokenExpiry = getTokenExpiry();
+
+    // Insert user with verification token
     await pool.execute(
-      "INSERT INTO entrepreneur (fullName, email, password) VALUES (?, ?, ?)",
-      [fullName, email, hashedPassword]
+      "INSERT INTO entrepreneur (fullName, email, password, verification_token, token_expiry, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
+      [fullName, email, hashedPassword, verificationToken, tokenExpiry]
     );
 
-    res
-      .status(201)
-      .json({ message: "Entrepreneur account created successfully" });
+    // Send verification email
+    const emailResult = await sendVerificationEmail(email, fullName, verificationToken, "entrepreneur");
+
+    if (!emailResult.success) {
+      console.error("Failed to send verification email:", emailResult.error);
+      // Don't fail the signup, but log the error
+    }
+
+    res.status(201).json({
+      message: "Entrepreneur account created successfully. Please check your email to verify your account.",
+      emailSent: emailResult.success
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -117,6 +154,14 @@ const login =  async (req, res) => {
     const user = rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+
+    // Check if email is verified
+    if (!user.is_verified) {
+      return res.status(403).json({
+        message: "Please verify your email address before logging in. Check your inbox for the verification link.",
+        emailVerified: false
+      });
+    }
 
     const token = jwt.sign(
       { id: user.id, email: user.email, userType },
