@@ -83,6 +83,7 @@ export default function DeveloperDashboard() {
   const [proposals, setProposals] = useState<any[]>([]);
   const [count, setCount] = useState<number | null>(null);
   const [collaborations, setCollaborations] = useState([])
+  const [collaborationsLoading, setCollaborationsLoading] = useState<boolean>(false);
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
    const [selectedContract, setSelectedContract] = useState(null); // for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -129,10 +130,12 @@ export default function DeveloperDashboard() {
   }, []);
 
   useEffect(() => {
-    if (activeTab !="collaborations") return;
+    // Fetch contracts when user opens Contracts or Collaborations tab
+    if (activeTab !== "collaborations" && activeTab !== "contracts") return;
 
     const fetchDeveloperCollaborations = async () => {
       try {
+        setCollaborationsLoading(true);
         const userData = JSON.parse(localStorage.getItem("userData") || "{}");
         const developerId = userData?.id;
 
@@ -145,6 +148,8 @@ export default function DeveloperDashboard() {
         setCollaborations(response.data.contracts || []);
       } catch (err) {
         console.error("Failed to fetch developer collaborations:", err);
+      } finally {
+        setCollaborationsLoading(false);
       }
     };
 
@@ -1102,8 +1107,21 @@ export default function DeveloperDashboard() {
                   </p>
                 </div>
 
-                <div className="space-y-4">
-                  {collaborations.filter((c: any) => !c.signed_by_developer).length === 0 ? (
+                {collaborationsLoading ? (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-skyblue mb-4"></div>
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                        Loading Contracts...
+                      </h3>
+                      <p className="text-gray-500">
+                        Please wait while we fetch your pending contracts
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {collaborations.filter((c: any) => !c.signed_by_developer).length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
                       <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -1181,15 +1199,28 @@ export default function DeveloperDashboard() {
                           </div>
                         </div>
                       ))
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
            {/* Collaborations Tab */}
 {activeTab === "collaborations" && (
   <div className="space-y-3">
-    {collaborations.filter((c: any) => c.signed_by_developer && c.signed_by_entrepreneur).length === 0 ? (
+    {collaborationsLoading ? (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-skyblue mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            Loading Collaborations...
+          </h3>
+          <p className="text-gray-500">
+            Please wait while we fetch your active collaborations
+          </p>
+        </div>
+      </div>
+    ) : collaborations.filter((c: any) => c.signed_by_developer && c.signed_by_entrepreneur).length === 0 ? (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
         <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-600 mb-2">
