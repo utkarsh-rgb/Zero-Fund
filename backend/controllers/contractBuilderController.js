@@ -173,8 +173,11 @@ const contractDetailsController = async (req, res) => {
         governing_law,
         additional_clauses,
         revisions,
-        support_terms
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        support_terms,
+        signed_by_entrepreneur,
+        signed_by_entrepreneur_at,
+        status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
     `;
 
     const values = [
@@ -200,6 +203,8 @@ const contractDetailsController = async (req, res) => {
       JSON.stringify(data.additionalClauses || []),
       data.revisions || "",
       data.supportTerms || "",
+      1, // signed_by_entrepreneur = 1 (entrepreneur signs when creating)
+      'pending_signature' // status = waiting for developer signature
     ];
 
     const [result] = await connection.execute(query, values);
