@@ -16,6 +16,8 @@ import {
   ChevronRight,
   X,
   AlertTriangle,
+  Loader,
+  CheckCircle,
 } from "lucide-react";
 
 interface FormData {
@@ -58,6 +60,9 @@ export default function EntrepreneurSignup() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -114,6 +119,8 @@ export default function EntrepreneurSignup() {
     return;
   }
 
+  setIsLoading(true);
+
   try {
     const res = await axiosLocal.post(
       "/entrepreneur/signup",
@@ -125,19 +132,13 @@ export default function EntrepreneurSignup() {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    // Show success message with email verification instructions
-    alert(
-      `✅ Account Created Successfully!\n\n` +
-      `We've sent a verification email to ${formData.email}\n\n` +
-      `Please check your inbox and click the verification link to activate your account.\n\n` +
-      `Note: The link will expire in 24 hours.`
-    );
-
-    // Redirect to login page
-    window.location.href = "/login";
+    // Show success modal instead of alert
+    setUserEmail(formData.email);
+    setShowSuccessModal(true);
   } catch (error: any) {
     console.error("Signup failed:", error);
     alert(error.response?.data?.message || "Something went wrong. Please try again.");
+    setIsLoading(false);
   }
 
   };
@@ -236,20 +237,21 @@ export default function EntrepreneurSignup() {
 
   // Form Step
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center">
-      <div className="w-full max-w-2xl px-4 py-6 sm:py-12">
-        <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg border border-gray-100">
-          <div className="text-center mb-6 sm:mb-8">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-skyblue to-navy rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
-              <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+    <>
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center py-4 sm:py-6">
+      <div className="w-full max-w-md lg:max-w-lg px-4">
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+          <div className="text-center mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-skyblue to-navy rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-md">
+              <Lightbulb className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy mb-2">Join as Entrepreneur</h2>
-            <p className="text-sm sm:text-base text-gray-600 px-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-navy mb-1 sm:mb-2">Join as Entrepreneur</h2>
+            <p className="text-xs sm:text-sm text-gray-600 px-2">
               Create your account to start posting ideas and finding developers
             </p>
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-3 sm:space-y-4">
             {/* Full Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -409,15 +411,22 @@ export default function EntrepreneurSignup() {
             {/* Submit */}
             <button
               onClick={handleSubmit}
-              disabled={!formData.hasReadTerms || !formData.email || !formData.password || formData.password !== formData.confirmPassword || !formData.fullName}
+              disabled={!formData.hasReadTerms || !formData.email || !formData.password || formData.password !== formData.confirmPassword || !formData.fullName || isLoading}
               className="w-full bg-gradient-to-r from-navy to-skyblue text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm sm:text-base active:scale-95"
             >
-              <span>Create Entrepreneur Account</span>
+              {isLoading ? (
+                <>
+                  <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <span>Create Entrepreneur Account</span>
+              )}
             </button>
           </div>
 
           {/* Alternative Sign Up Options */}
-          <div className="mt-5 sm:mt-6">
+          <div className="mt-4 sm:mt-6">
             <p className="text-center text-xs sm:text-sm text-gray-600">
               Already have an account?{" "}
               <Link
@@ -442,5 +451,49 @@ export default function EntrepreneurSignup() {
         </div>
       </div>
     </div>
+
+    {/* Success Modal */}
+    {showSuccessModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 animate-in fade-in zoom-in duration-300">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-green-100 mb-4">
+              <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-600" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              Account Created Successfully!
+            </h3>
+            <div className="mt-4 mb-6">
+              <div className="bg-blue-50 border-l-4 border-skyblue p-4 rounded">
+                <div className="flex items-start">
+                  <Mail className="h-5 w-5 text-skyblue mt-0.5 mr-3 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="text-sm text-gray-700 mb-2">
+                      We've sent a verification email to:
+                    </p>
+                    <p className="text-sm font-semibold text-navy break-all">
+                      {userEmail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+              <p className="text-xs sm:text-sm text-gray-700">
+                <strong>⏰ Note:</strong> The verification link will expire in 24 hours.
+                Please check your inbox (and spam folder) and click the link to activate your account.
+              </p>
+            </div>
+            <Link
+              to="/login"
+              className="block w-full bg-gradient-to-r from-navy to-skyblue text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all active:scale-95"
+            >
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
