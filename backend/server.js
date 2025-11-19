@@ -52,12 +52,15 @@ const proposalRoutes = require("./routes/proposalRoutes");
 const ideaRoutes = require("./routes/ideaRoutes");
 const bookmarkRoutes = require("./routes/bookmarkRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const entrepreneurNotificationRoutes = require("./routes/entrepreneurNotificationRoutes");
 const collaborationsRoutes = require("./routes/collaborationsRoutes");
 const contractBuilderController = require("./routes/contractBuilderRoutes");
+const contractRoutes = require("./routes/contractRoutes");
 const signedRoutes = require("./routes/signedRoutes");
 const geminiRoutes = require("./routes/geminiRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 
+// Apply routes
 app.use("/", forgotPasswordRouter);
 app.use("/", resetPasswordRouter);
 app.use("/", authRoutes);
@@ -67,8 +70,10 @@ app.use("/", entrepreneurRoutes);
 app.use("/", proposalRoutes);
 app.use("/", bookmarkRoutes);
 app.use("/", notificationRoutes);
+app.use("/", entrepreneurNotificationRoutes);
 app.use("/", collaborationsRoutes);
 app.use("/", contractBuilderController);
+app.use("/", contractRoutes);
 app.use("/", signedRoutes);
 app.use("/ai", geminiRoutes);
 app.use("/analytics", analyticsRoutes);
