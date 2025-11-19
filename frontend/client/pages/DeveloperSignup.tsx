@@ -112,7 +112,15 @@ const handleSubmit = async () => {
       { headers: { "Content-Type": "application/json" } }
     );
 
-    alert(res.data.message);
+    // Show success message with email verification instructions
+    alert(
+      `✅ Account Created Successfully!\n\n` +
+      `We've sent a verification email to ${formData.email}\n\n` +
+      `Please check your inbox and click the verification link to activate your account.\n\n` +
+      `Note: The link will expire in 24 hours.`
+    );
+
+    // Redirect to login page
     window.location.href = "/login";
   } catch (error: any) {
     console.error("Signup failed:", error);

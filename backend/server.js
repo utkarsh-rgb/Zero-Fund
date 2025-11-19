@@ -59,6 +59,7 @@ const contractRoutes = require("./routes/contractRoutes");
 const signedRoutes = require("./routes/signedRoutes");
 const geminiRoutes = require("./routes/geminiRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const verificationRoutes = require("./routes/verificationRoutes");
 
 // Apply routes
 app.use("/", forgotPasswordRouter);
@@ -77,6 +78,7 @@ app.use("/", contractRoutes);
 app.use("/", signedRoutes);
 app.use("/ai", geminiRoutes);
 app.use("/analytics", analyticsRoutes);
+app.use("/", verificationRoutes);
 
 // ------------------------
 // HTTP server + Socket.IO

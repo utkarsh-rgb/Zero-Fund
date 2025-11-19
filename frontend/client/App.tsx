@@ -41,6 +41,7 @@ import Layout from "./layout/Layout";
 import Messages from "./pages/Messages";
 import DeveloperMessages from "./pages/DeveloperMessages";
 import Analytics from "./pages/Analytics";
+import EmailVerification from "./pages/EmailVerification";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="/" element={<Index />} />
         <Route path="/entrepreneur-signup" element={<EntrepreneurSignup />} />
         <Route path="/developer-signup" element={<DeveloperSignup />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:role/:token" element={<ResetPassword />} />
         <Route
