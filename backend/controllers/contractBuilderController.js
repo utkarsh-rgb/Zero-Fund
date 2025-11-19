@@ -143,9 +143,13 @@ const getContractOrProposal = async (req, res) => {
 
 
 const contractDetailsController = async (req, res) => {
-  const data = req.body;
+  const connection = await pool.getConnection();
 
   try {
+    await connection.beginTransaction();
+
+    const data = req.body;
+
     const query = `
       INSERT INTO contracts (
         proposal_id,
@@ -198,16 +202,39 @@ const contractDetailsController = async (req, res) => {
       data.supportTerms || "",
     ];
 
-    const [result] = await pool.query(query, values);
+    const [result] = await connection.execute(query, values);
+    const contractId = result.insertId;
+
+    // Create notification for developer
+    const notificationMessage = `🎉 Contract Ready! ${data.entrepreneurName} has prepared a contract for "${data.projectTitle}". Please review and sign to start your collaboration.`;
+
+    await connection.execute(
+      `INSERT INTO notifications (developer_id, message, type)
+       VALUES (?, ?, 'contract_status')`,
+      [data.developer_id, notificationMessage]
+    );
+
+    // Log activity
+    await connection.execute(
+      `INSERT INTO activity_log
+       (user_id, user_type, action_type, entity_type, entity_id, description)
+       VALUES (?, 'entrepreneur', 'contract_created', 'contract', ?, ?)`,
+      [data.entrepreneur_id, contractId, `Created contract for project: ${data.projectTitle}`]
+    );
+
+    await connection.commit();
 
     res.json({
       success: true,
       message: "Contract saved successfully",
-      contractId: result.insertId,
+      contractId,
     });
   } catch (error) {
+    await connection.rollback();
     console.error("Error saving contract:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    connection.release();
   }
 };
 

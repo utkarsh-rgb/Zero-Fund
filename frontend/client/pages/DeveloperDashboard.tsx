@@ -1094,6 +1094,16 @@ export default function DeveloperDashboard() {
               View Details
             </button>
 
+            {!c.signed_by_developer && (
+              <button
+                className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 flex items-center gap-1 justify-center"
+                onClick={() => navigate("/contract-review")}
+              >
+                <span>📝</span>
+                <span>Review & Sign</span>
+              </button>
+            )}
+
             <button
               className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
               onClick={() => navigate("/developer-dashboard/message")}
