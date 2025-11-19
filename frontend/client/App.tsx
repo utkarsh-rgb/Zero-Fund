@@ -109,6 +109,7 @@ export default function App() {
           <Route path="/idea-details/:id" element={<IdeaDetails />} />
           <Route path="/proposal-submit" element={<ProposalSubmit />} />
           <Route path="/chat-collaboration" element={<ChatCollaboration />} />
+          <Route path="/developer-chat" element={<ChatCollaboration />} />
           <Route path="/contract-review" element={<ContractReview />} />
           <Route path="/contribution-tracker" element={<ContributionTracker />} />
           <Route path="/post-idea" element={<PostIdea />} />
