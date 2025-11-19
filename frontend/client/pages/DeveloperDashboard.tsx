@@ -426,6 +426,28 @@ export default function DeveloperDashboard() {
 
                 <button
                   onClick={() => {
+                    setActiveTab("contracts");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                    activeTab === "contracts"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                  }`}
+                >
+                  <Shield className={`w-5 h-5 transition-transform ${activeTab === "contracts" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Contracts</span>
+                  {collaborations.filter((c: any) => !c.signed_by_developer).length > 0 && (
+                    <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold ${
+                      activeTab === "contracts" ? "bg-white/20 text-white" : "bg-orange-500 text-white animate-pulse"
+                    }`}>
+                      {collaborations.filter((c: any) => !c.signed_by_developer).length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
                     setActiveTab("collaborations");
                     setIsSidebarOpen(false);
                   }}
@@ -1068,13 +1090,117 @@ export default function DeveloperDashboard() {
               </div>
             )}
 
+            {/* Contracts Tab */}
+            {activeTab === "contracts" && (
+              <div>
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold text-navy mb-2">
+                    Pending Contracts
+                  </h1>
+                  <p className="text-gray-600">
+                    Review and sign contracts sent by entrepreneurs
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {collaborations.filter((c: any) => !c.signed_by_developer).length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                      <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                        No Pending Contracts
+                      </h3>
+                      <p className="text-gray-500">
+                        You'll see contracts here when entrepreneurs send them
+                      </p>
+                    </div>
+                  ) : (
+                    collaborations
+                      .filter((c: any) => !c.signed_by_developer)
+                      .map((c: any) => (
+                        <div
+                          key={c.id}
+                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                        >
+                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-3">
+                                <h3 className="text-lg font-semibold text-navy">
+                                  {c.project_title || "Untitled Project"}
+                                </h3>
+                                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                  Awaiting Your Signature
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                  <span className="text-gray-500 text-sm">Entrepreneur:</span>
+                                  <p className="font-semibold">{c.entrepreneur_name || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 text-sm">Equity:</span>
+                                  <p className="font-semibold text-green-600">
+                                    {c.equity_percentage || "N/A"}%
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 text-sm">Timeline:</span>
+                                  <p className="font-semibold">{c.timeline || "N/A"}</p>
+                                </div>
+                              </div>
+
+                              <div className="text-sm text-gray-600">
+                                <p><strong>Contract ID:</strong> {c.id}</p>
+                                <p><strong>Status:</strong> {c.status}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => navigate("/contract-review")}
+                                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                              >
+                                <Shield className="w-4 h-4" />
+                                <span>Review & Sign</span>
+                              </button>
+                              <button
+                                onClick={() => openModal(c)}
+                                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                <Eye className="w-4 h-4" />
+                                <span>View Details</span>
+                              </button>
+                              <button
+                                onClick={() => navigate("/developer-dashboard/message")}
+                                className="flex items-center space-x-2 px-6 py-3 border border-skyblue text-skyblue rounded-lg hover:bg-skyblue/10 transition-colors"
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                                <span>Chat</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            )}
+
            {/* Collaborations Tab */}
 {activeTab === "collaborations" && (
   <div className="space-y-3">
-    {collaborations.length === 0 ? (
-      <p>No signed collaborations yet.</p>
+    {collaborations.filter((c: any) => c.signed_by_developer).length === 0 ? (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+        <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-600 mb-2">
+          No Active Collaborations
+        </h3>
+        <p className="text-gray-500">
+          Sign contracts to start collaborating
+        </p>
+      </div>
     ) : (
-      collaborations.map((c) => (
+      collaborations.filter((c: any) => c.signed_by_developer).map((c: any) => (
         <div
           key={c.id}
           className="p-3 border rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-3"
@@ -1093,16 +1219,6 @@ export default function DeveloperDashboard() {
             >
               View Details
             </button>
-
-            {!c.signed_by_developer && (
-              <button
-                className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 flex items-center gap-1 justify-center"
-                onClick={() => navigate("/contract-review")}
-              >
-                <span>📝</span>
-                <span>Review & Sign</span>
-              </button>
-            )}
 
             <button
               className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"

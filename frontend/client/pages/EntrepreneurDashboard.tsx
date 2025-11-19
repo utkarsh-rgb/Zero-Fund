@@ -505,6 +505,28 @@ const entrepreneurId = userData?.id;
 
                 <button
                   onClick={() => {
+                    setActiveTab("contracts");
+                    setIsSidebarOpen(false);
+                  }}
+                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                    activeTab === "contracts"
+                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                  }`}
+                >
+                  <Shield className={`w-5 h-5 transition-transform ${activeTab === "contracts" ? "" : "group-hover:scale-110"}`} />
+                  <span className="font-medium">Contracts</span>
+                  {proposals.filter((p) => p.status === "Approved").length > 0 && (
+                    <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold ${
+                      activeTab === "contracts" ? "bg-white/20 text-white" : "bg-green-500 text-white"
+                    }`}>
+                      {proposals.filter((p) => p.status === "Approved").length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
                     setActiveTab("collaboration");
                     setIsSidebarOpen(false);
                   }}
@@ -1321,6 +1343,95 @@ const entrepreneurId = userData?.id;
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contracts Tab */}
+            {activeTab === "contracts" && (
+              <div>
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold text-navy mb-2">
+                    Contracts
+                  </h1>
+                  <p className="text-gray-600">
+                    Generate and manage contracts for accepted proposals
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {proposals.filter((p) => p.status === "Approved").length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                      <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                        No Contracts Ready
+                      </h3>
+                      <p className="text-gray-500">
+                        Accept proposals first to generate contracts
+                      </p>
+                    </div>
+                  ) : (
+                    proposals
+                      .filter((p) => p.status === "Approved")
+                      .map((proposal) => (
+                        <div
+                          key={proposal.id}
+                          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                        >
+                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-3">
+                                <h3 className="text-lg font-semibold text-navy">
+                                  {proposal.ideaTitle}
+                                </h3>
+                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                  Proposal Approved
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                  <span className="text-gray-500 text-sm">Developer:</span>
+                                  <p className="font-semibold">{proposal.developer.name}</p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 text-sm">Equity:</span>
+                                  <p className="font-semibold text-green-600">
+                                    {proposal.equityRequested}%
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 text-sm">Timeline:</span>
+                                  <p className="font-semibold">{proposal.proposedTimeline}</p>
+                                </div>
+                              </div>
+
+                              <div className="mb-3">
+                                <span className="text-gray-500 text-sm">Scope:</span>
+                                <p className="text-gray-700 line-clamp-2">{proposal.scope}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                              <Link
+                                to={`/contract-builder?proposalId=${proposal.id}`}
+                                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-skyblue to-blue-600 text-white rounded-lg hover:shadow-lg transition-all"
+                              >
+                                <Shield className="w-4 h-4" />
+                                <span className="font-medium">Generate Contract</span>
+                              </Link>
+                              <Link
+                                to={`/entrepreneur-chat?developer=${proposal.developer.id}`}
+                                className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                                <span>Chat with Developer</span>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  )}
                 </div>
               </div>
             )}
