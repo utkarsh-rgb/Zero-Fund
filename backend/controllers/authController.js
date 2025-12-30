@@ -36,104 +36,119 @@ const validatePassword = (password) => {
 
 // Developer signup
 // app.post("/developers/signup",
-const developerSignup =  async (req, res) => {
+const developerSignup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
-    if (!fullName || !email || !password)
-      return res.status(400).json({ message: "All fields are required" });
 
-    // Validate password strength
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return res.status(400).json({ message: passwordValidation.message });
     }
 
-    const [existing] = await pool.execute(
-      "SELECT * FROM developers WHERE email = ?",
+    // 🔥 CHECK BOTH TABLES
+    const [[devExists]] = await pool.execute(
+      "SELECT id FROM developers WHERE email = ?",
       [email]
     );
-    if (existing.length > 0)
-      return res.status(400).json({ message: "Email already registered" });
+
+    const [[entExists]] = await pool.execute(
+      "SELECT id FROM entrepreneur WHERE email = ?",
+      [email]
+    );
+
+    if (devExists || entExists) {
+      return res.status(400).json({
+        message: "Email already registered with another account type",
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate verification token
     const verificationToken = generateVerificationToken();
     const tokenExpiry = getTokenExpiry();
 
-    // Insert user with verification token
     await pool.execute(
-      "INSERT INTO developers (fullName, email, password, verification_token, token_expiry, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
+      `INSERT INTO developers 
+       (fullName, email, password, verification_token, token_expiry, is_verified)
+       VALUES (?, ?, ?, ?, ?, 0)`,
       [fullName, email, hashedPassword, verificationToken, tokenExpiry]
     );
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, fullName, verificationToken, "developer");
+    await sendVerificationEmail(email, fullName, verificationToken, "developer");
 
-    if (!emailResult.success) {
-      console.error("Failed to send verification email:", emailResult.error);
-      // Don't fail the signup, but log the error
-    }
-
-    res.status(201).json({
-      message: "Developer account created successfully. Please check your email to verify your account.",
-      emailSent: emailResult.success
+    return res.status(201).json({
+      message:
+        "Developer account created successfully. Please check your email to verify your account.",
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 //app.post("/entrepreneur/signup",
-    const entrepreneurSignup =  async (req, res) => {
+  const entrepreneurSignup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
-    if (!fullName || !email || !password)
-      return res.status(400).json({ message: "All fields are required" });
 
-    // Validate password strength
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       return res.status(400).json({ message: passwordValidation.message });
     }
 
-    const [existing] = await pool.execute(
-      "SELECT * FROM entrepreneur WHERE email = ?",
+    // 🔥 CHECK BOTH TABLES
+    const [[devExists]] = await pool.execute(
+      "SELECT id FROM developers WHERE email = ?",
       [email]
     );
-    if (existing.length > 0)
-      return res.status(400).json({ message: "Email already registered" });
+
+    const [[entExists]] = await pool.execute(
+      "SELECT id FROM entrepreneur WHERE email = ?",
+      [email]
+    );
+
+    if (devExists || entExists) {
+      return res.status(400).json({
+        message: "Email already registered with another account type",
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate verification token
     const verificationToken = generateVerificationToken();
     const tokenExpiry = getTokenExpiry();
 
-    // Insert user with verification token
     await pool.execute(
-      "INSERT INTO entrepreneur (fullName, email, password, verification_token, token_expiry, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
+      `INSERT INTO entrepreneur 
+       (fullName, email, password, verification_token, token_expiry, is_verified)
+       VALUES (?, ?, ?, ?, ?, 0)`,
       [fullName, email, hashedPassword, verificationToken, tokenExpiry]
     );
 
-    // Send verification email
-    const emailResult = await sendVerificationEmail(email, fullName, verificationToken, "entrepreneur");
+    await sendVerificationEmail(
+      email,
+      fullName,
+      verificationToken,
+      "entrepreneur"
+    );
 
-    if (!emailResult.success) {
-      console.error("Failed to send verification email:", emailResult.error);
-      // Don't fail the signup, but log the error
-    }
-
-    res.status(201).json({
-      message: "Entrepreneur account created successfully. Please check your email to verify your account.",
-      emailSent: emailResult.success
+    return res.status(201).json({
+      message:
+        "Entrepreneur account created successfully. Please check your email to verify your account.",
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 const login =  async (req, res) => {
   try {
@@ -153,7 +168,7 @@ const login =  async (req, res) => {
 
     const user = rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid password" });
+    if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
 
     // Check if email is verified
     if (!user.is_verified) {

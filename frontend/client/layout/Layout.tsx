@@ -60,14 +60,14 @@ const Layout: React.FC = () => {
             <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Desktop actions */}
               <div className="hidden md:flex items-center space-x-1">
-                {/* Home Button */}
+                {/* Home Button
                 <Link
                   to="/"
                   className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <Home className="w-4 h-4" />
                   <span className="text-sm">Home</span>
-                </Link>
+                </Link> */}
 
                 {/* Dashboard Button */}
                 <Link

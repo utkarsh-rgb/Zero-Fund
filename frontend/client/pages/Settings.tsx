@@ -51,6 +51,8 @@ export default function Settings() {
   const [showPassword, setShowPassword] = useState(false);
   const [user, setUser] = useState<any>(null); // renamed from user
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+const [isUploading, setIsUploading] = useState(false);
+const [isImageLoading, setIsImageLoading] = useState(false);
 
   const [security, setSecurity] = useState<SecuritySettings>({
     twoFactor: false,
@@ -224,17 +226,31 @@ export default function Settings() {
 
                   {userType === "developer" && (
                     <div className="flex items-center space-x-6">
-                      <div className="w-24 h-24 bg-skyblue rounded-full flex items-center justify-center text-white font-bold text-2xl overflow-hidden">
-                        {user?.profile_pic ? (
-                          <img
-                            src={user.profile_pic}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          user?.fullName?.charAt(0).toUpperCase()
-                        )}
-                      </div>
+                     <div className="relative w-24 h-24 bg-skyblue rounded-full flex items-center justify-center overflow-hidden">
+  {(isUploading || isImageLoading) && (
+    <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+      <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )}
+
+  {user?.profile_pic ? (
+    <img
+      src={user.profile_pic}
+      alt="Profile"
+      className={`w-full h-full object-cover transition-opacity duration-300 ${
+        isImageLoading ? "opacity-0" : "opacity-100"
+      }`}
+      onLoad={() => setIsImageLoading(false)}
+      onError={() => setIsImageLoading(false)}
+      onLoadStart={() => setIsImageLoading(true)}
+    />
+  ) : (
+    <span className="text-white font-bold text-2xl">
+      {user?.fullName?.charAt(0).toUpperCase()}
+    </span>
+  )}
+</div>
+
 
                       <div>
                         <h3 className="text-lg font-semibold text-navy mb-2">
@@ -246,33 +262,43 @@ export default function Settings() {
                             id="uploadProfile"
                             hidden
                             accept="image/*"
-                            onChange={async (e) => {
-                              if (!e.target.files?.[0]) return;
+                          onChange={async (e) => {
+  if (!e.target.files?.[0]) return;
 
-                              const file = e.target.files[0];
-                              const tempUrl = URL.createObjectURL(file); // create temporary URL for preview
-                              setUser({ ...user, profile_pic: tempUrl }); // show immediately in UI
+  const file = e.target.files[0];
+  const tempUrl = URL.createObjectURL(file);
 
-                              const formData = new FormData();
-                              formData.append("profile_pic", file);
+  // show preview immediately
+  setUser({ ...user, profile_pic: tempUrl });
+  setIsUploading(true);
 
-                              try {
-                                const token = localStorage.getItem("jwt_token");
-                                await axiosLocal.post(
-                                  `/developer/${user.id}/upload`,
-                                  formData,
-                                  {
-                                    headers: {
-                                      "Content-Type": "multipart/form-data",
-                                      Authorization: `Bearer ${token}`,
-                                    },
-                                  },
-                                );
-                              } catch (err) {
-                                console.error(err);
-                                alert("Upload failed");
-                              }
-                            }}
+  const formData = new FormData();
+  formData.append("profile_pic", file);
+
+  try {
+    const token = localStorage.getItem("jwt_token");
+    const res = await axiosLocal.post(
+  `/developer/${id}/upload`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": undefined, // 🔥 THIS LINE FIXES EVERYTHING
+    },
+  }
+);
+
+
+    // Replace preview with AWS S3 URL
+    setUser({ ...user, profile_pic: res.data.profile_pic });
+  } catch (err) {
+    console.error(err);
+    alert("Upload failed");
+  } finally {
+    setIsUploading(false);
+  }
+}}
+
                           />
                           <label
                             htmlFor="uploadProfile"

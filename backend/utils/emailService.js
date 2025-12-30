@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+require("dotenv").config();
 
 // Create email transporter
 const createTransporter = () => {

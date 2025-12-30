@@ -125,6 +125,8 @@ export default function App() {
           <Route path="/entrepreneur-dashboard/message" element={<Messages/>} />
           <Route path="/developer-dashboard/message" element={<DeveloperMessages/>} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/idea-details/:founderName" element={<IdeaDetails />} />
+          
 
         </Route>
 

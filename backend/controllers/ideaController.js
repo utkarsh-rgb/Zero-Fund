@@ -8,7 +8,20 @@ const path = require("path");
 
 // --- Configure multer to store files temporarily before upload ---
 const storage = multer.memoryStorage(); // store in memory for SDK v3 upload
-const upload = multer({ storage });
+//const upload = multer({ storage });
+
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "application/pdf"];
+    if (!allowed.includes(file.mimetype)) {
+      cb(new Error("Invalid file type"));
+    }
+    cb(null, true);
+  },
+});
 
 // --- Configure S3 v3 client ---
 const s3Client = new S3Client({
@@ -23,7 +36,8 @@ const s3Client = new S3Client({
 const uploadToS3 = async (fileBuffer, fileName, mimetype) => {
   const uploadParams = {
     Bucket: process.env.S3_BUCKET,
-    Key: `${Date.now()}-${fileName}`,
+    //Key: `${Date.now()}-${fileName}`,
+    Key: `ideas/${entrepreneur_id}/${Date.now()}-${fileName}`,
     Body: fileBuffer,
     ContentType: mimetype,
     // ACL: "public-read",

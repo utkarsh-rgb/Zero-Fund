@@ -640,6 +640,9 @@ export default function IdeaDetails() {
               <h3 className="text-lg font-bold text-navy mb-4">
                 About the Founder
               </h3>
+            <Link
+             to = {`/idea-details/${idea.founderName}`}
+             >
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
                   {idea.founderAvatar}
@@ -654,15 +657,9 @@ export default function IdeaDetails() {
                       <span>{idea.founderLocation}</span>
                     </p>
                   )}
-                  <a
-                    href={idea.founderLinkedIn}
-                    className="text-sm text-skyblue hover:text-navy transition-colors flex items-center space-x-1"
-                  >
-                    <span>LinkedIn Profile</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
                 </div>
               </div>
+              </Link>
               <p className="text-gray-600 text-sm leading-relaxed">
                 {idea.founderBio}
               </p>
