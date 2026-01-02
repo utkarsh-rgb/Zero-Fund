@@ -1,23 +1,26 @@
-name: Frontend CI
+name: Frontend CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - frontend/**
 
 jobs:
-  frontend:
+  frontend-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install deps
+      - name: Install frontend dependencies
         working-directory: frontend
         run: npm install
 
