@@ -2,6 +2,7 @@ node_modules
 dist
 .git
 .gitignore
+dist.zip
 README.md
 .env
 .env.local

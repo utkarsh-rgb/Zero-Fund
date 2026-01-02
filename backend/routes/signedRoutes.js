@@ -5,7 +5,7 @@ const {
   entrepreneurAcceptContract,
   getPendingContracts,
   entrepreneurRejectContract,
-} = require("../controllers/SignedController");
+} = require("../controllers/signedController");
 
 // Developer signs a contract
 router.post("/developer-sign-contract", developerSignedContract);
