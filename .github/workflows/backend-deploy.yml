@@ -1,4 +1,4 @@
-name: Backend CI/CD
+name: Backend CI/CD (Production Safe)
 
 on:
   push:
@@ -8,24 +8,20 @@ on:
       - backend/**
   workflow_dispatch:
 
-
 jobs:
-  backend-deploy:
+  deploy-backend:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Deploy backend on EC2
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          node-version: 18
-
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm install
-
-      - name: Backend build check
-        working-directory: backend
-        run: echo "Backend workflow triggered successfully 🚀"
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/project/backend
+            git pull origin main
+            npm install
+            pm2 restart server
+            pm2 save
