@@ -147,7 +147,7 @@ export default function Login() {
           {/* Header */}
           <div className="mb-4 lg:mb-5">
             <h1 className="text-xl lg:text-2xl xl:text-2xl font-bold text-navy mb-1">
-              Welcome Back
+              Welcome Back,
             </h1>
             <p className="text-xs lg:text-sm xl:text-sm text-gray-600">
               Sign in to continue building
