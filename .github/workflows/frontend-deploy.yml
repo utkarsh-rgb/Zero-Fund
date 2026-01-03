@@ -1,4 +1,4 @@
-name: Frontend CI/CD (Vite SPA → Nginx)
+name: Frontend CI/CD (npm run build → replace dist → Nginx)
 
 on:
   push:
@@ -13,46 +13,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # 3️⃣ Install dependencies
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm install
 
-      # 🔥 IMPORTANT: build CLIENT ONLY
-      - name: Build frontend (SPA)
+      # 4️⃣ Build frontend (CLIENT + SERVER)
+      # This creates dist/spa AND dist/server
+      - name: Build frontend
         working-directory: frontend
-        run: npm run build:client
+        run: npm run build
 
-      # 🔥 Clean old SPA build on EC2
-      - name: Clean old SPA on EC2
+      # 5️⃣ Remove old dist on EC2
+      - name: Clean old dist on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo rm -rf /home/ec2-user/project/frontend/dist/spa
-            sudo mkdir -p /home/ec2-user/project/frontend/dist/spa
-            sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend/dist
+            sudo rm -rf /home/ec2-user/project/frontend/dist
+            sudo mkdir -p /home/ec2-user/project/frontend
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend
 
-      # 🔥 Copy SPA build to EC2
-      - name: Deploy SPA build to EC2
+      # 6️⃣ Copy FULL dist folder to EC2
+      - name: Copy full dist folder to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/dist/spa"
-          target: "/home/ec2-user/project/frontend/dist"
+          source: "frontend/dist"
+          target: "/home/ec2-user/project/frontend"
           strip_components: 0
 
+      # 7️⃣ Reload Nginx
       - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
