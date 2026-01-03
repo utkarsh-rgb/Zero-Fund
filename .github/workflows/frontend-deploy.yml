@@ -29,7 +29,7 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      # 🔐 Setup SSH
+      # 🔐 SSH setup
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -37,15 +37,15 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      # 🧹 Clean old dist on EC2
+      # 🧹 Clean dist on EC2
       - name: Clean dist on EC2
         run: |
           ssh ec2-user@${{ secrets.EC2_HOST }} \
-          "sudo rm -rf /home/ec2-user/project/frontend/dist &&
-           sudo mkdir -p /home/ec2-user/project/frontend/dist &&
+          "sudo rm -rf /home/ec2-user/project/frontend/dist && \
+           sudo mkdir -p /home/ec2-user/project/frontend/dist && \
            sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend"
 
-      # 🚀 COPY FILES (THIS WAS MISSING)
+      # 🚀 COPY FILES (THIS IS THE CRITICAL STEP)
       - name: Rsync dist to EC2
         run: |
           rsync -avz --delete frontend/dist/ \
