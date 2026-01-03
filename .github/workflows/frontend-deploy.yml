@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-frontend:
+  frontend-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -21,11 +21,11 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         working-directory: frontend
         run: npm install
 
-      - name: Build frontend (FULL dist)
+      - name: Build frontend
         working-directory: frontend
         run: npm run build
 
@@ -37,16 +37,22 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      # 🧹 Clean dist on EC2
+      # 🧹 Clean old dist on EC2
       - name: Clean dist on EC2
         run: |
-          ssh ec2-user@${{ secrets.EC2_HOST }} "sudo rm -rf /home/ec2-user/project/frontend/dist && sudo mkdir -p /home/ec2-user/project/frontend/dist && sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend"
+          ssh ec2-user@${{ secrets.EC2_HOST }} \
+          "sudo rm -rf /home/ec2-user/project/frontend/dist &&
+           sudo mkdir -p /home/ec2-user/project/frontend/dist &&
+           sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend"
 
-      # 🚀 RSYNC — THIS IS THE FIX
+      # 🚀 COPY FILES (THIS WAS MISSING)
       - name: Rsync dist to EC2
         run: |
-          rsync -avz --delete frontend/dist/ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/project/frontend/dist/
+          rsync -avz --delete frontend/dist/ \
+          ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/project/frontend/dist/
 
-      - name: Reload Nginx
+      # 🔁 Reload nginx
+      - name: Reload nginx
         run: |
-          ssh ec2-user@${{ secrets.EC2_HOST }} "sudo nginx -t && sudo systemctl reload nginx"
+          ssh ec2-user@${{ secrets.EC2_HOST }} \
+          "sudo nginx -t && sudo systemctl reload nginx"
