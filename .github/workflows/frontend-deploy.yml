@@ -1,4 +1,4 @@
-name: Frontend CI/CD (npm run build → deploy dist)
+name: Frontend CI/CD (build → rsync dist)
 
 on:
   push:
@@ -21,43 +21,32 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         working-directory: frontend
         run: npm install
 
-      # ✅ EXACTLY like local
-      - name: Build frontend
+      - name: Build frontend (FULL dist)
         working-directory: frontend
         run: npm run build
 
-      - name: Clean SPA directory on EC2
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo rm -rf /home/ec2-user/project/frontend/dist/spa
-            sudo mkdir -p /home/ec2-user/project/frontend/dist/spa
-            sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend/dist
+      # 🔐 Setup SSH
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      # 🔥 THIS IS THE CRITICAL LINE
-      - name: Copy SPA files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/dist/spa/*"
-          target: "/home/ec2-user/project/frontend/dist/spa"
-          strip_components: 0
+      # 🧹 Clean dist on EC2
+      - name: Clean dist on EC2
+        run: |
+          ssh ec2-user@${{ secrets.EC2_HOST }} "sudo rm -rf /home/ec2-user/project/frontend/dist && sudo mkdir -p /home/ec2-user/project/frontend/dist && sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend"
+
+      # 🚀 RSYNC — THIS IS THE FIX
+      - name: Rsync dist to EC2
+        run: |
+          rsync -avz --delete frontend/dist/ ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/project/frontend/dist/
 
       - name: Reload Nginx
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo nginx -t
-            sudo systemctl reload nginx
+        run: |
+          ssh ec2-user@${{ secrets.EC2_HOST }} "sudo nginx -t && sudo systemctl reload nginx"
