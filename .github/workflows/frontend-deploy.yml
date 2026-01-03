@@ -1,4 +1,4 @@
-name: Frontend CI/CD (Build → Copy Full dist → Nginx)
+name: Frontend CI/CD (Build → Deploy dist)
 
 on:
   push:
@@ -13,28 +13,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3️⃣ Install dependencies
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm install
 
-      # 4️⃣ Build frontend (creates dist/)
       - name: Build frontend
         working-directory: frontend
         run: npm run build
 
-      # 5️⃣ Remove old dist on EC2 (CLEAN DEPLOY)
-      - name: Remove old dist folder on EC2
+      - name: Clean old dist on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -45,8 +40,7 @@ jobs:
             sudo mkdir -p /home/ec2-user/project/frontend
             sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend
 
-      # 6️⃣ Copy FULL dist folder to EC2
-      - name: Copy full dist folder to EC2
+      - name: Copy dist to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -56,7 +50,6 @@ jobs:
           target: "/home/ec2-user/project/frontend"
           strip_components: 0
 
-      # 7️⃣ Reload Nginx
       - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
