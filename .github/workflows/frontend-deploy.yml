@@ -29,7 +29,18 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Copy build to EC2
+      # 🔥 STEP 1: CLEAN OLD BUILD ON EC2
+      - name: Remove old frontend files
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            rm -rf /home/ec2-user/project/frontend/dist/spa/*
+
+      # 🔥 STEP 2: COPY NEW BUILD
+      - name: Copy new build to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -39,6 +50,7 @@ jobs:
           target: "/home/ec2-user/project/frontend/dist/spa"
           strip_components: 1
 
+      # 🔁 STEP 3: RELOAD NGINX
       - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
