@@ -1,4 +1,4 @@
-name: Frontend CI/CD (Build → Deploy dist)
+name: Frontend CI/CD (Vite SPA → Nginx)
 
 on:
   push:
@@ -25,29 +25,32 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      - name: Build frontend
+      # 🔥 IMPORTANT: build CLIENT ONLY
+      - name: Build frontend (SPA)
         working-directory: frontend
-        run: npm run build
+        run: npm run build:client
 
-      - name: Clean old dist on EC2
+      # 🔥 Clean old SPA build on EC2
+      - name: Clean old SPA on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo rm -rf /home/ec2-user/project/frontend/dist
-            sudo mkdir -p /home/ec2-user/project/frontend
-            sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend
+            sudo rm -rf /home/ec2-user/project/frontend/dist/spa
+            sudo mkdir -p /home/ec2-user/project/frontend/dist/spa
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/project/frontend/dist
 
-      - name: Copy dist to EC2
+      # 🔥 Copy SPA build to EC2
+      - name: Deploy SPA build to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/dist"
-          target: "/home/ec2-user/project/frontend"
+          source: "frontend/dist/spa"
+          target: "/home/ec2-user/project/frontend/dist"
           strip_components: 0
 
       - name: Reload Nginx
