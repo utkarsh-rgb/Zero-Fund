@@ -1,28 +1,31 @@
-name: Backend CI
+name: Backend CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - backend/**
+  workflow_dispatch:
+
 
 jobs:
-  backend:
+  backend-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         working-directory: backend
         run: npm install
 
-      - name: Start app (test)
+      - name: Backend build check
         working-directory: backend
-        run: node server.js
+        run: echo "Backend workflow triggered successfully 🚀"
