@@ -43,7 +43,7 @@ import DeveloperMessages from "./pages/DeveloperMessages";
 import Analytics from "./pages/Analytics";
 import EmailVerification from "./pages/EmailVerification";
 import FounderProfile from "./pages/FounderProfile";
-
+import DeveloperProfile from "./pages/DeveloperProfile"
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -127,7 +127,7 @@ export default function App() {
           <Route path="/developer-dashboard/message" element={<DeveloperMessages/>} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/founder/:id" element={<FounderProfile />} />
-
+          <Route path="/entrepreneur-dashboard/developer-profile/:id" element={<DeveloperProfile />} />
 
         </Route>
 

@@ -37,11 +37,7 @@ interface User {
   projects: Project[];
 }
 
-interface SecuritySettings {
-  twoFactor: boolean;
-  loginAlerts: boolean;
-  passwordExpiry: boolean;
-}
+
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState("profile");
@@ -273,31 +269,33 @@ export default function Settings() {
                   {/* Profile Picture - Developer Only */}
                   {userType === "developer" && (
                     <div className="relative">
-                      <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-lg">
-                        {(isUploading || isImageLoading) && (
-                          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-                            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                          </div>
-                        )}
-                        {user?.profile_pic ? (
-                          <img
-                            src={user.profile_pic}
-                            alt="Profile"
-                            className={`w-full h-full object-cover transition-opacity ${
-                              isImageLoading ? "opacity-0" : "opacity-100"
-                            }`}
-                            onLoad={() => setIsImageLoading(false)}
-                            onError={() => setIsImageLoading(false)}
-                            onLoadStart={() => setIsImageLoading(true)}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-blue-600 flex items-center justify-center">
-                            <span className="text-white font-bold text-4xl">
-                              {user?.fullName?.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                     <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-lg relative">
+  {(isUploading || isImageLoading) && (
+    <div className="absolute inset-0 flex items-center justify-center z-10">
+      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )}
+
+  {user?.profile_pic ? (
+    <img
+      src={user.profile_pic}
+      alt="Profile"
+      className={`w-full h-full object-cover transition-opacity duration-300 ${
+        isImageLoading ? "opacity-0" : "opacity-100"
+      }`}
+      onLoad={() => setIsImageLoading(false)}
+      onError={() => setIsImageLoading(false)}
+      onLoadStart={() => setIsImageLoading(true)}
+    />
+  ) : (
+    <div className="w-full h-full bg-blue-600 flex items-center justify-center">
+      <span className="text-white font-bold text-4xl">
+        {user?.fullName?.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  )}
+</div>
+
                       <label
                         htmlFor="uploadProfile"
                         className="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full border-2 border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-50 shadow-lg"

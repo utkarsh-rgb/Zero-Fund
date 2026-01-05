@@ -101,13 +101,12 @@ export default function EntrepreneurDashboard() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [pendingContracts, setPendingContracts] = useState([]);
-const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
+  const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState<boolean>(true);
 
-  
   useEffect(() => {
     if (activeTab !== "contract") return;
 
@@ -136,36 +135,34 @@ const [collaboration, setCollaboration] = useState<Collaboration[]>([]);
     fetchPendingContracts();
   }, [activeTab]);
 
- useEffect(() => {
-  if (activeTab !== "collaboration") return;
+  useEffect(() => {
+    if (activeTab !== "collaboration") return;
 
-  const fetchCollaboration = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const entrepreneurId = userData?.id;
+    const fetchCollaboration = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        const entrepreneurId = userData?.id;
 
-      if (!entrepreneurId) return;
+        if (!entrepreneurId) return;
 
-      const response = await axiosLocal.get(
-        `/entrepreneur-collaboration/${entrepreneurId}`
-      );
+        const response = await axiosLocal.get(
+          `/entrepreneur-collaboration/${entrepreneurId}`,
+        );
 
-      // Only set the contracts array
-      setCollaboration(response.data.contracts || []);
-    } catch (err) {
-      console.error("Failed to fetch signed collaborations:", err);
-    }
-  };
+        // Only set the contracts array
+        setCollaboration(response.data.contracts || []);
+      } catch (err) {
+        console.error("Failed to fetch signed collaborations:", err);
+      }
+    };
 
-  fetchCollaboration();
-}, [activeTab]);
-;
-
+    fetchCollaboration();
+  }, [activeTab]);
   useEffect(() => {
     const checkUserAndFetchIdeas = async () => {
       // 1️⃣ Check user
       const userData = JSON.parse(localStorage.getItem("userData"));
-const entrepreneurId = userData?.id;
+      const entrepreneurId = userData?.id;
       if (!userData) {
         navigate("/login");
         return;
@@ -178,7 +175,6 @@ const entrepreneurId = userData?.id;
 
       // 2️⃣ Fetch ideas
       try {
-           
         const response = await axiosLocal.get(
           `/entrepreneur-dashboard/${entrepreneurId}`,
         );
@@ -188,7 +184,6 @@ const entrepreneurId = userData?.id;
         console.error("Error fetching ideas:", error);
       }
     };
-
 
     checkUserAndFetchIdeas();
   }, [navigate]);
@@ -207,7 +202,7 @@ const entrepreneurId = userData?.id;
         }
 
         const response = await axiosLocal.get(
-          `/entrepreneur-stats/${entrepreneurId}`
+          `/entrepreneur-stats/${entrepreneurId}`,
         );
 
         if (response.data.success) {
@@ -244,7 +239,7 @@ const entrepreneurId = userData?.id;
   const handleRejectContract = async (contractId: number) => {
     try {
       const res = await axiosLocal.post<{ success: boolean; message?: string }>(
-      "/entrepreneur-reject-contract",
+        "/entrepreneur-reject-contract",
         { contractId },
       );
 
@@ -286,6 +281,7 @@ const entrepreneurId = userData?.id;
       );
 
       setProposals(response.data.proposals); // store in state
+      console.log(response.data.proposals[0]);
     } catch (error: any) {
       console.error("Failed to fetch proposals:", error);
     }
@@ -301,9 +297,7 @@ const entrepreneurId = userData?.id;
       );
       if (!confirmDelete) return;
 
-      await axiosLocal.delete(
-        `/entrepreneur-dashboard/ideas/${id}`,
-      );
+      await axiosLocal.delete(`/entrepreneur-dashboard/ideas/${id}`);
 
       // Optionally, remove the idea from state so UI updates instantly
       setIdeas((prevIdeas) => prevIdeas.filter((idea) => idea.id !== id));
@@ -335,10 +329,9 @@ const entrepreneurId = userData?.id;
 
     try {
       // 🔹 API call to update backend
-      const res = await axiosLocal.post(
-        `/proposal/${proposalId}/status`,
-        { action },
-      );
+      const res = await axiosLocal.post(`/proposal/${proposalId}/status`, {
+        action,
+      });
 
       // Ensure the backend returns a valid status, fallback to previous if not
       const updatedStatus: Proposal["status"] =
@@ -434,228 +427,285 @@ const entrepreneurId = userData?.id;
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="lg:hidden fixed bottom-6 right-6 z-50 p-3 bg-skyblue text-white rounded-full shadow-lg hover:bg-navy transition-colors"
         >
-          {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {isSidebarOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
         </button>
 
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar Navigation */}
-          <div className={`
+          <div
+            className={`
             fixed lg:static inset-y-0 left-0 z-40 w-64 flex-shrink-0
             transform transition-transform duration-300 ease-in-out
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          `}>
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          `}
+          >
             <div className="h-full lg:h-auto overflow-y-auto bg-gray-50 lg:bg-transparent pt-6 lg:pt-0">
-            <nav className="bg-white rounded-lg shadow-sm p-4">
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    setActiveTab("overview");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "overview"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <TrendingUp className={`w-5 h-5 transition-transform ${activeTab === "overview" ? "" : "group-hover:scale-110"}`} />
-                  <span className="font-medium">Overview</span>
-                  {activeTab === "overview" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
-                </button>
+              <nav className="bg-white rounded-lg shadow-sm p-4">
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      setActiveTab("overview");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "overview"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <TrendingUp
+                      className={`w-5 h-5 transition-transform ${activeTab === "overview" ? "" : "group-hover:scale-110"}`}
+                    />
+                    <span className="font-medium">Overview</span>
+                    {activeTab === "overview" && (
+                      <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("ideas");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "ideas"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <Lightbulb className={`w-5 h-5 transition-transform ${activeTab === "ideas" ? "" : "group-hover:scale-110 group-hover:rotate-12"}`} />
-                  <span className="font-medium">My Ideas</span>
-                  <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${
-                    activeTab === "ideas" ? "bg-white/20 text-white" : "bg-skyblue text-white"
-                  }`}>
-                    {ideas.length}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTab("proposals");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "proposals"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <FileText className={`w-5 h-5 transition-transform ${activeTab === "proposals" ? "" : "group-hover:scale-110"}`} />
-                  <span className="font-medium">Proposals</span>
-                  {proposals.filter((p) => p.status === "Pending").length > 0 && (
-                    <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold animate-pulse ${
-                      activeTab === "proposals" ? "bg-white/20 text-white" : "bg-red-500 text-white"
-                    }`}>
-                      {proposals.filter((p) => p.status === "Pending").length}
+                  <button
+                    onClick={() => {
+                      setActiveTab("ideas");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "ideas"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <Lightbulb
+                      className={`w-5 h-5 transition-transform ${activeTab === "ideas" ? "" : "group-hover:scale-110 group-hover:rotate-12"}`}
+                    />
+                    <span className="font-medium">My Ideas</span>
+                    <span
+                      className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold transition-colors ${
+                        activeTab === "ideas"
+                          ? "bg-white/20 text-white"
+                          : "bg-skyblue text-white"
+                      }`}
+                    >
+                      {ideas.length}
                     </span>
-                  )}
-                </button>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("contracts");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "contracts"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <Shield className={`w-5 h-5 transition-transform ${activeTab === "contracts" ? "" : "group-hover:scale-110"}`} />
-                  <span className="font-medium">Contracts</span>
-                  {proposals.filter((p) => p.status === "Approved").length > 0 && (
-                    <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold ${
-                      activeTab === "contracts" ? "bg-white/20 text-white" : "bg-green-500 text-white"
-                    }`}>
-                      {proposals.filter((p) => p.status === "Approved").length}
+                  <button
+                    onClick={() => {
+                      setActiveTab("proposals");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "proposals"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <FileText
+                      className={`w-5 h-5 transition-transform ${activeTab === "proposals" ? "" : "group-hover:scale-110"}`}
+                    />
+                    <span className="font-medium">Proposals</span>
+                    {proposals.filter((p) => p.status === "Pending").length >
+                      0 && (
+                      <span
+                        className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold animate-pulse ${
+                          activeTab === "proposals"
+                            ? "bg-white/20 text-white"
+                            : "bg-red-500 text-white"
+                        }`}
+                      >
+                        {proposals.filter((p) => p.status === "Pending").length}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab("contracts");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "contracts"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <Shield
+                      className={`w-5 h-5 transition-transform ${activeTab === "contracts" ? "" : "group-hover:scale-110"}`}
+                    />
+                    <span className="font-medium">Contracts</span>
+                    {proposals.filter((p) => p.status === "Approved").length >
+                      0 && (
+                      <span
+                        className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold ${
+                          activeTab === "contracts"
+                            ? "bg-white/20 text-white"
+                            : "bg-green-500 text-white"
+                        }`}
+                      >
+                        {
+                          proposals.filter((p) => p.status === "Approved")
+                            .length
+                        }
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab("collaboration");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "collaboration"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <Users
+                      className={`w-5 h-5 transition-transform ${activeTab === "collaboration" ? "" : "group-hover:scale-110"}`}
+                    />
+                    <span className="font-medium">Collaborations</span>
+                    {activeTab === "collaboration" && (
+                      <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab("messages");
+                      navigate("/entrepreneur-dashboard/message");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "messages"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <MessageCircle
+                      className={`w-5 h-5 transition-transform ${activeTab === "messages" ? "" : "group-hover:scale-110 group-hover:rotate-12"}`}
+                    />
+                    <span className="font-medium">Messages</span>
+                    <span
+                      className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold animate-pulse ${
+                        activeTab === "messages"
+                          ? "bg-white/20 text-white"
+                          : "bg-red-500 text-white"
+                      }`}
+                    >
+                      3
                     </span>
-                  )}
-                </button>
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("collaboration");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "collaboration"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <Users className={`w-5 h-5 transition-transform ${activeTab === "collaboration" ? "" : "group-hover:scale-110"}`} />
-                  <span className="font-medium">Collaborations</span>
-                  {activeTab === "collaboration" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
-                </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("analytics");
+                      navigate("/analytics");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "analytics"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <BarChart3
+                      className={`w-5 h-5 transition-transform ${activeTab === "analytics" ? "" : "group-hover:scale-110"}`}
+                    />
+                    <span className="font-medium">Analytics</span>
+                    {activeTab === "analytics" && (
+                      <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                    )}
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("messages");
-                    navigate("/entrepreneur-dashboard/message");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "messages"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <MessageCircle className={`w-5 h-5 transition-transform ${activeTab === "messages" ? "" : "group-hover:scale-110 group-hover:rotate-12"}`} />
-                  <span className="font-medium">Messages</span>
-                  <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-semibold animate-pulse ${
-                    activeTab === "messages" ? "bg-white/20 text-white" : "bg-red-500 text-white"
-                  }`}>
-                    3
-                  </span>
-                </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("contract");
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
+                      activeTab === "contract"
+                        ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
+                    }`}
+                  >
+                    <FileText
+                      className={`w-5 h-5 transition-transform ${activeTab === "contract" ? "" : "group-hover:scale-110"}`}
+                    />
+                    <span className="font-medium">Contracts</span>
+                    {activeTab === "contract" && (
+                      <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />
+                    )}
+                  </button>
+                </div>
+              </nav>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("analytics");
-                    navigate("/analytics");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "analytics"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <BarChart3 className={`w-5 h-5 transition-transform ${activeTab === "analytics" ? "" : "group-hover:scale-110"}`} />
-                  <span className="font-medium">Analytics</span>
-                  {activeTab === "analytics" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTab("contract");
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`group w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform ${
-                    activeTab === "contract"
-                      ? "bg-gradient-to-r from-skyblue to-blue-600 text-white shadow-lg scale-105"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-skyblue/10 hover:to-blue-50 hover:scale-102 hover:shadow-md"
-                  }`}
-                >
-                  <FileText className={`w-5 h-5 transition-transform ${activeTab === "contract" ? "" : "group-hover:scale-110"}`} />
-                  <span className="font-medium">Contracts</span>
-                  {activeTab === "contract" && <ChevronRight className="w-4 h-4 ml-auto animate-pulse" />}
-                </button>
+              {/* Quick Stats */}
+              <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">
+                  Quick Stats
+                </h3>
+                {statsLoading ? (
+                  <div className="space-y-3 animate-pulse">
+                    <div className="h-5 bg-gray-200 rounded"></div>
+                    <div className="h-5 bg-gray-200 rounded"></div>
+                    <div className="h-5 bg-gray-200 rounded"></div>
+                    <div className="h-5 bg-gray-200 rounded"></div>
+                  </div>
+                ) : stats ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Pending Proposals
+                      </span>
+                      <span className="text-sm font-semibold text-orange-600">
+                        {stats.proposals?.pending || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Active Ideas
+                      </span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {stats.ideas?.active || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Total Views</span>
+                      <span className="text-sm font-semibold text-purple-600">
+                        {stats.activity?.totalViews || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Review Rate</span>
+                      <span className="text-sm font-semibold text-skyblue">
+                        {stats.performance?.reviewRate || 0}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Equity Offered
+                      </span>
+                      <span className="text-sm font-semibold text-blue-600">
+                        {stats.equity?.totalOffered || 0}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Hiring Rate</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {stats.performance?.hiringRate || 0}%
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    No stats available
+                  </div>
+                )}
               </div>
-            </nav>
-
-            {/* Quick Stats */}
-            <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3">
-                Quick Stats
-              </h3>
-              {statsLoading ? (
-                <div className="space-y-3 animate-pulse">
-                  <div className="h-5 bg-gray-200 rounded"></div>
-                  <div className="h-5 bg-gray-200 rounded"></div>
-                  <div className="h-5 bg-gray-200 rounded"></div>
-                  <div className="h-5 bg-gray-200 rounded"></div>
-                </div>
-              ) : stats ? (
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">
-                      Pending Proposals
-                    </span>
-                    <span className="text-sm font-semibold text-orange-600">
-                      {stats.proposals?.pending || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Active Ideas</span>
-                    <span className="text-sm font-semibold text-green-600">
-                      {stats.ideas?.active || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total Views</span>
-                    <span className="text-sm font-semibold text-purple-600">
-                      {stats.activity?.totalViews || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Review Rate</span>
-                    <span className="text-sm font-semibold text-skyblue">
-                      {stats.performance?.reviewRate || 0}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Equity Offered</span>
-                    <span className="text-sm font-semibold text-blue-600">
-                      {stats.equity?.totalOffered || 0}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Hiring Rate</span>
-                    <span className="text-sm font-semibold text-green-600">
-                      {stats.performance?.hiringRate || 0}%
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500">No stats available</div>
-              )}
-            </div>
             </div>
           </div>
 
@@ -695,7 +745,10 @@ const entrepreneurId = userData?.id;
                 {statsLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                      <div key={i} className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
+                      <div
+                        key={i}
+                        className="bg-white rounded-xl shadow-sm p-6 animate-pulse"
+                      >
                         <div className="flex items-center justify-between mb-3">
                           <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
                         </div>
@@ -717,7 +770,9 @@ const entrepreneurId = userData?.id;
                           <Target className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Total Ideas</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Total Ideas
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                         {stats.ideas?.total || 0}
                       </p>
@@ -739,13 +794,17 @@ const entrepreneurId = userData?.id;
                           </div>
                         )}
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Pending Proposals</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Pending Proposals
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
                         {stats.proposals?.pending || 0}
                       </p>
                       <div className="mt-2 text-xs text-gray-500 flex items-center">
                         <Clock className="w-3 h-3 mr-1" />
-                        <span>{stats.proposals?.total || 0} total received</span>
+                        <span>
+                          {stats.proposals?.total || 0} total received
+                        </span>
                       </div>
                     </div>
 
@@ -759,13 +818,17 @@ const entrepreneurId = userData?.id;
                           <Zap className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Total Proposals</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Total Proposals
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
                         {stats.proposals?.total || 0}
                       </p>
                       <div className="mt-2 text-xs text-gray-500 flex items-center">
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        <span>{stats.proposals?.avgPerIdea || 0} avg per idea</span>
+                        <span>
+                          {stats.proposals?.avgPerIdea || 0} avg per idea
+                        </span>
                       </div>
                     </div>
 
@@ -779,7 +842,9 @@ const entrepreneurId = userData?.id;
                           <TrendingUp className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Total Views</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Total Views
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
                         {stats.activity?.totalViews || 0}
                       </p>
@@ -799,7 +864,9 @@ const entrepreneurId = userData?.id;
                           <Target className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Total Equity Offered</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Total Equity Offered
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
                         {stats.equity?.totalOffered || 0}%
                       </p>
@@ -819,7 +886,9 @@ const entrepreneurId = userData?.id;
                           <CheckCircle className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Hiring Rate</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Hiring Rate
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
                         {stats.performance?.hiringRate || 0}%
                       </p>
@@ -839,7 +908,9 @@ const entrepreneurId = userData?.id;
                           <Sparkles className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Review Rate</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Review Rate
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
                         {stats.performance?.reviewRate || 0}%
                       </p>
@@ -859,7 +930,9 @@ const entrepreneurId = userData?.id;
                           <Sparkles className="w-5 h-5" />
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">Profile Completion</p>
+                      <p className="text-sm font-medium text-gray-600 mb-1">
+                        Profile Completion
+                      </p>
                       <p className="text-3xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">
                         {stats.activity?.profileCompletion || 0}%
                       </p>
@@ -867,7 +940,9 @@ const entrepreneurId = userData?.id;
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-gradient-to-r from-pink-500 to-pink-600 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${stats.activity?.profileCompletion || 0}%` }}
+                            style={{
+                              width: `${stats.activity?.profileCompletion || 0}%`,
+                            }}
                           ></div>
                         </div>
                       </div>
@@ -1133,73 +1208,77 @@ const entrepreneurId = userData?.id;
                           </Link>
 
                           {/* Preview Attachments */}
-                        
-<button
-  onClick={async () => {
-  try {
-    setPreviewLoading(true);
 
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const entrepreneurId = userData?.id;
+                          <button
+                            onClick={async () => {
+                              try {
+                                setPreviewLoading(true);
 
-    // Fetch ideas (each idea has attachments)
-    const response = await axiosLocal.get(
-      `/entrepreneur-dashboard/${entrepreneurId}`
-    );
+                                const userData = JSON.parse(
+                                  localStorage.getItem("userData") || "{}",
+                                );
+                                const entrepreneurId = userData?.id;
 
-    // Get ALL attachments from ALL ideas
-    const allAttachments = response.data.flatMap(
-      (idea) => idea.attachments || []
-    );
+                                // Fetch ideas (each idea has attachments)
+                                const response = await axiosLocal.get(
+                                  `/entrepreneur-dashboard/${entrepreneurId}`,
+                                );
 
-    if (!allAttachments.length) {
-      alert("No documents available");
-      setPreviewLoading(false);
-      return;
-    }
+                                // Get ALL attachments from ALL ideas
+                                const allAttachments = response.data.flatMap(
+                                  (idea) => idea.attachments || [],
+                                );
 
-    // Open each attachment
-    allAttachments.forEach((file) => {
-      if (file.url) window.open(file.url, "_blank");
-    });
+                                if (!allAttachments.length) {
+                                  alert("No documents available");
+                                  setPreviewLoading(false);
+                                  return;
+                                }
 
-    setPreviewLoading(false);
-  } catch (err) {
-    console.error("Preview error:", err);
-    setPreviewLoading(false);
-  }
-}}
+                                // Open each attachment
+                                allAttachments.forEach((file) => {
+                                  if (file.url) window.open(file.url, "_blank");
+                                });
 
-  className="flex items-center space-x-2 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
->
-  {previewLoading ? (
-    <svg
-      className="animate-spin h-5 w-5 text-skyblue"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-      ></path>
-    </svg>
-  ) : (
-    <Eye className="w-5 h-5" />
-  )}
+                                setPreviewLoading(false);
+                              } catch (err) {
+                                console.error("Preview error:", err);
+                                setPreviewLoading(false);
+                              }
+                            }}
+                            className="flex items-center space-x-2 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
+                          >
+                            {previewLoading ? (
+                              <svg
+                                className="animate-spin h-5 w-5 text-skyblue"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
 
-  <span>{previewLoading ? "Loading..." : "Preview Attachments"}</span>
-</button>
-
+                            <span>
+                              {previewLoading
+                                ? "Loading..."
+                                : "Preview Attachments"}
+                            </span>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1233,19 +1312,25 @@ const entrepreneurId = userData?.id;
                     >
                       {/* Developer Info */}
                       <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-start space-x-4">
+                        <Link
+                          to={`/entrepreneur-dashboard/developer-profile/${proposal.developerId}`}
+                          className="flex items-start space-x-4 hover:opacity-90"
+                        >
                           <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
                             {proposal.developerName[0].toUpperCase()}
                           </div>
+
                           <div>
-                            <h3 className="text-lg font-semibold text-navy">
+                            <h3 className="text-lg font-semibold text-navy hover:underline">
                               {proposal.developerName}
                             </h3>
+                            
                             <p className="text-gray-600 mb-2">
                               Applied for: {proposal.ideaTitle}
                             </p>
                           </div>
-                        </div>
+                          </Link>
+                        
 
                         {/* Status Badge */}
                         <span
@@ -1362,7 +1447,8 @@ const entrepreneurId = userData?.id;
                 </div>
 
                 <div className="space-y-4">
-                  {proposals.filter((p) => p.status === "Approved").length === 0 ? (
+                  {proposals.filter((p) => p.status === "Approved").length ===
+                  0 ? (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
                       <Shield className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">
@@ -1393,24 +1479,38 @@ const entrepreneurId = userData?.id;
 
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div>
-                                  <span className="text-gray-500 text-sm">Developer:</span>
-                                  <p className="font-semibold">{proposal.developerName}</p>
+                                  <span className="text-gray-500 text-sm">
+                                    Developer:
+                                  </span>
+                                  <p className="font-semibold">
+                                    {proposal.developerName}
+                                  </p>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500 text-sm">Equity:</span>
+                                  <span className="text-gray-500 text-sm">
+                                    Equity:
+                                  </span>
                                   <p className="font-semibold text-green-600">
                                     {proposal.equityRequested}%
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500 text-sm">Timeline:</span>
-                                  <p className="font-semibold">{proposal.timeline}</p>
+                                  <span className="text-gray-500 text-sm">
+                                    Timeline:
+                                  </span>
+                                  <p className="font-semibold">
+                                    {proposal.timeline}
+                                  </p>
                                 </div>
                               </div>
 
                               <div className="mb-3">
-                                <span className="text-gray-500 text-sm">Scope:</span>
-                                <p className="text-gray-700 line-clamp-2">{proposal.scope}</p>
+                                <span className="text-gray-500 text-sm">
+                                  Scope:
+                                </span>
+                                <p className="text-gray-700 line-clamp-2">
+                                  {proposal.scope}
+                                </p>
                               </div>
                             </div>
 
@@ -1420,7 +1520,9 @@ const entrepreneurId = userData?.id;
                                 className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-skyblue to-blue-600 text-white rounded-lg hover:shadow-lg transition-all"
                               >
                                 <Shield className="w-4 h-4" />
-                                <span className="font-medium">Generate Contract</span>
+                                <span className="font-medium">
+                                  Generate Contract
+                                </span>
                               </Link>
                               <Link
                                 to={`/entrepreneur-chat?developer=${proposal.developerId}`}
@@ -1439,57 +1541,84 @@ const entrepreneurId = userData?.id;
             )}
 
             {/* Collaborations Tab */}
-         {activeTab === "collaboration" && (
-  <div className="space-y-3">
-    {collaboration.length === 0 ? (
-      <p>No signed collaborations yet.</p>
-    ) : (
-      collaboration.map((c) => (
-        <div
-          key={c.id}
-          className="p-4 border rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-        >
-          {/* Left: Basic info */}
-          <div className="space-y-1">
-            <p><strong>Contract ID:</strong> {c.id}</p>
-            <p><strong>Project Title:</strong> {c.project_title || "N/A"}</p>
-            <p><strong>Developer:</strong> {c.developer_name || "N/A"}</p>
-            <p><strong>Timeline:</strong> {c.timeline || "N/A"}</p>
-            <p><strong>Equity:</strong> {c.equity_percentage || "N/A"}</p>
-            <p><strong>Status:</strong> {c.status}</p>
-          </div>
+            {activeTab === "collaboration" && (
+              <div className="space-y-3">
+                {collaboration.length === 0 ? (
+                  <p>No signed collaborations yet.</p>
+                ) : (
+                  collaboration.map((c) => (
+                    <div
+                      key={c.id}
+                      className="p-4 border rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                    >
+                      {/* Left: Basic info */}
+                      <div className="space-y-1">
+                        <p>
+                          <strong>Contract ID:</strong> {c.id}
+                        </p>
+                        <p>
+                          <strong>Project Title:</strong>{" "}
+                          {c.project_title || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Developer:</strong>{" "}
+                          {c.developer_name || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Timeline:</strong> {c.timeline || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Equity:</strong>{" "}
+                          {c.equity_percentage || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Status:</strong> {c.status}
+                        </p>
+                      </div>
 
-          {/* Middle: Contract details */}
-          <div className="space-y-1">
-            <p><strong>Signed by Entrepreneur:</strong> {c.signed_by_entrepreneur ? "✅" : "❌"}</p>
-            <p><strong>Signed by Developer:</strong> {c.signed_by_developer ? "✅" : "❌"}</p>
-            <p><strong>IP Ownership:</strong> {c.ip_ownership || "N/A"}</p>
-            <p><strong>Confidentiality:</strong> {c.confidentiality || "N/A"}</p>
-          </div>
+                      {/* Middle: Contract details */}
+                      <div className="space-y-1">
+                        <p>
+                          <strong>Signed by Entrepreneur:</strong>{" "}
+                          {c.signed_by_entrepreneur ? "✅" : "❌"}
+                        </p>
+                        <p>
+                          <strong>Signed by Developer:</strong>{" "}
+                          {c.signed_by_developer ? "✅" : "❌"}
+                        </p>
+                        <p>
+                          <strong>IP Ownership:</strong>{" "}
+                          {c.ip_ownership || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Confidentiality:</strong>{" "}
+                          {c.confidentiality || "N/A"}
+                        </p>
+                      </div>
 
-          {/* Right: Action buttons */}
-          <div className="flex flex-col gap-2 mt-2 md:mt-0">
-            <button
-              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => console.log("View full contract", c)}
-            >
-              View Details
-            </button>
+                      {/* Right: Action buttons */}
+                      <div className="flex flex-col gap-2 mt-2 md:mt-0">
+                        <button
+                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          onClick={() => console.log("View full contract", c)}
+                        >
+                          View Details
+                        </button>
 
-            <button
-              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-              onClick={() => navigate("/entrepreneur-dashboard/message")}
-            >
-              Chat
-            </button>
-          </div>
-        </div>
-      ))
-    )}
-  </div>
-)}
-
-
+                        <button
+                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                          onClick={() =>
+                            navigate("/entrepreneur-dashboard/message")
+                          }
+                        >
+                          Chat
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
 
             {/* Messages Tab */}
             {activeTab === "messages" && (
