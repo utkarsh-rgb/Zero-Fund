@@ -103,7 +103,9 @@ const Layout: React.FC = () => {
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   title="Settings"
                 >
-                  <Settings className="w-5 h-5" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center text-white font-semibold text-xs sm:text-sm hover:opacity-90 transition-opacity cursor-pointer shadow-sm ml-1 sm:ml-2">
+                {userType === "developer" ? "D" : "E"}
+              </div>
                 </Link>
 
                 {/* Logout */}
@@ -124,10 +126,10 @@ const Layout: React.FC = () => {
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              {/* Profile Avatar */}
+              {/* Profile Avatar
               <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center text-white font-semibold text-xs sm:text-sm hover:opacity-90 transition-opacity cursor-pointer shadow-sm ml-1 sm:ml-2">
                 {userType === "developer" ? "D" : "E"}
-              </div>
+              </div> */}
             </div>
           </div>
 
