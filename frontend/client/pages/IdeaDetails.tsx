@@ -63,16 +63,15 @@ export default function IdeaDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [checkboxChecked, setCheckboxChecked] = useState(false);
-
+  const [entrepreneurId, setEntrepreneurId] = useState(null);
   useEffect(() => {
     async function fetchIdea() {
       try {
         setLoading(true);
         const response = await axiosLocal.get(`/ideas/${id}`);
-        console.log(response);
         const fetchedIdea = response.data.idea;
-        console.log("Skills from backend:", response.data.idea.required_skills);
         setIdea(fetchedIdea);
+        setEntrepreneurId(fetchedIdea.entrepreneur_id);
         setHasAcceptedNDA(fetchedIdea.hasAcceptedNDA);
         setIsBookmarked(fetchedIdea.isBookmarked);
       } catch (err) {
@@ -640,26 +639,27 @@ export default function IdeaDetails() {
               <h3 className="text-lg font-bold text-navy mb-4">
                 About the Founder
               </h3>
-            <Link
-             to = {`/idea-details/${idea.founderName}`}
-             >
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
-                  {idea.founderAvatar}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">
-                    {idea.founderName}
-                  </p>
-                  {idea.founderLocation && (
-                    <p className="text-xs text-gray-500 flex items-center space-x-1 mb-1">
-                      <MapPin className="w-3 h-3" />
-                      <span>{idea.founderLocation}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-              </Link>
+            <Link to={`/founder/${entrepreneurId}`}>
+  <div className="flex items-center space-x-3 mb-4">
+    <div className="w-12 h-12 bg-navy rounded-full flex items-center justify-center text-white font-semibold">
+      {idea.founderAvatar}
+    </div>
+
+    <div>
+      <p className="font-semibold text-gray-800">
+        {idea.founderName}
+      </p>
+
+      {idea.founderLocation && (
+        <p className="text-xs text-gray-500 flex items-center space-x-1 mb-1">
+          <MapPin className="w-3 h-3" />
+          <span>{idea.founderLocation}</span>
+        </p>
+      )}
+    </div>
+  </div>
+</Link>
+
               <p className="text-gray-600 text-sm leading-relaxed">
                 {idea.founderBio}
               </p>

@@ -42,6 +42,7 @@ import Messages from "./pages/Messages";
 import DeveloperMessages from "./pages/DeveloperMessages";
 import Analytics from "./pages/Analytics";
 import EmailVerification from "./pages/EmailVerification";
+import FounderProfile from "./pages/FounderProfile";
 
 const queryClient = new QueryClient();
 
@@ -125,8 +126,8 @@ export default function App() {
           <Route path="/entrepreneur-dashboard/message" element={<Messages/>} />
           <Route path="/developer-dashboard/message" element={<DeveloperMessages/>} />
           <Route path="/analytics" element={<Analytics />} />
-          <Route path="/idea-details/:founderName" element={<IdeaDetails />} />
-          
+          <Route path="/founder/:id" element={<FounderProfile />} />
+
 
         </Route>
 

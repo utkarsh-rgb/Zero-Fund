@@ -4,15 +4,10 @@ import {
   User,
   Shield,
   Globe,
-  Smartphone,
   Mail,
-  Eye,
-  EyeOff,
-  LogOut,
   Save,
   Trash2,
   Upload,
-  CheckCircle,
   Settings as SettingsIcon,
   Menu,
   X,
@@ -56,12 +51,6 @@ export default function Settings() {
   const [isUploading, setIsUploading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  const [security, setSecurity] = useState<SecuritySettings>({
-    twoFactor: false,
-    loginAlerts: true,
-    passwordExpiry: false,
-  });
 
   const userDataString = localStorage.getItem("userData");
   const userData = userDataString ? JSON.parse(userDataString) : {};
@@ -107,11 +96,6 @@ export default function Settings() {
 
     fetchUserData();
   }, [id, userType, jwt_token]);
-
-  const sections = [
-    { id: "profile", name: "Profile", icon: User },
-    { id: "security", name: "Security", icon: Shield },
-  ];
 
   // Save changes dynamically based on userType
   const handleSave = async () => {
@@ -167,7 +151,116 @@ export default function Settings() {
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Profile Section */}
-        {activeSection === "profile" && (
+        {activeSection === "profile" && userType === "entrepreneur" && (
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {user.fullName}
+              </h2>
+
+              <input
+                type="text"
+                placeholder="Founder & CEO at Startup Name"
+                value={user.headline || ""}
+                onChange={(e) => setUser({ ...user, headline: e.target.value })}
+                className="mt-1 w-full text-gray-600 border-b border-transparent focus:border-blue-600 focus:outline-none bg-transparent"
+              />
+
+              <div className="flex items-center text-gray-500 mt-2 text-sm">
+                <Globe className="w-4 h-4 mr-1" />
+                <input
+                  type="text"
+                  placeholder="Location"
+                  value={user.location || ""}
+                  onChange={(e) =>
+                    setUser({ ...user, location: e.target.value })
+                  }
+                  className="bg-transparent focus:outline-none border-b border-transparent focus:border-blue-600"
+                />
+              </div>
+            </div>
+
+            {/* Company Info */}
+            <div className="bg-white rounded-lg shadow p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Company Information
+              </h3>
+
+              <input
+                type="text"
+                placeholder="Startup / Company Name"
+                value={user.companyName || ""}
+                onChange={(e) =>
+                  setUser({ ...user, companyName: e.target.value })
+                }
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="text"
+                placeholder="Industry (e.g. FinTech, EdTech)"
+                value={user.industry || ""}
+                onChange={(e) => setUser({ ...user, industry: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="url"
+                placeholder="Company Website"
+                value={user.website || ""}
+                onChange={(e) => setUser({ ...user, website: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Vision / Pitch */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Vision / Pitch
+              </h3>
+
+              <textarea
+                rows={4}
+                placeholder="Briefly describe your startup vision or problem you are solving..."
+                value={user.vision || ""}
+                onChange={(e) => setUser({ ...user, vision: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+
+            {/* Contact */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Contact
+              </h3>
+
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={user.email || ""}
+                  onChange={(e) => setUser({ ...user, email: e.target.value })}
+                  className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`px-6 py-2 rounded-full text-white transition
+          ${isSaving ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}
+              >
+                {isSaving ? "Saving..." : "Save Profile"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeSection === "profile" && userType === "developer" && (
           <div className="space-y-4">
             {/* Profile Header Card */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -536,13 +629,6 @@ export default function Settings() {
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Security Section - Keep your original security section exactly as is */}
-        {activeSection === "security" && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            {/* Your original security section code here */}
           </div>
         )}
       </div>

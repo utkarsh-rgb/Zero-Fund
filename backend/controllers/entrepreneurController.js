@@ -21,25 +21,24 @@ const entrepreneurDashboard = async (req, res) => {
         requiredSkills = [];
       }
 
-// ---------- Attachments ----------
-let attachments = [];
-try {
-  attachments =
-    typeof row.attachments === "string"
-      ? JSON.parse(row.attachments)
-      : row.attachments || [];
-} catch {
-  attachments = [];
-}
+      // ---------- Attachments ----------
+      let attachments = [];
+      try {
+        attachments =
+          typeof row.attachments === "string"
+            ? JSON.parse(row.attachments)
+            : row.attachments || [];
+      } catch {
+        attachments = [];
+      }
 
-// Fix broken attachments like "undefined/undefined"
-attachments = attachments.map((file) => {
-  if (!file.url || file.url.includes("undefined")) {
-    return { ...file, url: null };
-  }
-  return file;
-});
-
+      // Fix broken attachments like "undefined/undefined"
+      attachments = attachments.map((file) => {
+        if (!file.url || file.url.includes("undefined")) {
+          return { ...file, url: null };
+        }
+        return file;
+      });
 
       return {
         ...row,
@@ -54,7 +53,6 @@ attachments = attachments.map((file) => {
     res.status(500).json({ error: "Database error" });
   }
 };
-
 
 // DELETE /api/ideas/:id
 const entrepreneurDeleteIdea = async (req, res) => {
@@ -108,7 +106,7 @@ const entrepreneurIdea = async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 };
-const entrepreneurUpdateIdea =  async (req, res) => {
+const entrepreneurUpdateIdea = async (req, res) => {
   const { id } = req.params;
   const {
     title,
@@ -159,11 +157,28 @@ const entrepreneurProfile = async (req, res) => {
 
   try {
     // Fetch entrepreneur by ID
-    const [rows] = await pool.query(
-      "SELECT fullName,email,location,bio FROM entrepreneur WHERE id = ?",
-      [id]
-    );
+  const [rows] = await pool.query(
+  `
+  SELECT
+    id,
+    fullName,
+    email,
+    companyName,
+    headline,
+    industry,
+    website,
+    bio,
+    vision,
+    location,
+    profile_pic,
+    is_verified
+  FROM entrepreneur
+  WHERE id = ?
+  `,
+  [id]
+);
 
+    
     if (rows.length === 0) {
       return res.status(404).json({ message: "Entrepreneur not found" });
     }
@@ -179,16 +194,50 @@ const entrepreneurProfile = async (req, res) => {
 const entrepreneurProfileUpdate = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, email, location, bio } = req.body;
 
-    // Update query
+    const {
+      fullName,
+      email,
+      location,
+      bio,
+      companyName, // ✔ DB column
+      headline, // ✔ new
+      industry, // ✔ new
+      website, // ✔ new
+      vision, // ✔ new
+    } = req.body;
+
+    
+
     const [rows] = await pool.query(
-      `UPDATE entrepreneur
-       SET fullName = ?, email = ?, location = ?, bio = ?
-       WHERE id = ?`,
-      [fullName, email, location, bio, id]
-    );
+      `
+  UPDATE entrepreneur
+  SET
+    fullName = ?,
+    email = ?,
+    location = ?,
+    bio = ?,
+    companyName = ?,
+    headline = ?,
+    industry = ?,
+    website = ?,
+    vision = ?
+  WHERE id = ?
+  `,
+      [
 
+        fullName,
+        email,
+        location,
+        bio,
+        companyName,
+        headline,
+        industry,
+        website,
+        vision,
+        id,
+      ]
+    );
     if (rows.affectedRows === 0) {
       return res.status(404).json({ message: "Entrepreneur not found" });
     }
@@ -234,14 +283,20 @@ const getEntrepreneurStats = async (req, res) => {
 
     // Calculate idea stats
     const totalIdeas = ideas.length;
-    const activeIdeas = ideas.filter(i => i.status === 0).length;
-    const closedIdeas = ideas.filter(i => i.status === 1).length;
+    const activeIdeas = ideas.filter((i) => i.status === 0).length;
+    const closedIdeas = ideas.filter((i) => i.status === 1).length;
 
     // Calculate proposal stats
     const totalProposals = allProposals.length;
-    const pendingProposals = allProposals.filter(p => p.status === 'Pending' || p.status === 'Under Review').length;
-    const acceptedProposals = allProposals.filter(p => p.status === 'Accepted').length;
-    const rejectedProposals = allProposals.filter(p => p.status === 'Rejected').length;
+    const pendingProposals = allProposals.filter(
+      (p) => p.status === "Pending" || p.status === "Under Review"
+    ).length;
+    const acceptedProposals = allProposals.filter(
+      (p) => p.status === "Accepted"
+    ).length;
+    const rejectedProposals = allProposals.filter(
+      (p) => p.status === "Rejected"
+    ).length;
 
     // Calculate total equity offered vs allocated
     const totalEquityOffered = ideas.reduce((sum, idea) => {
@@ -250,28 +305,29 @@ const getEntrepreneurStats = async (req, res) => {
     }, 0);
 
     const totalEquityAllocated = allProposals
-      .filter(p => p.status === 'Accepted')
+      .filter((p) => p.status === "Accepted")
       .reduce((sum, p) => {
         const equity = parseFloat(p.equity_requested) || 0;
         return sum + equity;
       }, 0);
 
     // Calculate average proposals per idea
-    const avgProposalsPerIdea = totalIdeas > 0
-      ? (totalProposals / totalIdeas).toFixed(1)
-      : 0;
+    const avgProposalsPerIdea =
+      totalIdeas > 0 ? (totalProposals / totalIdeas).toFixed(1) : 0;
 
     // Calculate response/review rate
-    const reviewedProposals = allProposals.filter(p =>
-      p.status !== 'Pending' && p.status !== 'Under Review'
+    const reviewedProposals = allProposals.filter(
+      (p) => p.status !== "Pending" && p.status !== "Under Review"
     ).length;
-    const reviewRate = totalProposals > 0
-      ? Math.round((reviewedProposals / totalProposals) * 100)
-      : 0;
+    const reviewRate =
+      totalProposals > 0
+        ? Math.round((reviewedProposals / totalProposals) * 100)
+        : 0;
 
     // Calculate average response time (in days)
-    const proposalsWithResponse = allProposals.filter(p =>
-      p.status !== 'Pending' && p.status !== 'Under Review' && p.updated_at
+    const proposalsWithResponse = allProposals.filter(
+      (p) =>
+        p.status !== "Pending" && p.status !== "Under Review" && p.updated_at
     );
 
     let avgResponseTime = 0;
@@ -283,28 +339,33 @@ const getEntrepreneurStats = async (req, res) => {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return sum + diffDays;
       }, 0);
-      avgResponseTime = Math.round(totalResponseTime / proposalsWithResponse.length);
+      avgResponseTime = Math.round(
+        totalResponseTime / proposalsWithResponse.length
+      );
     }
 
     // Get recent proposals (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentProposals = allProposals.filter(p =>
-      new Date(p.created_at) >= thirtyDaysAgo
+    const recentProposals = allProposals.filter(
+      (p) => new Date(p.created_at) >= thirtyDaysAgo
     ).length;
 
     // Calculate collaboration/hiring rate
-    const hiringRate = totalProposals > 0
-      ? Math.round((acceptedProposals / totalProposals) * 100)
-      : 0;
+    const hiringRate =
+      totalProposals > 0
+        ? Math.round((acceptedProposals / totalProposals) * 100)
+        : 0;
 
     // Get most popular idea (by proposals)
-    const ideasWithProposalCounts = ideas.map(idea => ({
+    const ideasWithProposalCounts = ideas.map((idea) => ({
       id: idea.id,
       title: idea.title,
-      proposalCount: allProposals.filter(p => p.idea_id === idea.id).length
+      proposalCount: allProposals.filter((p) => p.idea_id === idea.id).length,
     }));
-    const mostPopularIdea = ideasWithProposalCounts.sort((a, b) => b.proposalCount - a.proposalCount)[0];
+    const mostPopularIdea = ideasWithProposalCounts.sort(
+      (a, b) => b.proposalCount - a.proposalCount
+    )[0];
 
     // Get profile completion
     const [entrepreneur] = await pool.execute(
@@ -318,16 +379,17 @@ const getEntrepreneurStats = async (req, res) => {
 
     // Count ideas by stage
     const ideasByStage = {
-      Idea: ideas.filter(i => i.stage === 'Idea').length,
-      MVP: ideas.filter(i => i.stage === 'MVP').length,
-      Beta: ideas.filter(i => i.stage === 'Beta').length
+      Idea: ideas.filter((i) => i.stage === "Idea").length,
+      MVP: ideas.filter((i) => i.stage === "MVP").length,
+      Beta: ideas.filter((i) => i.stage === "Beta").length,
     };
 
     // Count ideas by visibility
     const ideasByVisibility = {
-      Public: ideas.filter(i => i.visibility === 'Public').length,
-      'NDA Required': ideas.filter(i => i.visibility === 'NDA Required').length,
-      'Invite Only': ideas.filter(i => i.visibility === 'Invite Only').length
+      Public: ideas.filter((i) => i.visibility === "Public").length,
+      "NDA Required": ideas.filter((i) => i.visibility === "NDA Required")
+        .length,
+      "Invite Only": ideas.filter((i) => i.visibility === "Invite Only").length,
     };
 
     // Compile stats
@@ -337,7 +399,7 @@ const getEntrepreneurStats = async (req, res) => {
         active: activeIdeas,
         closed: closedIdeas,
         byStage: ideasByStage,
-        byVisibility: ideasByVisibility
+        byVisibility: ideasByVisibility,
       },
       proposals: {
         total: totalProposals,
@@ -345,27 +407,27 @@ const getEntrepreneurStats = async (req, res) => {
         accepted: acceptedProposals,
         rejected: rejectedProposals,
         recent: recentProposals,
-        avgPerIdea: avgProposalsPerIdea
+        avgPerIdea: avgProposalsPerIdea,
       },
       equity: {
         totalOffered: totalEquityOffered.toFixed(2),
         totalAllocated: totalEquityAllocated.toFixed(2),
-        remaining: (totalEquityOffered - totalEquityAllocated).toFixed(2)
+        remaining: (totalEquityOffered - totalEquityAllocated).toFixed(2),
       },
       performance: {
         reviewRate: reviewRate,
         hiringRate: hiringRate,
-        avgResponseTime: avgResponseTime
+        avgResponseTime: avgResponseTime,
       },
       activity: {
         totalViews: totalViews,
         profileCompletion: profileCompletion,
-        mostPopularIdea: mostPopularIdea || null
+        mostPopularIdea: mostPopularIdea || null,
       },
       recentActivity: {
         lastIdea: ideas[0]?.created_at || null,
-        lastProposal: allProposals[0]?.created_at || null
-      }
+        lastProposal: allProposals[0]?.created_at || null,
+      },
     };
 
     res.json({ success: true, stats });
@@ -375,7 +437,6 @@ const getEntrepreneurStats = async (req, res) => {
   }
 };
 
-
 module.exports = {
   entrepreneurDashboard,
   entrepreneurDeleteIdea,
@@ -383,5 +444,5 @@ module.exports = {
   entrepreneurUpdateIdea,
   entrepreneurProfile,
   entrepreneurProfileUpdate,
-  getEntrepreneurStats
+  getEntrepreneurStats,
 };
