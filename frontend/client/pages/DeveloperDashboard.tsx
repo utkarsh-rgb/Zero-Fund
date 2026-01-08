@@ -851,9 +851,9 @@ export default function DeveloperDashboard() {
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-navy rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                          {/* <div className="w-10 h-10 bg-navy rounded-full flex items-center justify-center text-white font-semibold text-sm">
                             {idea.founderAvatar}
-                          </div>
+                          </div> */}
                           <div>
                             <h3 className="text-lg font-semibold text-navy">
                               {idea.title}

@@ -7,7 +7,7 @@ const {
   developerDashboardById,
   uploadDeveloperProfile,
   removeProfilePic,
-  getDeveloperStats
+  getDeveloperStats,
 } = require("../controllers/developerController");
 const upload = require("../middleware/upload"); // 
 

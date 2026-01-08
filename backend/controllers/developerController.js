@@ -70,7 +70,7 @@ const getDeveloperProfile = async (req, res) => {
     developer.skills = skills.map(s => s.skill);
     developer.socialLinks = links;
     developer.projects = projects;
-
+    
     return res.json(developer); // ✅ ONLY ONE RESPONSE
   } catch (error) {
     console.error(error);
@@ -317,12 +317,68 @@ const getDeveloperStats = async (req, res) => {
       }
     };
 
+    console.log(stats);
     res.json({ success: true, stats });
   } catch (error) {
     console.error("Error fetching developer stats:", error);
     res.status(500).json({ success: false, message: "Failed to fetch stats" });
   }
 };
+
+// controllers/dashboardController.js
+
+// const getDeveloperQuickStats = async (req, res) => {
+//   try {
+//     // 🔐 developer id (from JWT or params)
+//     const developerId = req.user?.id || req.params.developerId;
+
+//     if (!developerId) {
+//       return res.status(400).json({ message: "Developer ID is required" });
+//     }
+
+//     const [[stats]] = await pool.query(
+//       `
+//       SELECT
+//         SUM(status = 'Pending' AND withdrawn = 0) AS pending,
+//         SUM(status = 'Approved' AND withdrawn = 0) AS active,
+//         IFNULL(
+//           SUM(
+//             CASE
+//               WHEN status = 'Approved' AND withdrawn = 0
+//               THEN CAST(REPLACE(equity_requested, '%', '') AS DECIMAL(5,2))
+//               ELSE 0
+//             END
+//           ),
+//         0) AS totalEquity
+//       FROM proposals
+//       WHERE developer_id = ?
+//       `,
+//       [developerId]
+//     );
+
+//     res.status(200).json({
+//       proposals: {
+//         pending: Number(stats.pending) || 0,
+//       },
+//       collaborations: {
+//         active: Number(stats.active) || 0,
+//       },
+//       equity: {
+//         totalEarned: Number(stats.totalEquity) || 0,
+//       },
+//       performance: {
+//         successRate: 0, // extend later
+//         estimatedPortfolioValue: 0, // extend later
+//       },
+//       activity: {
+//         profileCompletion: 0, // extend later
+//       },
+//     });
+//   } catch (error) {
+//     console.error("❌ getDeveloperQuickStats error:", error);
+//     res.status(500).json({ message: "Failed to fetch developer quick stats" });
+//   }
+// };
 
 
 module.exports = {
