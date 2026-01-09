@@ -162,14 +162,20 @@ export default function Index() {
       <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md fixed w-full top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 sm:py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-skyblue to-navy rounded-lg flex items-center justify-center shadow-md">
-                <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </div>
-              <span className="text-base sm:text-lg md:text-xl font-bold text-navy truncate">
-                Zero Fund Venture
-              </span>
-            </div>
+           <div className="flex items-center space-x-3">
+  <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br to-navy rounded-xl flex items-center justify-center shadow-sm">
+    <img
+      src="/zerofundlogo.svg"
+      alt="Zero Fund Venture Logo"
+      className="w-full h-full p-1 object-contain"
+    />
+  </div>
+
+  <span className="text-base sm:text-lg md:text-xl font-bold text-navy truncate">
+    Zero Fund Venture
+  </span>
+</div>
+
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-4 lg:space-x-8">
