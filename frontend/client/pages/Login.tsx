@@ -29,71 +29,87 @@ export default function Login() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isValidated, setIsValidated] = useState(false);
 
-  const handleUserTypeSelect = (type: string) => {
-    setFormData((prev) => ({ ...prev, userType: type }));
-    setErrors((prev) => ({ ...prev, userType: "" }));
-  };
+const handleUserTypeSelect = (type: string) => {
+  setFormData((prev) => ({ ...prev, userType: type }));
+  setErrors((prev) => ({ ...prev, userType: "" }));
+};
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  let newErrors: { [key: string]: string } = {};
 
-    let newErrors: { [key: string]: string } = {};
-    if (!formData.userType) newErrors.userType = "Please select your user type";
-    if (!formData.email) newErrors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      newErrors.email = "Please enter a valid email address";
-    if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 8)
-      newErrors.password = "Password must be at least 8 characters";
+  // ✅ User type validation
+  if (!formData.userType) {
+    newErrors.userType = "Please choose Entrepreneur or Developer";
+  }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  // ✅ Email validation
+  if (!formData.email) {
+    newErrors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    newErrors.email = "Please enter a valid email address";
+  }
+
+  // ✅ Password validation
+  if (!formData.password) {
+    newErrors.password = "Password is required";
+  } else if (formData.password.length < 8) {
+    newErrors.password = "Password must be at least 8 characters";
+  }
+
+  // ❌ Stop if errors exist
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  // ✅ Clear previous errors
+  setErrors({});
+  setIsLoading(true);
+
+  try {
+    const res = await axiosLocal.post("/api/login", formData);
+    const data = res.data;
+
+    // Backend returns 200 always → check message
+    if (!data || data.message !== "Login successful") {
+      setErrors({ form: data?.message || "Login failed" });
       return;
     }
 
-    setIsLoading(true);
+    const userData = {
+      id: data.id,
+      fullName: data.fullName,
+      email: data.email,
+      token: data.token,
+      userType: data.userType,
+    };
 
-    try {
-      const res = await axiosLocal.post("/api/login", formData);
-      const data = res.data;
+    localStorage.setItem("jwt_token", data.token);
+    localStorage.setItem("userData", JSON.stringify(userData));
 
-      // FIX: backend always returns 200, so check message
-      if (!data || data.message !== "Login successful") {
-        setErrors({ form: data?.message || "Login failed" });
-        setIsLoading(false);
-        return;
-      }
-
-      const userData = {
-        id: data.id,
-        fullName: data.fullName,
-        email: data.email,
-        token: data.token,
-        userType: data.userType,
-      };
-
-      localStorage.setItem("jwt_token", data.token);
-      localStorage.setItem("userData", JSON.stringify(userData));
-
-      // Redirect based on user type
-      if (data.userType === "developer") {
-        navigate("/developer-dashboard");
-      } else if (data.userType === "entrepreneur") {
-        navigate("/entrepreneur-dashboard");
-      }
-    } catch (error: any) {
-      setErrors({
-        form: error?.response?.data?.message || "Something went wrong",
-      });
-    } finally {
-      setIsLoading(false);
+    // ✅ Redirect by role
+    if (data.userType === "developer") {
+      navigate("/developer-dashboard");
+    } else if (data.userType === "entrepreneur") {
+      navigate("/entrepreneur-dashboard");
     }
-  };
+
+  } catch (error: any) {
+    setErrors({
+      form: error?.response?.data?.message || "Something went wrong",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center p-4 overflow-hidden">
@@ -167,34 +183,46 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-3.5">
 
             {/* User Type */}
-            <div>
-              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-1.5">
-                <User className="inline w-3.5 h-3.5 mr-1" /> I am a...
-              </label>
-              <div className="grid grid-cols-2 gap-2.5">
-                {["entrepreneur", "developer"].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleUserTypeSelect(type)}
-                    className={`flex flex-col items-center p-2.5 rounded-lg border-2 transition-all ${
-                      formData.userType === type
-                        ? "border-skyblue bg-skyblue/10 text-skyblue shadow-md"
-                        : "border-gray-200 text-gray-600 hover:shadow hover:border-gray-300"
-                    }`}
-                  >
-                    {type === "entrepreneur" ? (
-                      <Lightbulb className="w-5 h-5 mb-1" />
-                    ) : (
-                      <Code className="w-5 h-5 mb-1" />
-                    )}
-                    <span className="text-xs font-semibold capitalize">
-                      {type}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+<div>
+  <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-1.5">
+    <User className="inline w-3.5 h-3.5 mr-1" /> I am a...
+  </label>
+
+  <div className="grid grid-cols-2 gap-2.5">
+    {["entrepreneur", "developer"].map((type) => (
+      <button
+        key={type}
+        type="button"
+        onClick={() => handleUserTypeSelect(type)}
+        className={`flex flex-col items-center p-2.5 rounded-lg border-2 transition-all
+          ${
+            formData.userType === type
+              ? "border-skyblue bg-skyblue/10 text-skyblue shadow-md"
+              : errors.userType
+              ? "border-red-400 text-gray-600"
+              : "border-gray-200 text-gray-600 hover:shadow hover:border-gray-300"
+          }`}
+      >
+        {type === "entrepreneur" ? (
+          <Lightbulb className="w-5 h-5 mb-1" />
+        ) : (
+          <Code className="w-5 h-5 mb-1" />
+        )}
+        <span className="text-xs font-semibold capitalize">
+          {type}
+        </span>
+      </button>
+    ))}
+  </div>
+
+  {errors.userType && (
+  <p className="text-red-500 text-xs mt-1.5 font-medium">
+    {errors.userType}
+  </p>
+)}
+
+</div>
+
 
             {/* Email */}
             <div>
