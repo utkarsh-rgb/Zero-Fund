@@ -41,6 +41,7 @@ const handleUserTypeSelect = (type: string) => {
   };
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
+  console.log("SUBMIT CLICKED", formData);
 
   let newErrors: { [key: string]: string } = {};
 
@@ -56,12 +57,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     newErrors.email = "Please enter a valid email address";
   }
 
-  // ✅ Password validation
-  if (!formData.password) {
-    newErrors.password = "Password is required";
-  } else if (formData.password.length < 8) {
-    newErrors.password = "Password must be at least 8 characters";
-  }
+ // ✅ Password validation
+if (!formData.password) {
+  newErrors.password = "Password is required";
+} else if (formData.password.length < 8) {
+  newErrors.password = "Please enter a valid password (minimum 8 characters)";
+}
+
 
   // ❌ Stop if errors exist
   if (Object.keys(newErrors).length > 0) {
@@ -238,30 +240,41 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 disabled={isLoading}
               />
             </div>
+{/* Password */}
+<div>
+  <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-1.5">
+    <Lock className="inline w-3.5 h-3.5 mr-1" /> Password
+  </label>
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-1.5">
-                <Lock className="inline w-3.5 h-3.5 mr-1" /> Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent text-sm transition"
-                  placeholder="Enter password"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+  <div className="relative">
+    <input
+      type={showPassword ? "text" : "password"}
+      value={formData.password}
+      onChange={(e) => handleInputChange("password", e.target.value)}
+      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent text-sm transition
+        ${errors.password ? "border-red-400" : "border-gray-300"}
+      `}
+      placeholder="Enter password"
+      disabled={isLoading}
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+    >
+      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+    </button>
+  </div>
+
+  {/* ✅ PASSWORD ERROR MESSAGE (THIS WAS MISSING) */}
+  {errors.password && (
+    <p className="text-red-500 text-xs mt-1 font-medium">
+      {errors.password}
+    </p>
+  )}
+</div>
+
 
             {/* Forgot Password */}
             <div className="text-right">
