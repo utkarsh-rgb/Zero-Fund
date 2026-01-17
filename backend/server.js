@@ -32,6 +32,8 @@ app.use(express.static(path.join(__dirname, '../frontend/dist/spa')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist/spa', 'index.html'));
 });
+
+
 // Serve uploads folder
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -92,6 +94,10 @@ setupSocket(io);
 // ------------------------
 // Start server
 // ------------------------
+// 4️⃣ (Optional) redirect everything else
+app.use((req, res) => {
+  res.redirect(302, "https://zerofundventure.com");
+});
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -116,18 +116,28 @@ export default function DeveloperDashboard() {
     }
   }, [developer_id]);
 
-  // Fetch analytics data
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const response = await axiosLocal.get("/analytics/overview");
-        setAnalytics(response.data);
-      } catch (err) {
-        console.error("Failed to fetch analytics:", err);
-      }
-    };
+// Fetch analytics data
+useEffect(() => {
+  const fetchAnalytics = async () => {
+    try {
+      const response = await axiosLocal.get("/analytics/overview", {
+        params: {
+          userId: developer_id,
+          userType: "developer",
+        },
+      });
+      setAnalytics(response.data.stats);
+      
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
+    }
+  };
+
+  if (developer_id) {
     fetchAnalytics();
-  }, []);
+  }
+}, [developer_id]);
+
 
   useEffect(() => {
     // Fetch contracts when user opens Contracts or Collaborations tab
@@ -592,85 +602,93 @@ export default function DeveloperDashboard() {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-blue-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <FileText className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Target className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Total Proposals</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {proposals.length}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <Send className="w-3 h-3 mr-1" />
-                      <span>Submitted applications</span>
-                    </div>
-                  </div>
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-green-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <CheckCircle className="w-7 h-7 text-white" />
-                      </div>
-                      {proposals.filter((p) => p.status === "Accepted").length > 0 && (
-                        <div className="bg-green-100 text-green-600 text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
-                          Success!
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Accepted Proposals</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
-                      {proposals.filter((p) => p.status === "Accepted").length}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <Star className="w-3 h-3 mr-1" />
-                      <span>Winning bids</span>
-                    </div>
-                  </div>
+  {/* Total Proposals */}
+  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-blue-200">
+    <div className="flex items-center justify-between mb-3">
+      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+        <FileText className="w-7 h-7 text-white" />
+      </div>
+      <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <Target className="w-5 h-5" />
+      </div>
+    </div>
+    <p className="text-sm font-medium text-gray-600 mb-1">Total Proposals</p>
+    <p className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+      {analytics?.totalProposals ?? 0}
+    </p>
+    <div className="mt-2 text-xs text-gray-500 flex items-center">
+      <Send className="w-3 h-3 mr-1" />
+      <span>Submitted applications</span>
+    </div>
+  </div>
 
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-purple-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <Users className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Zap className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Active Collaborations</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
-                      {collaborations.filter((c) => c.status === "Active").length}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <Briefcase className="w-3 h-3 mr-1" />
-                      <span>Active projects</span>
-                    </div>
-                  </div>
+  {/* Accepted Proposals */}
+  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-green-200">
+    <div className="flex items-center justify-between mb-3">
+      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+        <CheckCircle className="w-7 h-7 text-white" />
+      </div>
 
-                  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-skyblue/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-skyblue to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
-                        <Bookmark className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="text-skyblue opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Star className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Bookmarked Ideas</p>
-                    <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
-                      {stats?.activity?.bookmarksCount || count || 0}
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 flex items-center">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      <span>Saved opportunities</span>
-                    </div>
-                  </div>
-                </div>
+      {analytics?.acceptedProposals > 0 && (
+        <div className="bg-green-100 text-green-600 text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
+          Success!
+        </div>
+      )}
+    </div>
+    <p className="text-sm font-medium text-gray-600 mb-1">Accepted Proposals</p>
+    <p className="text-3xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
+      {analytics?.acceptedProposals ?? 0}
+    </p>
+    <div className="mt-2 text-xs text-gray-500 flex items-center">
+      <Star className="w-3 h-3 mr-1" />
+      <span>Winning bids</span>
+    </div>
+  </div>
+
+  {/* Active Collaborations */}
+  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-purple-200">
+    <div className="flex items-center justify-between mb-3">
+      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+        <Users className="w-7 h-7 text-white" />
+      </div>
+      <div className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <Zap className="w-5 h-5" />
+      </div>
+    </div>
+    <p className="text-sm font-medium text-gray-600 mb-1">Active Collaborations</p>
+    <p className="text-3xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+      {analytics?.activeCollaborations ?? 0}
+    </p>
+    <div className="mt-2 text-xs text-gray-500 flex items-center">
+      <Briefcase className="w-3 h-3 mr-1" />
+      <span>Active projects</span>
+    </div>
+  </div>
+
+  {/* Bookmarked Ideas */}
+  <div className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer border border-transparent hover:border-skyblue/30">
+    <div className="flex items-center justify-between mb-3">
+      <div className="w-14 h-14 bg-gradient-to-br from-skyblue to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-lg">
+        <Bookmark className="w-7 h-7 text-white" />
+      </div>
+      <div className="text-skyblue opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <Star className="w-5 h-5" />
+      </div>
+    </div>
+    <p className="text-sm font-medium text-gray-600 mb-1">Bookmarked Ideas</p>
+    <p className="text-3xl font-bold text-gray-900 group-hover:text-skyblue transition-colors">
+      {analytics?.bookmarkedIdeas ?? 0}
+    </p>
+    <div className="mt-2 text-xs text-gray-500 flex items-center">
+      <Sparkles className="w-3 h-3 mr-1" />
+      <span>Saved opportunities</span>
+    </div>
+  </div>
+
+</div>
+
 
                 {/* Additional Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

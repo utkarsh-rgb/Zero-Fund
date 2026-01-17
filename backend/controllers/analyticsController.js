@@ -5,6 +5,8 @@ const pool = require("../db");
  */
 const getOverviewStats = async (req, res) => {
   try {
+    console.log("overview", req.query);
+
     const { userId, userType } = req.query;
 
     if (!userId || !userType) {
@@ -13,62 +15,29 @@ const getOverviewStats = async (req, res) => {
 
     let stats;
 
-    if (userType === 'entrepreneur') {
-      // Entrepreneur-specific stats
-      const [myIdeas] = await pool.execute(
-        "SELECT COUNT(*) as count FROM entrepreneur_idea WHERE entrepreneur_id = ?",
-        [userId]
-      );
-      const [myProposals] = await pool.execute(`
-        SELECT COUNT(*) as count FROM proposals p
-        JOIN entrepreneur_idea ei ON p.idea_id = ei.id
-        WHERE ei.entrepreneur_id = ?
-      `, [userId]);
-      const [acceptedProposals] = await pool.execute(`
-        SELECT COUNT(*) as count FROM proposals p
-        JOIN entrepreneur_idea ei ON p.idea_id = ei.id
-        WHERE ei.entrepreneur_id = ? AND p.status = 'Approved'
-      `, [userId]);
-      const [myContracts] = await pool.execute(
-        "SELECT COUNT(*) as count FROM contracts WHERE entrepreneur_id = ? AND status = 'signed'",
-        [userId]
-      );
-      const [uniqueDevelopers] = await pool.execute(`
-        SELECT COUNT(DISTINCT p.developer_id) as count FROM proposals p
-        JOIN entrepreneur_idea ei ON p.idea_id = ei.id
-        WHERE ei.entrepreneur_id = ?
-      `, [userId]);
-
-      stats = {
-        totalIdeas: myIdeas[0].count,
-        totalProposals: myProposals[0].count,
-        acceptedProposals: acceptedProposals[0].count,
-        activeCollaborations: myContracts[0].count,
-        uniqueDevelopers: uniqueDevelopers[0].count,
-        proposalAcceptanceRate: myProposals[0].count > 0
-          ? ((acceptedProposals[0].count / myProposals[0].count) * 100).toFixed(1)
-          : 0
-      };
-    } else if (userType === 'developer') {
-      // Developer-specific stats
+    if (userType === "developer") {
       const [myProposals] = await pool.execute(
-        "SELECT COUNT(*) as count FROM proposals WHERE developer_id = ?",
+        "SELECT COUNT(*) AS count FROM proposals WHERE developer_id = ?",
         [userId]
       );
+
       const [acceptedProposals] = await pool.execute(
-        "SELECT COUNT(*) as count FROM proposals WHERE developer_id = ? AND status = 'Approved'",
+        "SELECT COUNT(*) AS count FROM proposals WHERE developer_id = ? AND status = 'Approved'",
         [userId]
       );
+
       const [rejectedProposals] = await pool.execute(
-        "SELECT COUNT(*) as count FROM proposals WHERE developer_id = ? AND status = 'Rejected'",
+        "SELECT COUNT(*) AS count FROM proposals WHERE developer_id = ? AND status = 'Rejected'",
         [userId]
       );
+
       const [myContracts] = await pool.execute(
-        "SELECT COUNT(*) as count FROM contracts WHERE developer_id = ? AND status = 'signed'",
+        "SELECT COUNT(*) AS count FROM contracts WHERE developer_id = ? AND status = 'signed'",
         [userId]
       );
+
       const [myBookmarks] = await pool.execute(
-        "SELECT COUNT(*) as count FROM bookmarks WHERE developer_id = ?",
+        "SELECT COUNT(*) AS count FROM bookmarks WHERE developer_id = ?",
         [userId]
       );
 
@@ -78,21 +47,20 @@ const getOverviewStats = async (req, res) => {
         rejectedProposals: rejectedProposals[0].count,
         activeCollaborations: myContracts[0].count,
         bookmarkedIdeas: myBookmarks[0].count,
-        proposalAcceptanceRate: myProposals[0].count > 0
-          ? ((acceptedProposals[0].count / myProposals[0].count) * 100).toFixed(1)
-          : 0
+        proposalAcceptanceRate:
+          myProposals[0].count > 0
+            ? ((acceptedProposals[0].count / myProposals[0].count) * 100).toFixed(1)
+            : 0,
       };
     }
 
-    res.json({
-      success: true,
-      stats: stats
-    });
+    res.json({ success: true, stats });
   } catch (error) {
     console.error("Error getting overview stats:", error);
     res.status(500).json({ error: "Failed to get overview statistics" });
   }
 };
+
 
 /**
  * Get ideas by stage distribution for specific entrepreneur
