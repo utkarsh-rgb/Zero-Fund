@@ -50,12 +50,7 @@ export default function IndexHeader() {
             >
               Trust & Safety
             </a>
-            <a
-              href="#features"
-              className="px-4 py-2 text-sm lg:text-base text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all font-medium"
-            >
-              Features
-            </a>
+            
 
             <div className="ml-2 lg:ml-4 flex items-center gap-3">
               {userType ? (
