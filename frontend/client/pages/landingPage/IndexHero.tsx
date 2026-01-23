@@ -24,14 +24,14 @@ export default function IndexHero() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Content */}
           <div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight">
-              Where Entrepreneurs & Developers Build Startups Together
-            </h1>
+            <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+  Where Entrepreneurs & Developers Build Startups Together
+</h1>
 
-            <p className="text-lg md:text-xl text-slate-600 mb-8 leading-relaxed max-w-2xl">
-              Match, contract, and build — equity-first collaborations with
-              clear roles and legal protection.
-            </p>
+
+<p className="font-sans text-lg md:text-xl text-slate-600 p-3">
+  Match, contract, and build — equity-first collaborations with clear roles.
+</p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-10">

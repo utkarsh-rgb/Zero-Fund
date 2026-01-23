@@ -50,7 +50,6 @@ export default function IndexHeader() {
             >
               Trust & Safety
             </a>
-            
 
             <div className="ml-2 lg:ml-4 flex items-center gap-3">
               {userType ? (
@@ -78,9 +77,15 @@ export default function IndexHeader() {
                 <>
                   <button
                     onClick={() => (window.location.href = "/login")}
-                    className="px-4 py-2 text-sm lg:text-base text-slate-700 hover:text-slate-900 font-medium transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 
+             bg-gradient-to-r from-slate-700 to-slate-900 
+             text-white rounded-lg 
+             hover:shadow-lg transition-all 
+             font-medium text-sm lg:text-base group"
                   >
-                    Sign In
+                    <LogIn className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span className="hidden lg:inline">Sign In</span>
+                    <span className="lg:hidden">Login</span>
                   </button>
                 </>
               )}
