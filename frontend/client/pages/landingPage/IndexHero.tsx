@@ -3,9 +3,9 @@ import { ArrowRight, Code, Lightbulb, Check } from "lucide-react";
 
 export default function IndexHero() {
   return (
-    <section className="relative pt-32 md:pt-40 lg:pt-48 pb-20 md:pb-28 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-slate-50 to-white">
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.02]">
+<section className="relative pt-30 md:pt-28 pb-20 md:pb-28 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-slate-50 to-white">
+
+      <div className="absolute inset-0 opacity-[0.2]">
         <div
           className="absolute inset-0"
           style={{
