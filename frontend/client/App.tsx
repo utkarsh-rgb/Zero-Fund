@@ -12,7 +12,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import Index from "./pages/Index";
+import Index from "./pages/landingPage/Index";
 import NotFound from "./pages/NotFound";
 import EntrepreneurSignup from "./pages/EntrepreneurSignup";
 import DeveloperSignup from "./pages/DeveloperSignup";
