@@ -33,24 +33,26 @@ const s3Client = new S3Client({
 });
 
 // Helper to upload file buffer to S3
-const uploadToS3 = async (fileBuffer, fileName, mimetype) => {
+const uploadToS3 = async (fileBuffer, fileName, mimetype, entrepreneur_id) => {
+  if (!entrepreneur_id) {
+    throw new Error("entrepreneur_id missing during S3 upload");
+  }
+
   const uploadParams = {
     Bucket: process.env.S3_BUCKET,
-    //Key: `${Date.now()}-${fileName}`,
     Key: `ideas/${entrepreneur_id}/${Date.now()}-${fileName}`,
     Body: fileBuffer,
     ContentType: mimetype,
-    // ACL: "public-read",
   };
 
-  const parallelUpload = new Upload({
+  await new Upload({
     client: s3Client,
     params: uploadParams,
-  });
+  }).done();
 
-  await parallelUpload.done();
   return `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
 };
+
 
 // --- POST /idea ---
 const postIdeaHandler = async (req, res) => {
@@ -67,7 +69,7 @@ const postIdeaHandler = async (req, res) => {
       requiredSkills,
       entrepreneur_id,
     } = req.body;
-
+     console.log(entrepreneur_id,"entrepreneur id is consoling");
     if (!entrepreneur_id) {
       return res.status(400).json({ error: "Entrepreneur ID is required" });
     }
@@ -78,16 +80,25 @@ const postIdeaHandler = async (req, res) => {
       typeof requiredSkills === "string" ? JSON.parse(requiredSkills) : requiredSkills || [];
 
     // Upload all files to S3
-    const attachmentsArray = [];
-    for (const file of req.files) {
-      const url = await uploadToS3(file.buffer, file.originalname, file.mimetype);
-      attachmentsArray.push({
-        name: file.originalname,
-        url,
-        type: file.mimetype,
-        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      });
-    }
+const attachmentsArray = [];
+
+if (req.files && req.files.length > 0) {
+  for (const file of req.files) {
+    const url = await uploadToS3(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      entrepreneur_id
+    );
+
+    attachmentsArray.push({
+      name: file.originalname,
+      url,
+      type: file.mimetype,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+    });
+  }
+}
 
     const sql = `
       INSERT INTO entrepreneur_idea

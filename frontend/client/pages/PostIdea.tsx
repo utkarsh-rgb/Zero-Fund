@@ -106,6 +106,15 @@ export default function PostIdea() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  
+      const raw = localStorage.getItem("userData");
+if (!raw) {
+  alert("Please login again");
+  navigate("/login");
+  return;
+}
+const userData = JSON.parse(raw);
+
   const handleSkillToggle = (skill: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -233,8 +242,17 @@ export default function PostIdea() {
     try {
       setLoading(true);
 
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      const entrepreneurId = userData?.id; // optional chaining in case it's missing
+      const raw = localStorage.getItem("userData");
+if (!raw) {
+  alert("Please login again");
+  navigate("/login");
+  return;
+}
+const userData = JSON.parse(raw);
+
+      const entrepreneurId = userData?.id; 
+      const userName = userData?.fullName;// optional chaining in case it's missing
+      console.log(entrepreneurId);
 
       // Create FormData
       const data = new FormData();
@@ -290,6 +308,8 @@ export default function PostIdea() {
     setLoading(false);
   }
   };
+
+  
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase();
@@ -378,7 +398,7 @@ export default function PostIdea() {
                     <h1 className="text-3xl font-bold text-navy">
                       {formData.title}
                     </h1>
-                    <p className="text-gray-600">by Priya Sharma</p>
+                    <p className="text-gray-600">by {userData?.fullName}</p>
                   </div>
                 </div>
 
@@ -428,7 +448,9 @@ export default function PostIdea() {
                               {file.name}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {(file.size / 1024 / 1024).toFixed(1)} MB
+                              {
+                                
+                              (file.size / 1024 / 1024).toFixed(1)} MB
                             </p>
                           </div>
                         </div>
@@ -604,6 +626,7 @@ export default function PostIdea() {
                   value={formData.overview}
                   onChange={(e) =>
                     handleInputChange("overview", e.target.value)
+                    
                   }
                   rows={8}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-skyblue focus:border-transparent resize-none"
@@ -1066,7 +1089,13 @@ export default function PostIdea() {
                   prose-blockquote:border-l-4 prose-blockquote:border-skyblue prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600
                   prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:text-purple-600
                 ">
-                  <ReactMarkdown>{aiModalContent.content}</ReactMarkdown>
+                  <ReactMarkdown
+  disallowedElements={["script", "iframe"]}
+  skipHtml
+>
+  {aiModalContent.content}
+</ReactMarkdown>
+
                 </div>
               </div>
 

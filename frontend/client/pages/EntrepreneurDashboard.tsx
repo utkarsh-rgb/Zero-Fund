@@ -106,6 +106,8 @@ export default function EntrepreneurDashboard() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState<boolean>(true);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewIdea, setPreviewIdea] = useState<any>(null);
 
   useEffect(() => {
     if (activeTab !== "contract") return;
@@ -1208,76 +1210,19 @@ export default function EntrepreneurDashboard() {
                           </Link>
 
                           {/* Preview Attachments */}
-
                           <button
-                            onClick={async () => {
-                              try {
-                                setPreviewLoading(true);
-
-                                const userData = JSON.parse(
-                                  localStorage.getItem("userData") || "{}",
-                                );
-                                const entrepreneurId = userData?.id;
-
-                                // Fetch ideas (each idea has attachments)
-                                const response = await axiosLocal.get(
-                                  `/entrepreneur-dashboard/${entrepreneurId}`,
-                                );
-
-                                // Get ALL attachments from ALL ideas
-                                const allAttachments = response.data.flatMap(
-                                  (idea) => idea.attachments || [],
-                                );
-
-                                if (!allAttachments.length) {
-                                  alert("No documents available");
-                                  setPreviewLoading(false);
-                                  return;
-                                }
-
-                                // Open each attachment
-                                allAttachments.forEach((file) => {
-                                  if (file.url) window.open(file.url, "_blank");
-                                });
-
-                                setPreviewLoading(false);
-                              } catch (err) {
-                                console.error("Preview error:", err);
-                                setPreviewLoading(false);
+                            onClick={() => {
+                              if (!idea.attachments?.length) {
+                                alert("No attachments for this idea");
+                                return;
                               }
+                              setPreviewIdea(idea);
+                              setIsPreviewOpen(true);
                             }}
                             className="flex items-center space-x-2 px-3 py-2 text-skyblue hover:bg-skyblue/10 rounded-lg transition-colors"
                           >
-                            {previewLoading ? (
-                              <svg
-                                className="animate-spin h-5 w-5 text-skyblue"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                ></path>
-                              </svg>
-                            ) : (
-                              <Eye className="w-5 h-5" />
-                            )}
-
-                            <span>
-                              {previewLoading
-                                ? "Loading..."
-                                : "Preview Attachments"}
-                            </span>
+                            <Eye className="w-5 h-5" />
+                            <span>Preview Attachments</span>
                           </button>
                         </div>
                       </div>
@@ -1324,13 +1269,12 @@ export default function EntrepreneurDashboard() {
                             <h3 className="text-lg font-semibold text-navy hover:underline">
                               {proposal.developerName}
                             </h3>
-                            
+
                             <p className="text-gray-600 mb-2">
                               Applied for: {proposal.ideaTitle}
                             </p>
                           </div>
-                          </Link>
-                        
+                        </Link>
 
                         {/* Status Badge */}
                         <span
@@ -1641,6 +1585,80 @@ export default function EntrepreneurDashboard() {
           </div>
         </div>
       </div>
+      {isPreviewOpen && previewIdea && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          {/* Modal box */}
+          <div className="bg-white w-full max-w-3xl rounded-xl shadow-xl p-6 relative">
+            {/* Close button */}
+            <button
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-xl font-semibold mb-4">
+              Attachments — {previewIdea.title}
+            </h2>
+
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+              {previewIdea.attachments
+                .flat()
+                .map((file: any, index: number) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4 flex items-center justify-between gap-4"
+                  >
+                    {/* File info */}
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-800">{file.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {file.type} • {file.size}
+                      </p>
+                    </div>
+
+                    {/* Preview thumbnail */}
+                    {file.type?.includes("image") && (
+                      <img
+                        src={file.url}
+                        alt={file.name}
+                        className="w-20 h-20 object-cover rounded"
+                      />
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      {/* Preview */}
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-2 text-sm bg-skyblue text-white rounded hover:bg-navy transition"
+                      >
+                        Preview
+                      </a>
+
+                      {/* Download */}
+                      <a
+                        href={file.url}
+                        download
+                        className="px-3 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                ))}
+
+              {previewIdea.attachments.length === 0 && (
+                <p className="text-gray-500 text-center">
+                  No attachments available
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
