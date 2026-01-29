@@ -9,9 +9,13 @@ export default function IndexFooter() {
           {/* Brand Section */}
           <div className="lg:col-span-1 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start space-x-2 mb-4">
-              <div className="w-7 h-7 bg-black rounded flex items-center justify-center">
-                <div className="w-4 h-4 bg-white rounded-sm"></div>
-              </div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br to-navy rounded-xl flex items-center justify-center shadow-sm">
+              <img
+                src="/zerofundlogo.svg"
+                alt="Zero Fund Venture Logo"
+                className="w-full h-full p-1 object-contain"
+              />
+            </div>
               <span className="text-lg font-semibold">Zero Fund Venture</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-6">

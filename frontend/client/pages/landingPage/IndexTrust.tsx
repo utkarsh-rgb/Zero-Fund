@@ -63,7 +63,7 @@ export default function IndexTrust() {
               >
                 <div className="relative">
                   {/* Icon */}
-                  <div className="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gray-100 transition-colors">
+                  <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gray-100 transition-colors">
                     <FeatureIcon className="w-7 h-7 text-black" />
                   </div>
 
@@ -95,15 +95,15 @@ export default function IndexTrust() {
         {/* Bottom Stats */}
         <div className="mt-16 grid sm:grid-cols-3 gap-8 pt-16 border-t border-gray-200">
           <div className="text-center">
-            <div className="text-5xl font-bold text-black mb-2">100%</div>
+            <div className="text-3xl font-bold text-black mb-2">100%</div>
             <div className="text-sm text-gray-600">Contract Success Rate</div>
           </div>
           <div className="text-center">
-            <div className="text-5xl font-bold text-black mb-2">24/7</div>
+            <div className="text-3xl font-bold text-black mb-2">24/7</div>
             <div className="text-sm text-gray-600">Security Monitoring</div>
           </div>
           <div className="text-center">
-            <div className="text-5xl font-bold text-black mb-2">SOC 2</div>
+            <div className="text-3xl font-bold text-black mb-2">SOC 2</div>
             <div className="text-sm text-gray-600">Compliance Certified</div>
           </div>
         </div>
