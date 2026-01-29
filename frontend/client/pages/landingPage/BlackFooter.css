@@ -1,0 +1,199 @@
+.reflection-text {
+  text-align: center;
+  letter-spacing: -0.02em;
+
+  /* Horizontal light gradient */
+  background: linear-gradient(
+    90deg,
+    #3a3a3a 20%,
+    rgba(255, 255, 255, 0.85) 40%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.85) 60%,
+    #3a3a3a 80%
+  );
+
+  background-size: 300% 100%;
+  background-position: -150% 0;
+
+  /* Clip to text */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+
+  /* Continuous horizontal animation */
+  animation: horizontalReflection 6s linear infinite;
+}
+
+/* NO pause, NO hold - continuous smooth flow */
+@keyframes horizontalReflection {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+/* ===============================
+   SPEED VARIANTS
+   =============================== */
+
+/* Faster horizontal reflection */
+.reflection-text-fast {
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #2a2a2a 15%,
+    rgba(255, 255, 255, 0.9) 45%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.9) 55%,
+    #2a2a2a 85%
+  );
+  background-size: 350% 100%;
+  background-position: -175% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: horizontalReflection 4s linear infinite;
+}
+
+/* Slower, more elegant reflection */
+.reflection-text-slow {
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #4a4a4a 25%,
+    rgba(255, 255, 255, 0.8) 42%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.8) 58%,
+    #4a4a4a 75%
+  );
+  background-size: 280% 100%;
+  background-position: -140% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: horizontalReflection 8s linear infinite;
+}
+
+/* Intense bright reflection */
+.reflection-text-bright {
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #1a1a1a 15%,
+    rgba(255, 255, 255, 0.95) 40%,
+    rgba(255, 255, 255, 1) 48%,
+    rgba(255, 255, 255, 1) 52%,
+    rgba(255, 255, 255, 0.95) 60%,
+    #1a1a1a 85%
+  );
+  background-size: 320% 100%;
+  background-position: -160% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: horizontalReflection 5s linear infinite;
+}
+
+/* Subtle soft reflection */
+.reflection-text-subtle {
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #5a5a5a 30%,
+    rgba(255, 255, 255, 0.7) 45%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.7) 55%,
+    #5a5a5a 70%
+  );
+  background-size: 250% 100%;
+  background-position: -125% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: horizontalReflection 7s linear infinite;
+}
+
+/* Ultra-fast shimmer effect */
+.reflection-text-shimmer {
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #0f0f0f 10%,
+    rgba(255, 255, 255, 0.95) 48%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.95) 52%,
+    #0f0f0f 90%
+  );
+  background-size: 400% 100%;
+  background-position: -200% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: horizontalReflection 3s linear infinite;
+}
+
+/* Wide glassy sweep */
+.reflection-text-glassy {
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #2a2a2a 25%,
+    #4a4a4a 38%,
+    rgba(255, 255, 255, 0.9) 46%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.9) 54%,
+    #4a4a4a 62%,
+    #2a2a2a 75%
+  );
+  background-size: 300% 100%;
+  background-position: -150% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: horizontalReflection 6s linear infinite;
+}
+
+/* ===============================
+   UTILITY CLASSES
+   =============================== */
+
+.text-glow {
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+}
+
+.text-glow-strong {
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.25));
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ===============================
+   ACCESSIBILITY
+   =============================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .reflection-text,
+  .reflection-text-fast,
+  .reflection-text-slow,
+  .reflection-text-bright,
+  .reflection-text-subtle,
+  .reflection-text-shimmer,
+  .reflection-text-glassy {
+    animation: none;
+    background-position: center;
+  }
+}
+
+

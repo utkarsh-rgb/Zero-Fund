@@ -1,26 +1,28 @@
-
 import IndexHeader from "./IndexHeader";
 import IndexHero from "./IndexHero";
 import IndexTrust from "./IndexTrust";
 import IndexFooter from "./IndexFooter";
 import HowItWorksSection from "./HowItWorksSection";
-import { Users, Sparkles, Rocket } from "lucide-react";
+import BlackFooter from "./BlackFooter.jsx"
 
 export default function Index() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white scroll-smooth">
+    <div className="min-h-screen bg-white scroll-smooth">
       {/* Header */}
       <IndexHeader />
 
       {/* Hero Section */}
-
       <IndexHero />
 
       {/* How it Works Section */}
-      <HowItWorksSection/>
+      <HowItWorksSection />
 
+      {/* Trust Section */}
       <IndexTrust />
-<IndexFooter/>
+
+      {/* Footer */}
+      <IndexFooter />
+      <BlackFooter/>
     </div>
   );
 }
