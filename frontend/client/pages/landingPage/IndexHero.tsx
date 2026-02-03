@@ -1,83 +1,96 @@
 import { useState, useEffect } from "react";
 
 export default function IndexHero() {
-
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger animation on mount/refresh
     setIsVisible(true);
   }, []);
 
   return (
-    <section className="pt-4 relative min-h-screen flex items-center justify-center bg-white overflow-hidden">
-  {/* Main Content Container */}
-  <div className="relative w-full h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 flex flex-col items-center justify-center px-6 md:px-12">
+    <section className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden">
+      {/* Main Content Container - pure white, no gradient */}
+      <div className="relative w-full min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-100 flex flex-col items-center justify-center px-6 md:px-12">
 
-    {/* Animated Background Orbs */}
-    <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full blur-[120px] opacity-20 animate-float" />
-    <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-300 rounded-full blur-[120px] opacity-20 animate-float-delayed" />
+        <div
+          className={`max-w-3xl mx-auto text-center mb-4 md:mb-6 transition-all duration-700 delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+            }`}
+        >
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-950 leading-tight tracking-tight">
+            Build startups together
+          </h1>
 
-    {/* Headline */}
-    <div
-      className={` max-w-5xl mx-auto text-center mb-6 md:mb-8 transition-all duration-1000 delay-200 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
-    >
-      <h1 className=" text-4xl pt-6 sm:pt-2 sm:text-6xl md:text-7xl lg:text-[70px] font-bold text-black leading-[1.1] mb-4">
-        Build startups together
-      </h1>
+          <p className="mt-3 text-base sm:text-lg font-medium text-gray-500">
+            No capital. Just <span className="text-gray-950">equity</span>.
+          </p>
+        </div>
 
-      <h3 className="text-lg sm:text-xl md:text-2xl font-medium text-gray-600 tracking-wide">
-        No capital. Just <span className="text-black font-semibold">equity</span>.
-      </h3>
-    </div>
+        {/* Divider */}
+        <div
+          className={`w-10 h-px bg-gray-300 mx-auto mb-5 md:mb-7 transition-all duration-700 delay-200 ${isVisible ? "opacity-100 scale-100" : "opacity-0 scale-0"
+            }`}
+        />
 
-    {/* Description */}
-    <p
-      className={`mt-4 md:mt-6 text-center text-gray-600 text-lg md:text-xl max-w-3xl mx-auto mb-10 md:mb-14 leading-relaxed transition-all duration-1000 delay-400 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
-    >
-      Zero Fund Venture is the equity collaboration platform for modern startups.
-      Connect, contract, and build together – no upfront capital required.
-    </p>
+        {/* Description */}
+        <p
+          className={`text-center text-gray-500 text-sm sm:text-base max-w-xl mx-auto mb-8 md:mb-10 leading-relaxed transition-all duration-700 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+            }`}
+        >
+          Zero Fund Venture is the equity collaboration platform for modern
+          startups. Connect, contract, and build together — no upfront capital
+          required.
+        </p>
 
-    {/* CTA */}
-    <div
-      className={`max-w-xl mx-auto mt-4 md:mt-6 mb-10 md:mb-14 transition-all duration-1000 delay-600 ${
-        isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-      }`}
-    >
-      <button
-        type="button"
-        onClick={() => (window.location.href = "/login")}
-        className="px-10 py-4 bg-black text-white rounded-lg text-lg font-medium
-                   hover:bg-gray-900 transition-all hover:scale-105 active:scale-95"
-      >
-        Join Us
-      </button>
-    </div>
+        {/* CTA Button */}
+        <div
+          className={`transition-all duration-700 delay-400 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+            }`}
+        >
+          <button
+            type="button"
+            onClick={() => (window.location.href = "/login")}
+            className="px-8 py-2.5 bg-gray-950 text-white rounded-md text-sm font-medium
+                       hover:bg-gray-800 transition-colors duration-200"
+          >
+            Join Us
+          </button>
+        </div>
 
-    {/* Social Proof */}
-    <div
-      className={`mx-4 mt-2 md:mt-4 flex items-center justify-center gap-3 mb-12 md:mb-16 transition-all duration-1000 delay-800 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
-    >
-      <div className="flex -space-x-2">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white animate-bounce-slow" />
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 border-2 border-white animate-bounce-slow animation-delay-100" />
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 border-2 border-white animate-bounce-slow animation-delay-200" />
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 border-2 border-white animate-bounce-slow animation-delay-300" />
+        {/* Social Proof */}
+        <div
+          className={`mt-10 md:mt-12 flex items-center justify-center gap-3 transition-all duration-700 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+            }`}
+        >
+          {/* Avatar Stack - solid flat colors, no gradients */}
+          <div className="flex -space-x-2.5">
+            <img
+              src="https://i.pravatar.cc/150?img=32"
+              alt=""
+              className="w-8 h-8 rounded-full border-2 border-white object-cover"
+            />
+            <img
+              src="https://i.pravatar.cc/150?img=44"
+              alt=""
+              className="w-8 h-8 rounded-full border-2 border-white object-cover"
+            />
+            <img
+              src="https://i.pravatar.cc/150?img=49"
+              alt=""
+              className="w-8 h-8 rounded-full border-2 border-white object-cover"
+            />
+            <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center">
+              <span className="text-xs font-medium text-gray-600">+97</span>
+            </div>
+          </div>
+
+          {/* Divider dot */}
+          <span className="w-1 h-1 rounded-full bg-gray-300" />
+
+          <span className="text-xs font-medium text-gray-500">
+            1,000+ founders already joined
+          </span>
+        </div>
       </div>
-
-      <span className="text-sm font-medium text-gray-900">
-        1000+ already joined
-      </span>
-    </div>
-  </div>
-</section>
-
+    </section>
   );
 }
