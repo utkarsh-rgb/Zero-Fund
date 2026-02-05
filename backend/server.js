@@ -106,10 +106,10 @@ setupSocket(io);
 // ------------------------
 // Start server
 // ------------------------
-// 4️⃣ (Optional) redirect everything else
-app.use((req, res) => {
-  res.redirect(302, "https://zerofundventure.com");
-});
+// // 4️⃣ (Optional) redirect everything else
+// app.use((req, res) => {
+//   res.redirect(302, "https://zerofundventure.com");
+// });
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
