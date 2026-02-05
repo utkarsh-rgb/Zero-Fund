@@ -21,7 +21,7 @@ export default function IndexHero() {
           </h1>
 
           <p className="mt-3 text-base sm:text-lg font-medium text-gray-500">
-            No capital. Just <span className="text-gray-950">equity</span>.
+            No capital. Just <span className="text-gray-950">A</span>.
           </p>
         </div>
 
