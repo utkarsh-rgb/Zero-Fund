@@ -1,3 +1,32 @@
+# name: Backend CI/CD (Production Safe)
+
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - backend/**
+#   workflow_dispatch:
+
+# jobs:
+#   deploy-backend:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Deploy backend on EC2
+#         uses: appleboy/ssh-action@v1.0.3
+#         with:
+#           host: ${{ secrets.EC2_HOST }}
+#           username: ${{ secrets.EC2_USER }}
+#           key: ${{ secrets.EC2_SSH_KEY }}
+#           script: |
+#             cd /home/ec2-user/project/backend
+#             git pull origin main
+#             npm install
+#             pm2 restart server
+#             pm2 save
+
+
 name: Backend CI/CD (Production Safe)
 
 on:
@@ -20,8 +49,20 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/project/backend
-            git pull origin main
-            npm install
-            pm2 restart server
+            set -e
+
+            echo "📥 Syncing repo with GitHub..."
+            cd /home/ec2-user/project/Zero-Fund
+            git fetch origin
+            git reset --hard origin/main
+            git clean -fd
+
+            echo "📦 Installing backend dependencies..."
+            cd backend
+            npm install --production
+
+            echo "🚀 Restarting backend..."
+            pm2 restart server || pm2 start server.js --name server
             pm2 save
+
+            echo "✅ Backend deployment completed"
