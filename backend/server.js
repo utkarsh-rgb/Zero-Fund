@@ -13,15 +13,27 @@ const app = express();
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
-  : ["http://localhost:8080", "http://localhost:3000", "https://zero-fund-frontend.onrender.com"];
+  : ["http://localhost:8080", "http://localhost:3000", "https://zero-fund-frontend.onrender.com","https://zerofundventure.com"];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
 
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow mobile apps / curl
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+
+
+app.options('*',cors());
 
 app.use(bodyParser.json());
 app.use(express.json());
