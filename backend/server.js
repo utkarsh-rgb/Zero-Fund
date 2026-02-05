@@ -13,27 +13,15 @@ const app = express();
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
-  : ["http://localhost:8080", "http://localhost:3000", "https://zero-fund-frontend.onrender.com","https://zerofundventure.com"];
+  : ["http://localhost:8080", "http://localhost:3000", "https://zero-fund-frontend.onrender.com"];
 
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow mobile apps / curl
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
-
-
-app.options('*',cors());
 
 app.use(bodyParser.json());
 app.use(express.json());
@@ -106,10 +94,10 @@ setupSocket(io);
 // ------------------------
 // Start server
 // ------------------------
-// // 4️⃣ (Optional) redirect everything else
-// app.use((req, res) => {
-//   res.redirect(302, "https://zerofundventure.com");
-// });
+// 4️⃣ (Optional) redirect everything else
+app.use((req, res) => {
+  res.redirect(302, "https://zerofundventure.com");
+});
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
