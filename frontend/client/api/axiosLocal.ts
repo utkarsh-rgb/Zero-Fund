@@ -27,7 +27,7 @@ export const UNIQUE_DEVELOPERS_API = "/unique-developers";
 
 const axiosLocal = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000, // 10 seconds
+ // timeout: 10000, // 10 seconds
   headers: {
     "Content-Type": "application/json",
   },
