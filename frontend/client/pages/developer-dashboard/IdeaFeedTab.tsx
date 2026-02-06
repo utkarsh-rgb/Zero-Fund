@@ -23,6 +23,8 @@ export default function IdeaFeedTab({
   toggleBookmark,
   loading
 }: IdeaFeedTabProps) {
+
+
   /* 🔄 LOADER */
   const SkeletonCard = () => (
   <div className="p-4 bg-white rounded-xl shadow animate-pulse">
@@ -79,12 +81,12 @@ if (loading) {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer focus:ring-2 focus:ring-skyblue"
-            >
-              <option value="latest">Latest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="equityHigh">Equity: High → Low</option>
-              <option value="equityLow">Equity: Low → High</option>
-              <option value="stage">Stage</option>
+            ><option value="latest">Newest</option>
+<option value="oldest">Oldest</option>
+<option value="equityHigh">Equity (High → Low)</option>
+<option value="equityLow">Equity (Low → High)</option>
+<option value="stage">Stage</option>
+
             </select>
           </div>
         </div>
@@ -106,6 +108,22 @@ interface IdeaCardProps {
 }
 
 function IdeaCard({ idea, toggleBookmark }: IdeaCardProps) {
+
+
+  const formatPercentage = (value: string | number) => {
+  if (value === null || value === undefined) return "0%";
+
+  // Extract first valid number (handles "s4%", "4%", "abc4.5xyz")
+  const match = String(value).match(/(\d+(\.\d+)?)/);
+
+  if (!match) return "0%";
+
+  const num = parseFloat(match[1]);
+
+  // Remove .0 if integer, keep 1 decimal if needed
+  return `${num % 1 === 0 ? num : num.toFixed(1)}%`;
+};
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-4">
@@ -173,7 +191,8 @@ function IdeaCard({ idea, toggleBookmark }: IdeaCardProps) {
 
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4 text-sm text-gray-500">
-          <span>Equity: {idea.equity_offering}%</span>
+          <span>Equity: {formatPercentage(idea.equity_offering)}</span>
+
           <span>
             {new Date(idea.created_at).toLocaleString("en-GB", {
               day: "2-digit",

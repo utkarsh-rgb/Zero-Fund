@@ -7,6 +7,20 @@ interface ProposalsTabProps {
 }
 
 export default function ProposalsTab({ proposals }: ProposalsTabProps) {
+  const formatPercentage = (value: string | number) => {
+  if (value === null || value === undefined) return "0%";
+
+  // Extract first valid number (handles "s4%", "4%", "abc4.5xyz")
+  const match = String(value).match(/(\d+(\.\d+)?)/);
+
+  if (!match) return "0%";
+
+  const num = parseFloat(match[1]);
+
+  // Remove .0 if integer, keep 1 decimal if needed
+  return `${num % 1 === 0 ? num : num.toFixed(1)}%`;
+};
+
   return (
     <div>
       <div className="mb-6">
@@ -30,9 +44,12 @@ export default function ProposalsTab({ proposals }: ProposalsTabProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
-                <span className="text-gray-500">Equity Proposed:</span>
-                <p className="font-semibold text-skyblue">{proposal.equityProposed}%</p>
-              </div>
+  <span className="text-gray-500">Equity Proposed:</span>
+  <p className="font-semibold text-skyblue">
+    {formatPercentage(proposal.equityProposed)}
+  </p>
+</div>
+
               <div>
                 <span className="text-gray-500">Submitted:</span>
                 <p className="font-semibold">
