@@ -127,7 +127,7 @@ const developerDashboardById = async (req, res) => {
   const { developerId } = req.params;
   try {
     const [rows] = await pool.query(
-      `SELECT e.fullName, ei.*, CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
+      `SELECT e.fullName, ei.*,ei.flag AS level, CASE WHEN b.id IS NOT NULL THEN 1 ELSE 0 END AS is_bookmarked
        FROM entrepreneur_idea ei
        JOIN entrepreneur e ON ei.entrepreneur_id = e.id
        LEFT JOIN bookmarks b ON b.idea_id = ei.id AND b.developer_id = ?

@@ -44,6 +44,7 @@ interface Milestone {
   completed?: boolean; // Indicates if the milestone is completed
 }
 type Idea = {
+  flag: number;
   required_skills: any;
   attachments: any;
   id: number;
@@ -180,7 +181,7 @@ export default function EntrepreneurDashboard() {
         const response = await axiosLocal.get(
           `/entrepreneur-dashboard/${entrepreneurId}`,
         );
-
+      //  console.log(response.data);
         setIdeas(response.data);
       } catch (error) {
         console.error("Error fetching ideas:", error);
@@ -420,6 +421,59 @@ export default function EntrepreneurDashboard() {
     const completed = milestones.filter((m) => m.completed).length;
     return Math.round((completed / milestones.length) * 100);
   };
+
+const updateLevel = async (ideaId: number, flag: number) => {
+
+  try {
+    const rawUserData = localStorage.getItem("userData");
+
+    const userData = JSON.parse(rawUserData || "{}");
+    const entrepreneurId = userData?.id;
+
+    const payload = {
+      ideaId,
+      flag,
+      entrepreneurId,
+    };
+
+
+    const response = await axiosLocal.put(
+      "/entrepreneur/update-level/flag",
+      payload
+    );
+
+    // ✅ Optimistic UI update
+    setIdeas((prev) =>
+      prev.map((idea) =>
+        idea.id === ideaId ? { ...idea, flag } : idea
+      )
+    );
+
+  } catch (err: any) {
+    console.error("❌ UPDATE LEVEL FAILED");
+
+    if (err.response) {
+      // Backend responded with error status
+      console.error("🚨 RESPONSE STATUS:", err.response.status);
+      console.error("🚨 RESPONSE DATA:", err.response.data);
+      console.error("🚨 RESPONSE HEADERS:", err.response.headers);
+    } else if (err.request) {
+      // Request sent but no response
+      console.error("📡 NO RESPONSE FROM SERVER");
+      console.error("📡 REQUEST OBJECT:", err.request);
+    } else {
+      // Something else broke
+      console.error("⚠️ UNKNOWN ERROR:", err.message);
+    }
+
+    console.error("🧨 FULL ERROR OBJECT:", err);
+    alert("Failed to update idea level");
+  } finally {
+    console.groupEnd();
+  }
+};
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1126,23 +1180,54 @@ export default function EntrepreneurDashboard() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex space-x-2">
-                          {/* Edit Button */}
-                          <button
-                            onClick={() => handleEdit(idea.id)}
-                            className="p-2 text-gray-400 hover:text-skyblue transition-colors"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
+                        <div className="flex items-center space-x-2">
+  {/* Level Dropdown */}
+  <select
+  value={idea.flag}
+  onChange={(e) => updateLevel(idea.id, Number(e.target.value))}
+  className="px-2 py-1 text-sm border rounded-md bg-white
+             focus:outline-none focus:ring-1 focus:ring-skyblue"
+>
+  <option
+    value={1}
+    className={idea.flag === 1 ? "font-bold text-skyblue" : ""}
+  >
+    Open For Developer
+  </option>
 
-                          {/* Delete Button */}
-                          <button
-                            onClick={() => handleDelete(idea.id)}
-                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <Trash className="w-4 h-4" />
-                          </button>
-                        </div>
+  <option
+    value={2}
+    className={idea.flag === 2 ? "font-bold text-skyblue" : ""}
+  >
+    Collaboration Matched
+  </option>
+
+  <option
+    value={3}
+    className={idea.flag === 3 ? "font-bold text-skyblue" : ""}
+  >
+    Startup Launched
+  </option>
+</select>
+
+
+  {/* Edit Button */}
+  <button
+    onClick={() => handleEdit(idea.id)}
+    className="p-2 text-gray-400 hover:text-skyblue transition-colors"
+  >
+    <Edit className="w-4 h-4" />
+  </button>
+
+  {/* Delete Button */}
+  <button
+    onClick={() => handleDelete(idea.id)}
+    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+  >
+    <Trash className="w-4 h-4" />
+  </button>
+</div>
+
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">

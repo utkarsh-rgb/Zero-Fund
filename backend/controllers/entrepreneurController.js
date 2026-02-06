@@ -10,6 +10,7 @@ const entrepreneurDashboard = async (req, res) => {
     );
 
     const ideas = rows.map((row) => {
+      
       // ---------- Required Skills ----------
       let requiredSkills = [];
       try {
@@ -46,6 +47,7 @@ const entrepreneurDashboard = async (req, res) => {
         attachments,
       };
     });
+
 
     res.json(ideas);
   } catch (err) {
@@ -437,6 +439,37 @@ const getEntrepreneurStats = async (req, res) => {
   }
 };
 
+const updateIdeaFlag = async (req, res) => {
+  try {
+    const { ideaId, flag, entrepreneurId } = req.body;
+
+
+    // ✅ Update only if idea belongs to entrepreneur
+    const [result] = await pool.query(
+      `UPDATE entrepreneur_idea
+       SET flag = ?
+       WHERE id = ? AND entrepreneur_id = ?`,
+      [flag, ideaId, entrepreneurId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        message: "Idea not found or entrepreneur mismatch",
+      });
+    }
+
+    res.json({
+      success: true,
+      ideaId,
+      flag,
+    });
+  } catch (error) {
+    console.error("UPDATE LEVEL ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 module.exports = {
   entrepreneurDashboard,
   entrepreneurDeleteIdea,
@@ -445,4 +478,5 @@ module.exports = {
   entrepreneurProfile,
   entrepreneurProfileUpdate,
   getEntrepreneurStats,
+  updateIdeaFlag
 };
