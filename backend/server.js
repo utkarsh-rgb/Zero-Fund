@@ -104,12 +104,6 @@ app.use("/ai", geminiRoutes);
 app.use("/analytics", analyticsRoutes);
 app.use("/", verificationRoutes);
 
-// ------------------------
-// SPA fallback (IMPORTANT)
-// ------------------------
-app.get("*", (req, res) => {
-  res.sendFile(path.join(spaPath, "index.html"));
-});
 
 // ------------------------
 // HTTP Server + Socket.IO
