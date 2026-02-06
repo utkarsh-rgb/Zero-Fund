@@ -6,6 +6,8 @@ const { Server } = require("socket.io");
 const bodyParser = require("body-parser");
 const path = require("path");
 require("dotenv").config();
+const cookieParser = require("cookie-parser");
+
 
 // ------------------------
 // Initialize app
@@ -46,6 +48,8 @@ app.use(
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 
 // ------------------------
 // Serve SPA frontend
