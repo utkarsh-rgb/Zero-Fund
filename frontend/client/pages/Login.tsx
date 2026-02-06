@@ -39,75 +39,72 @@ export default function Login() {
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    let newErrors: { [key: string]: string } = {};
+  let newErrors: { [key: string]: string } = {};
 
-    // ✅ User type validation
-    if (!formData.userType) {
-      newErrors.userType = "Please choose Entrepreneur or Developer";
-    }
+  if (!formData.userType) {
+    newErrors.userType = "Please choose Entrepreneur or Developer";
+  }
 
-    // ✅ Email validation
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
+  if (!formData.email) {
+    newErrors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    newErrors.email = "Please enter a valid email address";
+  }
 
-    // ✅ Password validation
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password =
-        "Please enter a valid password (minimum 8 characters)";
-    }
+  if (!formData.password) {
+    newErrors.password = "Password is required";
+  } else if (formData.password.length < 8) {
+    newErrors.password = "Minimum 8 characters required";
+  }
 
-    // ❌ Stop if errors exist
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
+
+  setErrors({});
+  setIsLoading(true);
+
+  try {
+    const res = await axiosLocal.post("/api/login", formData, {
+      withCredentials: true, // 🔥 CRITICAL
+    });
+
+    const data = res.data;
+
+    if (!data || data.message !== "Login successful") {
+      setErrors({ form: data?.message || "Login failed" });
       return;
     }
 
-    // ✅ Clear previous errors
-    setErrors({});
-    setIsLoading(true);
-
-    try {
-      const res = await axiosLocal.post("/api/login", formData);
-      const data = res.data;
-
-      // Backend returns 200 always → check message
-      if (!data || data.message !== "Login successful") {
-        setErrors({ form: data?.message || "Login failed" });
-        return;
-      }
-
-      const userData = {
+    // ✅ Store ONLY non-sensitive data (optional)
+    localStorage.setItem(
+      "userData",
+      JSON.stringify({
         id: data.id,
         fullName: data.fullName,
         email: data.email,
-        token: data.token,
         userType: data.userType,
-      };
+      })
+    );
 
-      localStorage.setItem("jwt_token", data.token);
-      localStorage.setItem("userData", JSON.stringify(userData));
-
-      // ✅ Redirect by role
-      if (data.userType === "developer") {
-        navigate("/developer-dashboard");
-      } else if (data.userType === "entrepreneur") {
-        navigate("/entrepreneur-dashboard");
-      }
-    } catch (error: any) {
-      setErrors({
-        form: error?.response?.data?.message || "Something went wrong",
-      });
-    } finally {
-      setIsLoading(false);
+    // ✅ Redirect by role
+    if (data.userType === "developer") {
+      navigate("/developer-dashboard");
+    } else {
+      navigate("/entrepreneur-dashboard");
     }
-  };
+  } catch (error: any) {
+    setErrors({
+      form: error?.response?.data?.message || "Something went wrong",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center p-4 overflow-hidden">
