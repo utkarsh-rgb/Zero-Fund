@@ -458,13 +458,13 @@ const handleSubmit = async () => {
       <p className="text-sm text-gray-600 mb-6">
         {errorModal.message}
       </p>
+<button
+  onClick={() => setErrorModal({ show: false, message: "" })}
+  className="w-full bg-gradient-to-r from-navy to-skyblue text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all active:scale-95"
+>
+  Okay
+</button>
 
-      <button
-        onClick={() => setErrorModal({ show: false, message: "" })}
-        className="w-full py-2.5 rounded-lg bg-navy text-white font-semibold hover:opacity-90 transition"
-      >
-        Okay
-      </button>
     </div>
   </div>
 )}

@@ -524,7 +524,7 @@ export default function EntrepreneurSignup() {
           <AlertCircle className="w-5 h-5 text-red-600" />
         </div>
         <h2 className="text-lg font-bold text-navy">
-          Login Failed
+          Signup Failed
         </h2>
       </div>
 
@@ -533,11 +533,12 @@ export default function EntrepreneurSignup() {
       </p>
 
       <button
-        onClick={() => setErrorModal({ show: false, message: "" })}
-        className="w-full py-2.5 rounded-lg bg-navy text-white font-semibold hover:opacity-90 transition"
-      >
-        Okay
-      </button>
+  onClick={() => setErrorModal({ show: false, message: "" })}
+  className="w-full bg-gradient-to-r from-navy to-skyblue text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all active:scale-95"
+>
+  Okay
+</button>
+
     </div>
   </div>
 )}
