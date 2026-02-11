@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Loader,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 
 interface FormData {
@@ -51,6 +52,14 @@ export default function DeveloperSignup() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [errorModal, setErrorModal] = useState<{
+  show: boolean;
+  message: string;
+}>({
+  show: false,
+  message: "",
+});
+
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -123,7 +132,13 @@ const handleSubmit = async () => {
     setShowSuccessModal(true);
   } catch (error: any) {
     console.error("Signup failed:", error);
-    alert(error.response?.data?.message || "Something went wrong. Please try again.");
+    setErrorModal({
+  show: true,
+  message:
+    error.response?.data?.message ||
+    "Something went wrong. Please try again.",
+});
+
     setIsLoading(false);
   }
 };
@@ -419,7 +434,41 @@ const handleSubmit = async () => {
           </div>
         </div>
       </div>
+      
     )}
+    {/* Error Modal */}
+{errorModal.show && (
+  <div
+    className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+    onClick={() => setErrorModal({ show: false, message: "" })}
+  >
+    <div
+      className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-red-100">
+          <AlertCircle className="w-5 h-5 text-red-600" />
+        </div>
+        <h2 className="text-lg font-bold text-navy">
+          Signup Failed
+        </h2>
+      </div>
+
+      <p className="text-sm text-gray-600 mb-6">
+        {errorModal.message}
+      </p>
+
+      <button
+        onClick={() => setErrorModal({ show: false, message: "" })}
+        className="w-full py-2.5 rounded-lg bg-navy text-white font-semibold hover:opacity-90 transition"
+      >
+        Okay
+      </button>
+    </div>
+  </div>
+)}
+
     </>
   );
 }

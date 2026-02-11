@@ -89,6 +89,7 @@ export default function DeveloperDashboard() {
         if (!developerId) return;
 
         const response = await axiosLocal.get(`/developer-collaboration/${developerId}`);
+        console.log("Collaborations",response.data.contracts)
         setCollaborations(response.data.contracts || []);
       } catch (err) {
         console.error("Failed to fetch developer collaborations:", err);

@@ -26,6 +26,7 @@ export default function Login() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isValidated, setIsValidated] = useState(false);
 
@@ -39,72 +40,71 @@ export default function Login() {
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  let newErrors: { [key: string]: string } = {};
+    let newErrors: { [key: string]: string } = {};
 
-  if (!formData.userType) {
-    newErrors.userType = "Please choose Entrepreneur or Developer";
-  }
+    if (!formData.userType) {
+      newErrors.userType = "Please choose Entrepreneur or Developer";
+    }
 
-  if (!formData.email) {
-    newErrors.email = "Email is required";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    newErrors.email = "Please enter a valid email address";
-  }
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
 
-  if (!formData.password) {
-    newErrors.password = "Password is required";
-  } else if (formData.password.length < 8) {
-    newErrors.password = "Minimum 8 characters required";
-  }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Minimum 8 characters required";
+    }
 
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    return;
-  }
-
-  setErrors({});
-  setIsLoading(true);
-
-  try {
-    const res = await axiosLocal.post("/api/login", formData, {
-      withCredentials: true, // 🔥 CRITICAL
-    });
-
-    const data = res.data;
-
-    if (!data || data.message !== "Login successful") {
-      setErrors({ form: data?.message || "Login failed" });
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    // ✅ Store ONLY non-sensitive data (optional)
-    localStorage.setItem(
-      "userData",
-      JSON.stringify({
-        id: data.id,
-        fullName: data.fullName,
-        email: data.email,
-        userType: data.userType,
-      })
-    );
+    setErrors({});
+    setIsLoading(true);
 
-    // ✅ Redirect by role
-    if (data.userType === "developer") {
-      navigate("/developer-dashboard");
-    } else {
-      navigate("/entrepreneur-dashboard");
+    try {
+      const res = await axiosLocal.post("/api/login", formData, {
+        withCredentials: true, // 🔥 CRITICAL
+      });
+
+      const data = res.data;
+
+      if (!data || data.message !== "Login successful") {
+        setErrors({ form: data?.message || "Login failed" });
+        return;
+      }
+
+      // ✅ Store ONLY non-sensitive data (optional)
+      localStorage.setItem(
+        "userData",
+        JSON.stringify({
+          id: data.id,
+          fullName: data.fullName,
+          email: data.email,
+          userType: data.userType,
+        }),
+      );
+
+      // ✅ Redirect by role
+      if (data.userType === "developer") {
+        navigate("/developer-dashboard");
+      } else {
+        navigate("/entrepreneur-dashboard");
+      }
+    } catch (error: any) {
+      setErrors({
+        form: error?.response?.data?.message || "Something went wrong",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: any) {
-    setErrors({
-      form: error?.response?.data?.message || "Something went wrong",
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center p-4 overflow-hidden">
@@ -301,42 +301,82 @@ export default function Login() {
                     <Zap className="w-4 h-4" />
                   )}
                   <span className="text-sm">
-                    {isLoading ? "Signing In..." : "Continue"}
+                    {isLoading ? "Logging In.." : "Log In"}
                   </span>
                 </button>
               </form>
 
-              {/* Signup */}
-              <div className="mt-4 lg:mt-5">
-                <p className="text-xs lg:text-sm text-gray-600 mb-2 text-center">
-                  Don't have an account?
-                </p>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    onClick={() => navigate("/entrepreneur-signup")}
-                    className="p-2 rounded-lg border-2 border-skyblue text-skyblue text-xs lg:text-sm font-semibold hover:bg-skyblue/5 transition-all hover:scale-[1.02]"
-                  >
-                    Entrepreneur
-                  </button>
-                  <button
-                    onClick={() => navigate("/developer-signup")}
-                    className="p-2 rounded-lg border-2 border-navy text-navy text-xs lg:text-sm font-semibold hover:bg-navy/5 transition-all hover:scale-[1.02]"
-                  >
-                    Developer
-                  </button>
-                </div>
-              </div>
 
-              {/* Back */}
-              <div className="mt-4 text-center">
-                <Link
-                  to="/"
-                  className="text-xs lg:text-sm text-gray-500 hover:text-gray-700 inline-flex items-center font-medium transition"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-                  Back to Home
-                </Link>
-              </div>
+
+
+
+
+
+
+              {/* Signup */}
+<div className="w-full max-w-md mx-auto mt-4 bg-white  rounded-sm py-5">
+  <div className="text-center text-sm">
+    <span className="text-gray-700">
+      Don't have an account?{" "}
+    </span>
+    <button
+      onClick={() => setShowModal(true)}
+      className="text-blue-500 font-semibold hover:text-blue-600 transition"
+    >
+      Sign Up
+    </button>
+  </div>
+</div>
+
+{/* Modal */}
+{showModal && (
+  <div
+    className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+    onClick={() => setShowModal(false)}
+  >
+    <div
+      className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Close Button */}
+      <button
+        onClick={() => setShowModal(false)}
+        className="absolute top-3 right-3 text-gray-400 hover:text-navy transition"
+      >
+        ✕
+      </button>
+
+      <h2 className="text-xl font-bold text-navy text-center mb-6">
+        Choose Account Type
+      </h2>
+
+      <div className="space-y-3">
+        {/* Entrepreneur */}
+        <button
+          onClick={() => {
+            setShowModal(false);
+            navigate("/entrepreneur-signup");
+          }}
+          className="w-full py-2.5 rounded-lg bg-skyblue/10 text-skyblue font-semibold hover:bg-skyblue/20 transition"
+        >
+          Entrepreneur
+        </button>
+
+        {/* Developer */}
+        <button
+          onClick={() => {
+            setShowModal(false);
+            navigate("/developer-signup");
+          }}
+          className="w-full py-2.5 rounded-lg bg-navy/10 text-navy font-semibold hover:bg-navy/20 transition"
+        >
+          Developer
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
             </div>
           </div>
         </div>

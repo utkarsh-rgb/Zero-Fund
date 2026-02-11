@@ -1,7 +1,9 @@
 import React from "react";
 
 const SecureChat = () => {
-  const role = localStorage.getItem("role"); // entrepreneur | developer
+  
+   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  const role = userData?.userType; // "developer" | "entrepreneur"
 
   const roleText =
     role === "entrepreneur"
