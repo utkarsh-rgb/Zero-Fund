@@ -4,5 +4,27 @@
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "remove-markdown": "^0.6.3"
-  }
+  },
+  "name": "skill-invest-(1)",
+  "version": "1.0.0",
+  "description": "**Zero-Fund** is a full-stack web platform that connects entrepreneurs with skilled developers for equity-based collaborations. The platform enables entrepreneurs to post project ideas and developers to submit proposals, ultimately facilitating formal contract agreements and project collaboration management.",
+  "main": "index.js",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/utkarsh-rgb/Zero-Fund.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/utkarsh-rgb/Zero-Fund/issues"
+  },
+  "homepage": "https://github.com/utkarsh-rgb/Zero-Fund#readme"
 }

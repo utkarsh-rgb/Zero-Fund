@@ -141,7 +141,6 @@ const getContractOrProposal = async (req, res) => {
 };
 
 
-
 const contractDetailsController = async (req, res) => {
   const connection = await pool.getConnection();
 
@@ -150,7 +149,38 @@ const contractDetailsController = async (req, res) => {
 
     const data = req.body;
 
-    const query = `
+    /* ---------------------------------------------------
+       1️⃣ CHECK IF PROPOSAL EXISTS + CONTRACT STATUS
+    --------------------------------------------------- */
+
+    const [proposalRows] = await connection.execute(
+      `SELECT id, contract_status 
+       FROM proposals 
+       WHERE id = ?`,
+      [data.proposalId]
+    );
+
+    if (proposalRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({
+        success: false,
+        message: "Proposal not found"
+      });
+    }
+
+    if (proposalRows[0].contract_status === "generated") {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "Contract already generated for this proposal"
+      });
+    }
+
+    /* ---------------------------------------------------
+       2️⃣ INSERT CONTRACT
+    --------------------------------------------------- */
+
+    const insertContractQuery = `
       INSERT INTO contracts (
         proposal_id,
         entrepreneur_id,
@@ -203,29 +233,56 @@ const contractDetailsController = async (req, res) => {
       JSON.stringify(data.additionalClauses || []),
       data.revisions || "",
       data.supportTerms || "",
-      1, // signed_by_entrepreneur = 1 (entrepreneur signs when creating)
-      'pending_signature' // status = waiting for developer signature
+      1, // Entrepreneur signs immediately
+      "pending_signature"
     ];
 
-    const [result] = await connection.execute(query, values);
+    const [result] = await connection.execute(insertContractQuery, values);
     const contractId = result.insertId;
 
-    // Create notification for developer
-    const notificationMessage = `🎉 Contract Ready! ${data.entrepreneurName} has prepared a contract for "${data.projectTitle}". Please review and sign to start your collaboration.`;
+    /* ---------------------------------------------------
+       3️⃣ UPDATE PROPOSAL CONTRACT STATUS
+    --------------------------------------------------- */
 
     await connection.execute(
-      `INSERT INTO notifications (developer_id, proposal_id, message, type)
-       VALUES (?, ?, ?, 'contract_status')`,
+      `UPDATE proposals 
+       SET contract_status = 'generated'
+       WHERE id = ?`,
+      [data.proposalId]
+    );
+
+    /* ---------------------------------------------------
+       4️⃣ CREATE DEVELOPER NOTIFICATION
+    --------------------------------------------------- */
+
+    const notificationMessage = 
+      `🎉 Contract Ready! ${data.entrepreneurName} has prepared a contract for "${data.projectTitle}". Please review and sign to start your collaboration.`;
+
+    await connection.execute(
+      `INSERT INTO notifications 
+       (developer_id, proposal_id, message, type)
+       VALUES (?, ?, ?, 'contract_created')`,
       [data.developer_id, data.proposalId, notificationMessage]
     );
 
-    // Log activity
+    /* ---------------------------------------------------
+       5️⃣ LOG ACTIVITY
+    --------------------------------------------------- */
+
     await connection.execute(
       `INSERT INTO activity_log
        (user_id, user_type, action_type, entity_type, entity_id, description)
        VALUES (?, 'entrepreneur', 'contract_created', 'contract', ?, ?)`,
-      [data.entrepreneur_id, contractId, `Created contract for project: ${data.projectTitle}`]
+      [
+        data.entrepreneur_id,
+        contractId,
+        `Created contract for project: ${data.projectTitle}`
+      ]
     );
+
+    /* ---------------------------------------------------
+       6️⃣ COMMIT TRANSACTION
+    --------------------------------------------------- */
 
     await connection.commit();
 
@@ -234,14 +291,22 @@ const contractDetailsController = async (req, res) => {
       message: "Contract saved successfully",
       contractId,
     });
+
   } catch (error) {
     await connection.rollback();
     console.error("Error saving contract:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+
   } finally {
     connection.release();
   }
 };
+
 
 
 const contractDraft = async (req, res) => {

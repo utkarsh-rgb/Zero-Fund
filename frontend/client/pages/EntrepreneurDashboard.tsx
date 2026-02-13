@@ -72,6 +72,7 @@ interface Proposal {
   status: "Pending" | "Reviewed" | "Accepted" | "Rejected" | "Approved";
   submittedAt: string;
   rating?: number;
+  contract_status?: "not_generated" | "generated";
 }
 
 interface Collaboration {
@@ -181,7 +182,7 @@ export default function EntrepreneurDashboard() {
         const response = await axiosLocal.get(
           `/entrepreneur-dashboard/${entrepreneurId}`,
         );
-      //  console.log(response.data);
+        //  console.log(response.data);
         setIdeas(response.data);
       } catch (error) {
         console.error("Error fetching ideas:", error);
@@ -283,8 +284,7 @@ export default function EntrepreneurDashboard() {
         `/entrepreneur-proposals/${entrepreneurId}`,
       );
 
-      setProposals(response.data.proposals); // store in state
-      console.log(response.data.proposals[0]);
+      setProposals(response.data.proposals);
     } catch (error: any) {
       console.error("Failed to fetch proposals:", error);
     }
@@ -422,58 +422,51 @@ export default function EntrepreneurDashboard() {
     return Math.round((completed / milestones.length) * 100);
   };
 
-const updateLevel = async (ideaId: number, flag: number) => {
+  const updateLevel = async (ideaId: number, flag: number) => {
+    try {
+      const rawUserData = localStorage.getItem("userData");
 
-  try {
-    const rawUserData = localStorage.getItem("userData");
+      const userData = JSON.parse(rawUserData || "{}");
+      const entrepreneurId = userData?.id;
 
-    const userData = JSON.parse(rawUserData || "{}");
-    const entrepreneurId = userData?.id;
+      const payload = {
+        ideaId,
+        flag,
+        entrepreneurId,
+      };
 
-    const payload = {
-      ideaId,
-      flag,
-      entrepreneurId,
-    };
+      const response = await axiosLocal.put(
+        "/entrepreneur/update-level/flag",
+        payload,
+      );
 
+      // ✅ Optimistic UI update
+      setIdeas((prev) =>
+        prev.map((idea) => (idea.id === ideaId ? { ...idea, flag } : idea)),
+      );
+    } catch (err: any) {
+      console.error("❌ UPDATE LEVEL FAILED");
 
-    const response = await axiosLocal.put(
-      "/entrepreneur/update-level/flag",
-      payload
-    );
+      if (err.response) {
+        // Backend responded with error status
+        console.error("🚨 RESPONSE STATUS:", err.response.status);
+        console.error("🚨 RESPONSE DATA:", err.response.data);
+        console.error("🚨 RESPONSE HEADERS:", err.response.headers);
+      } else if (err.request) {
+        // Request sent but no response
+        console.error("📡 NO RESPONSE FROM SERVER");
+        console.error("📡 REQUEST OBJECT:", err.request);
+      } else {
+        // Something else broke
+        console.error("⚠️ UNKNOWN ERROR:", err.message);
+      }
 
-    // ✅ Optimistic UI update
-    setIdeas((prev) =>
-      prev.map((idea) =>
-        idea.id === ideaId ? { ...idea, flag } : idea
-      )
-    );
-
-  } catch (err: any) {
-    console.error("❌ UPDATE LEVEL FAILED");
-
-    if (err.response) {
-      // Backend responded with error status
-      console.error("🚨 RESPONSE STATUS:", err.response.status);
-      console.error("🚨 RESPONSE DATA:", err.response.data);
-      console.error("🚨 RESPONSE HEADERS:", err.response.headers);
-    } else if (err.request) {
-      // Request sent but no response
-      console.error("📡 NO RESPONSE FROM SERVER");
-      console.error("📡 REQUEST OBJECT:", err.request);
-    } else {
-      // Something else broke
-      console.error("⚠️ UNKNOWN ERROR:", err.message);
+      console.error("🧨 FULL ERROR OBJECT:", err);
+      alert("Failed to update idea level");
+    } finally {
+      console.groupEnd();
     }
-
-    console.error("🧨 FULL ERROR OBJECT:", err);
-    alert("Failed to update idea level");
-  } finally {
-    console.groupEnd();
-  }
-};
-
-
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1181,53 +1174,59 @@ const updateLevel = async (ideaId: number, flag: number) => {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-  {/* Level Dropdown */}
-  <select
-  value={idea.flag}
-  onChange={(e) => updateLevel(idea.id, Number(e.target.value))}
-  className="px-2 py-1 text-sm border rounded-md bg-white
+                          {/* Level Dropdown */}
+                          <select
+                            value={idea.flag}
+                            onChange={(e) =>
+                              updateLevel(idea.id, Number(e.target.value))
+                            }
+                            className="px-2 py-1 text-sm border rounded-md bg-white
              focus:outline-none focus:ring-1 focus:ring-skyblue"
->
-  <option
-    value={1}
-    className={idea.flag === 1 ? "font-bold text-skyblue" : ""}
-  >
-    Open For Developer
-  </option>
+                          >
+                            <option
+                              value={1}
+                              className={
+                                idea.flag === 1 ? "font-bold text-skyblue" : ""
+                              }
+                            >
+                              Open For Developer
+                            </option>
 
-  <option
-    value={2}
-    className={idea.flag === 2 ? "font-bold text-skyblue" : ""}
-  >
-    Collaboration Matched
-  </option>
+                            <option
+                              value={2}
+                              className={
+                                idea.flag === 2 ? "font-bold text-skyblue" : ""
+                              }
+                            >
+                              Collaboration Matched
+                            </option>
 
-  <option
-    value={3}
-    className={idea.flag === 3 ? "font-bold text-skyblue" : ""}
-  >
-    Startup Launched
-  </option>
-</select>
+                            <option
+                              value={3}
+                              className={
+                                idea.flag === 3 ? "font-bold text-skyblue" : ""
+                              }
+                            >
+                              Startup Launched
+                            </option>
+                          </select>
 
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => handleEdit(idea.id)}
+                            className="p-2 text-gray-400 hover:text-skyblue transition-colors"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
 
-  {/* Edit Button */}
-  <button
-    onClick={() => handleEdit(idea.id)}
-    className="p-2 text-gray-400 hover:text-skyblue transition-colors"
-  >
-    <Edit className="w-4 h-4" />
-  </button>
-
-  {/* Delete Button */}
-  <button
-    onClick={() => handleDelete(idea.id)}
-    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-  >
-    <Trash className="w-4 h-4" />
-  </button>
-</div>
-
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDelete(idea.id)}
+                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -1436,19 +1435,37 @@ const updateLevel = async (ideaId: number, flag: number) => {
                         </div>
                       )}
 
-                      {proposal.status === "Accepted" && (
+                      {(proposal.status === "Accepted" ||
+                        proposal.status === "Approved") && (
                         <div className="flex space-x-3">
+                          {/* Chat Button */}
                           <button className="flex items-center space-x-2 px-4 py-2 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors">
                             <MessageCircle className="w-4 h-4" />
                             <span>Chat</span>
                           </button>
-                          <Link
-                            to={`/contract-builder?proposalId=${proposal.id}`}
-                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>Generate Contract</span>
-                          </Link>
+
+                          {/* Contract Button Logic */}
+                          {proposal.contract_status === "generated" ? (
+                            <button
+                              onClick={() =>
+                                alert(
+                                  "This contract is already generated and cannot be modified.",
+                                )
+                              }
+                              className="flex items-center space-x-2 px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed opacity-80"
+                            >
+                              <FileText className="w-4 h-4" />
+                              <span>Generated</span>
+                            </button>
+                          ) : (
+                            <Link
+                              to={`/contract-builder?proposalId=${proposal.id}`}
+                              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                              <FileText className="w-4 h-4" />
+                              <span>Generate Contract</span>
+                            </Link>
+                          )}
                         </div>
                       )}
 
@@ -1544,15 +1561,30 @@ const updateLevel = async (ideaId: number, flag: number) => {
                             </div>
 
                             <div className="flex flex-col gap-2">
-                              <Link
-                                to={`/contract-builder?proposalId=${proposal.id}`}
-                                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-skyblue to-blue-600 text-white rounded-lg hover:shadow-lg transition-all"
-                              >
-                                <Shield className="w-4 h-4" />
-                                <span className="font-medium">
-                                  Generate Contract
-                                </span>
-                              </Link>
+                              {/* 🔥 Contract Button Logic */}
+                              {proposal.contract_status === "generated" ? (
+                                <button
+                                  disabled
+                                  className="flex items-center space-x-2 px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed opacity-80"
+                                >
+                                  <Shield className="w-4 h-4" />
+                                  <span className="font-medium">
+                                    Contract Generated
+                                  </span>
+                                </button>
+                              ) : (
+                                <Link
+                                  to={`/contract-builder?proposalId=${proposal.id}`}
+                                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-skyblue to-blue-600 text-white rounded-lg hover:shadow-lg transition-all"
+                                >
+                                  <Shield className="w-4 h-4" />
+                                  <span className="font-medium">
+                                    Generate Contract
+                                  </span>
+                                </Link>
+                              )}
+
+                              {/* Chat Button */}
                               <Link
                                 to={`/entrepreneur-chat?developer=${proposal.developerId}`}
                                 className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"

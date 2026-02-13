@@ -1,5 +1,7 @@
 const pool = require("../db");
-const { createEntrepreneurNotification } = require("./entrepreneurNotificationsController");
+const {
+  createEntrepreneurNotification,
+} = require("./entrepreneurNotificationsController");
 
 // Get single proposal by ID
 const getProposalById = async (req, res) => {
@@ -7,7 +9,7 @@ const getProposalById = async (req, res) => {
   try {
     const [results] = await pool.query(
       "SELECT e.fullName AS founderName, ei.* FROM entrepreneur_idea ei JOIN entrepreneur e ON ei.entrepreneur_id = e.id WHERE ei.id = ?",
-      [id]
+      [id],
     );
 
     if (results.length === 0) {
@@ -45,7 +47,11 @@ const submitProposal = async (req, res) => {
     // Validate equity percentage
     const equity = parseFloat(equityRequested);
     if (isNaN(equity) || equity <= 0 || equity > 100) {
-      return res.status(400).json({ error: "Invalid equity percentage (must be between 0 and 100)" });
+      return res
+        .status(400)
+        .json({
+          error: "Invalid equity percentage (must be between 0 and 100)",
+        });
     }
 
     // Check if idea exists and is active
@@ -54,7 +60,7 @@ const submitProposal = async (req, res) => {
        FROM entrepreneur_idea ei
        JOIN entrepreneur e ON ei.entrepreneur_id = e.id
        WHERE ei.id = ?`,
-      [ideaId]
+      [ideaId],
     );
 
     if (ideaRows.length === 0) {
@@ -68,20 +74,20 @@ const submitProposal = async (req, res) => {
     const [existingProposals] = await connection.execute(
       `SELECT id FROM proposals
        WHERE idea_id = ? AND developer_id = ? AND withdrawn = FALSE`,
-      [ideaId, developerId]
+      [ideaId, developerId],
     );
 
     if (existingProposals.length > 0) {
       await connection.rollback();
       return res.status(400).json({
-        error: "You have already submitted a proposal for this idea"
+        error: "You have already submitted a proposal for this idea",
       });
     }
 
     // Get developer info
     const [developerRows] = await connection.execute(
       `SELECT fullName FROM developers WHERE id = ?`,
-      [developerId]
+      [developerId],
     );
 
     if (developerRows.length === 0) {
@@ -91,11 +97,12 @@ const submitProposal = async (req, res) => {
 
     const developerName = developerRows[0].fullName;
 
-    // Insert proposal
+    // Insert proposal (with default contract status)
     const [proposalResult] = await connection.execute(
-      `INSERT INTO proposals (idea_id, developer_id, scope, timeline, equity_requested, additional_notes)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [ideaId, developerId, scope, timeline, equityRequested, additionalNotes]
+      `INSERT INTO proposals 
+   (idea_id, developer_id, scope, timeline, equity_requested, additional_notes, contract_status)
+   VALUES (?, ?, ?, ?, ?, ?, 'not_generated')`,
+      [ideaId, developerId, scope, timeline, equityRequested, additionalNotes],
     );
 
     const proposalId = proposalResult.insertId;
@@ -107,7 +114,7 @@ const submitProposal = async (req, res) => {
           await connection.execute(
             `INSERT INTO milestones (proposal_id, title, description, duration)
              VALUES (?, ?, ?, ?)`,
-            [proposalId, m.title, m.description, m.duration || ""]
+            [proposalId, m.title, m.description, m.duration || ""],
           );
         }
       }
@@ -118,7 +125,7 @@ const submitProposal = async (req, res) => {
       `UPDATE entrepreneur_idea
        SET proposal_count = proposal_count + 1
        WHERE id = ?`,
-      [ideaId]
+      [ideaId],
     );
 
     // Create notification for entrepreneur
@@ -127,7 +134,7 @@ const submitProposal = async (req, res) => {
       `INSERT INTO entrepreneur_notifications
        (entrepreneur_id, proposal_id, message, type)
        VALUES (?, ?, ?, 'proposal_received')`,
-      [idea.entrepreneur_id, proposalId, notificationMessage]
+      [idea.entrepreneur_id, proposalId, notificationMessage],
     );
 
     // Log activity
@@ -135,7 +142,7 @@ const submitProposal = async (req, res) => {
       `INSERT INTO activity_log
        (user_id, user_type, action_type, entity_type, entity_id, description)
        VALUES (?, 'developer', 'proposal_submitted', 'proposal', ?, ?)`,
-      [developerId, proposalId, `Submitted proposal for idea: ${idea.title}`]
+      [developerId, proposalId, `Submitted proposal for idea: ${idea.title}`],
     );
 
     await connection.commit();
@@ -143,7 +150,7 @@ const submitProposal = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Proposal submitted successfully",
-      proposalId
+      proposalId,
     });
   } catch (error) {
     await connection.rollback();
@@ -171,13 +178,13 @@ const getDeveloperProposals = async (req, res) => {
        JOIN entrepreneur e ON ei.entrepreneur_id = e.id
        WHERE p.developer_id = ?
        ORDER BY p.created_at DESC`,
-      [developerId]
+      [developerId],
     );
 
     res.status(200).json({
       success: true,
       proposals,
-      total: proposals.length
+      total: proposals.length,
     });
   } catch (error) {
     console.error("Error fetching proposals:", error);
@@ -195,7 +202,9 @@ const withdrawProposal = async (req, res) => {
     const { proposalId, developerId } = req.body;
 
     if (!proposalId || !developerId) {
-      return res.status(400).json({ error: "Proposal ID and Developer ID are required" });
+      return res
+        .status(400)
+        .json({ error: "Proposal ID and Developer ID are required" });
     }
 
     // Check if proposal exists and belongs to developer
@@ -205,12 +214,14 @@ const withdrawProposal = async (req, res) => {
        FROM proposals p
        JOIN entrepreneur_idea ei ON p.idea_id = ei.id
        WHERE p.id = ? AND p.developer_id = ?`,
-      [proposalId, developerId]
+      [proposalId, developerId],
     );
 
     if (proposalRows.length === 0) {
       await connection.rollback();
-      return res.status(404).json({ error: "Proposal not found or you don't have permission" });
+      return res
+        .status(404)
+        .json({ error: "Proposal not found or you don't have permission" });
     }
 
     const proposal = proposalRows[0];
@@ -218,14 +229,17 @@ const withdrawProposal = async (req, res) => {
     // Check if already withdrawn
     if (proposal.withdrawn) {
       await connection.rollback();
-      return res.status(400).json({ error: "Proposal has already been withdrawn" });
+      return res
+        .status(400)
+        .json({ error: "Proposal has already been withdrawn" });
     }
 
     // Cannot withdraw if already approved
     if (proposal.status === "Approved") {
       await connection.rollback();
       return res.status(400).json({
-        error: "Cannot withdraw an approved proposal. Please contact the entrepreneur."
+        error:
+          "Cannot withdraw an approved proposal. Please contact the entrepreneur.",
       });
     }
 
@@ -234,7 +248,7 @@ const withdrawProposal = async (req, res) => {
       `UPDATE proposals
        SET withdrawn = TRUE, withdrawn_at = NOW(), status = 'Withdrawn'
        WHERE id = ?`,
-      [proposalId]
+      [proposalId],
     );
 
     // Update proposal count for the idea
@@ -242,13 +256,13 @@ const withdrawProposal = async (req, res) => {
       `UPDATE entrepreneur_idea
        SET proposal_count = GREATEST(proposal_count - 1, 0)
        WHERE id = ?`,
-      [proposal.idea_id]
+      [proposal.idea_id],
     );
 
     // Notify entrepreneur
     const [developerRows] = await connection.execute(
       `SELECT fullName FROM developers WHERE id = ?`,
-      [developerId]
+      [developerId],
     );
     const developerName = developerRows[0]?.fullName || "A developer";
 
@@ -259,8 +273,8 @@ const withdrawProposal = async (req, res) => {
       [
         proposal.entrepreneur_id,
         proposalId,
-        `${developerName} has withdrawn their proposal for "${proposal.idea_title}".`
-      ]
+        `${developerName} has withdrawn their proposal for "${proposal.idea_title}".`,
+      ],
     );
 
     // Log activity
@@ -268,14 +282,18 @@ const withdrawProposal = async (req, res) => {
       `INSERT INTO activity_log
        (user_id, user_type, action_type, entity_type, entity_id, description)
        VALUES (?, 'developer', 'proposal_withdrawn', 'proposal', ?, ?)`,
-      [developerId, proposalId, `Withdrew proposal for idea: ${proposal.idea_title}`]
+      [
+        developerId,
+        proposalId,
+        `Withdrew proposal for idea: ${proposal.idea_title}`,
+      ],
     );
 
     await connection.commit();
 
     res.json({
       success: true,
-      message: "Proposal withdrawn successfully"
+      message: "Proposal withdrawn successfully",
     });
   } catch (error) {
     await connection.rollback();
@@ -303,6 +321,7 @@ const getEntrepreneurProposals = async (req, res) => {
         p.equity_requested AS equityRequested,
         p.additional_notes AS additionalNotes,
         p.status,
+        p.contract_status,   
         p.withdrawn,
         p.created_at AS submittedAt,
         p.updated_at AS updatedAt,
@@ -317,7 +336,7 @@ const getEntrepreneurProposals = async (req, res) => {
       JOIN developers d ON p.developer_id = d.id
       WHERE ei.entrepreneur_id = ? AND p.withdrawn = FALSE
       ORDER BY p.created_at DESC`,
-      [entrepreneurId]
+      [entrepreneurId],
     );
 
     // Get count by status
@@ -330,14 +349,14 @@ const getEntrepreneurProposals = async (req, res) => {
       FROM proposals p
       JOIN entrepreneur_idea ei ON p.idea_id = ei.id
       WHERE ei.entrepreneur_id = ? AND p.withdrawn = FALSE`,
-      [entrepreneurId]
+      [entrepreneurId],
     );
 
     res.json({
       success: true,
       proposals,
       totalProposalCount: proposals.length,
-      statusCounts: statusCounts[0]
+      statusCounts: statusCounts[0],
     });
   } catch (err) {
     console.error(err);
@@ -355,8 +374,10 @@ const updateProposalStatus = async (req, res) => {
     const { proposalId } = req.params;
     const { action, entrepreneurId } = req.body; // 'accept' or 'reject'
 
-    if (!action || !['accept', 'reject'].includes(action)) {
-      return res.status(400).json({ error: "Invalid action. Use 'accept' or 'reject'" });
+    if (!action || !["accept", "reject"].includes(action)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid action. Use 'accept' or 'reject'" });
     }
 
     let status = action === "accept" ? "Approved" : "Rejected";
@@ -366,7 +387,7 @@ const updateProposalStatus = async (req, res) => {
       `SELECT p.id, p.status, p.withdrawn, p.developer_id, p.idea_id
        FROM proposals p
        WHERE p.id = ?`,
-      [proposalId]
+      [proposalId],
     );
 
     if (proposalCheck.length === 0) {
@@ -378,21 +399,23 @@ const updateProposalStatus = async (req, res) => {
 
     if (currentProposal.withdrawn) {
       await connection.rollback();
-      return res.status(400).json({ error: "Cannot update a withdrawn proposal" });
+      return res
+        .status(400)
+        .json({ error: "Cannot update a withdrawn proposal" });
     }
 
     if (currentProposal.status !== "Pending") {
       await connection.rollback();
       return res.status(400).json({
-        error: `Proposal has already been ${currentProposal.status.toLowerCase()}`
+        error: `Proposal has already been ${currentProposal.status.toLowerCase()}`,
       });
     }
 
     // Update proposal status
-    await connection.execute(
-      `UPDATE proposals SET status = ? WHERE id = ?`,
-      [status, proposalId]
-    );
+    await connection.execute(`UPDATE proposals SET status = ? WHERE id = ?`, [
+      status,
+      proposalId,
+    ]);
 
     // Fetch proposal info for notification
     const [rows] = await connection.execute(
@@ -408,7 +431,7 @@ const updateProposalStatus = async (req, res) => {
        JOIN entrepreneur_idea i ON p.idea_id = i.id
        JOIN entrepreneur e ON i.entrepreneur_id = e.id
        WHERE p.id = ?`,
-      [proposalId]
+      [proposalId],
     );
 
     const proposal = rows[0];
@@ -437,7 +460,7 @@ const updateProposalStatus = async (req, res) => {
     await connection.execute(
       `INSERT INTO notifications (developer_id, proposal_id, message, type)
        VALUES (?, ?, ?, ?)`,
-      [proposal.developer_id, proposalId, message, notificationType]
+      [proposal.developer_id, proposalId, message, notificationType],
     );
 
     // Log activity
@@ -448,8 +471,8 @@ const updateProposalStatus = async (req, res) => {
       [
         proposal.entrepreneur_id,
         proposalId,
-        `${status} proposal from ${proposal.developer_name} for idea: ${proposal.idea_title}`
-      ]
+        `${status} proposal from ${proposal.developer_name} for idea: ${proposal.idea_title}`,
+      ],
     );
 
     await connection.commit();
@@ -457,7 +480,7 @@ const updateProposalStatus = async (req, res) => {
     res.json({
       success: true,
       message: `Proposal ${status.toLowerCase()} successfully`,
-      status
+      status,
     });
   } catch (err) {
     await connection.rollback();
@@ -468,7 +491,7 @@ const updateProposalStatus = async (req, res) => {
   }
 };
 
- const manageProposal = async (req, res) => {
+const manageProposal = async (req, res) => {
   const ideaId = req.params.ideaId;
 
   try {
@@ -491,7 +514,7 @@ const updateProposalStatus = async (req, res) => {
       JOIN entrepreneur_idea ei ON p.idea_id = ei.id
       JOIN entrepreneur e ON ei.entrepreneur_id = e.id
       WHERE p.idea_id = ?`,
-      [ideaId]
+      [ideaId],
     );
 
     res.json({
@@ -507,10 +530,9 @@ const updateProposalStatus = async (req, res) => {
   }
 };
 
-
 // Get unique developer IDs from proposals
 // Get unique developers (ID + fullname) from proposals
-const getUniqueDeveloperIds= async (req, res) => {
+const getUniqueDeveloperIds = async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT DISTINCT d.id AS developer_id, d.fullname
@@ -524,8 +546,6 @@ const getUniqueDeveloperIds= async (req, res) => {
     res.status(500).json({ error: "Failed to fetch developers" });
   }
 };
-
-
 
 module.exports = {
   getProposalById,

@@ -275,7 +275,7 @@ const getEntrepreneurStats = async (req, res) => {
       ORDER BY p.created_at DESC`,
       [entrepreneurId]
     );
-
+    console.log(allProposals)
     // Calculate total views from all ideas
     const totalViews = ideas.reduce((sum, idea) => {
       // Check for both possible column names: views and viewsCount
