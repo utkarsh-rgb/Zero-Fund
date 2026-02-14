@@ -33,7 +33,7 @@ const getCollaborations = async (req, res) => {
       revisions,
       created_at
    FROM contracts
-   WHERE entrepreneur_id = ? AND status = 'signed'`,
+   WHERE entrepreneur_id = ? AND signed_by_entrepreneur =1 AND signed_by_developer=1 ANd status = "signed"`,
   [entrepreneurId]
 );
 

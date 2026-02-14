@@ -49,6 +49,7 @@ export default function CollaborationsTab({
               collaboration={c}
               openModal={openModal}
               index={index}
+              navigate={navigate}
             />
           ))}
         </div>
@@ -60,14 +61,15 @@ export default function CollaborationsTab({
     </div>
   );
 }
-
 interface CollaborationCardProps {
   collaboration: any;
   openModal: (contract: any) => void;
   index: number;
+  navigate: any;
 }
 
-function CollaborationCard({ collaboration, openModal, index }: CollaborationCardProps) {
+
+function CollaborationCard({ collaboration, openModal, index, navigate }: CollaborationCardProps) {
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'active':
@@ -103,9 +105,9 @@ function CollaborationCard({ collaboration, openModal, index }: CollaborationCar
               <p className="text-xs text-gray-500 mt-0.5">ID: {collaboration.id}</p>
             </div>
           </div>
-          <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(collaboration.status)}`}>
+          {/* <span className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(collaboration.status)}`}>
             {collaboration.status || 'Active'}
-          </span>
+          </span> */}
         </div>
       </div>
 
@@ -151,18 +153,33 @@ function CollaborationCard({ collaboration, openModal, index }: CollaborationCar
       </div>
 
       {/* Footer */}
-      <div className="p-4 sm:p-5 bg-gray-50 border-t border-gray-100">
-        <button
-          className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            openModal(collaboration);
-          }}
-        >
-          <Eye className="w-4 h-4" />
-          <span>View Contract Details</span>
-        </button>
-      </div>
+    <div className="p-4 sm:p-5 bg-gray-50 border-t border-gray-100 flex gap-3">
+  
+  {/* View Contract */}
+  <button
+    className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2"
+    onClick={(e) => {
+      e.stopPropagation();
+      openModal(collaboration);
+    }}
+  >
+    <Eye className="w-4 h-4" />
+    <span>View</span>
+  </button>
+
+  {/* Chat Button */}
+  <button
+    className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2"
+    onClick={(e) => {
+      e.stopPropagation();
+      navigate(`/developer-dashboard/chat/${collaboration.id}`);
+    }}
+  >
+    💬 <span>Chat</span>
+  </button>
+
+</div>
+
     </div>
   );
 }

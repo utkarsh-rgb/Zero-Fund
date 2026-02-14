@@ -13,7 +13,7 @@ const developerSignedContract = async (req, res) => {
 
   try {
     const [result] = await pool.query(
-      `UPDATE contracts SET signed_by_developer = 1, status = "pending_signature" WHERE id = ? AND developer_id = ?`,
+      `UPDATE contracts SET signed_by_developer = 1, status = "signed" WHERE id = ? AND developer_id = ?`,
       [contractId, developerId]
     );
 

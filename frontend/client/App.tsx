@@ -18,7 +18,7 @@ import EntrepreneurSignup from "./pages/EntrepreneurSignup";
 import DeveloperSignup from "./pages/DeveloperSignup";
 import Login from "./pages/Login";
 import DeveloperDashboard from "./pages/developer-dashboard/DeveloperDashboard";
-import EntrepreneurDashboard from "./pages/EntrepreneurDashboard";
+import EntrepreneurDashboard from "./pages/entrepreneur-dashboard/entrepreneur-dashboard";
 import IdeaDetails from "./pages/IdeaDetails";
 import ProposalSubmit from "./pages/ProposalSubmit";
 import ChatCollaboration from "./pages/ChatCollaboration";
@@ -38,6 +38,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import EditIdea from "./pages/EditIdea";
 import Layout from "./layout/Layout";
+import MessagesPage from "./pages/MessagePage";
+import ChatPage from "./pages/ChatPage";
 import Messages from "./pages/Messages";
 import DeveloperMessages from "./pages/DeveloperMessages";
 import Analytics from "./pages/Analytics";
@@ -128,6 +130,24 @@ export default function App() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/founder/:id" element={<FounderProfile />} />
           <Route path="/entrepreneur-dashboard/developer-profile/:id" element={<DeveloperProfile />} />
+          <Route
+  path="/entrepreneur-dashboard/message/:contractId"
+  element={<ChatPage />}
+/>
+<Route
+  path="/developer-dashboard/chat/:contractId"
+  element={<ChatPage />}
+/>
+<Route
+  path="/entrepreneur-dashboard/messages"
+  element={<MessagesPage />}
+/>
+
+<Route
+  path="/developer-dashboard/messages"
+  element={<MessagesPage />}
+/>
+
 
         </Route>
 
