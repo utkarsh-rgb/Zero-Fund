@@ -1,8 +1,8 @@
 import React from "react";
-import SecureChat from "./SecureChat";
+import MessagesPage from "./MessagePage";
 
 const DeveloperMessages: React.FC = () => {
-  return <SecureChat  />;
+  return <MessagesPage  />;
 };
 
 export default DeveloperMessages;
