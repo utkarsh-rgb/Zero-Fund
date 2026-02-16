@@ -1,6 +1,37 @@
 import { Linkedin, Twitter, Mail, Github } from "lucide-react";
+import { useState } from "react";
+import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://bd.zerofundventure.com" : "http://localhost:5000");
 
 export default function IndexFooter() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "exists">("idle");
+  const [message, setMessage] = useState("");
+
+  const handleSubscribe = async () => {
+    if (!email.trim()) {
+      setStatus("error");
+      setMessage("Please enter your email");
+      return;
+    }
+
+    setStatus("loading");
+    try {
+      const res = await axios.post(`${API_BASE}/newsletter/subscribe`, { email: email.trim() });
+      setStatus("success");
+      setMessage(res.data.message || "Subscribed successfully!");
+      setEmail("");
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        setStatus("exists");
+        setMessage("You're already subscribed!");
+      } else {
+        setStatus("error");
+        setMessage(err.response?.data?.message || "Failed to subscribe. Try again.");
+      }
+    }
+  };
   return (
     <footer className="bg-gray-50 border-t border-gray-200 text-gray-900">
       {/* Main Footer Content */}
@@ -138,11 +169,23 @@ export default function IndexFooter() {
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
+                onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
                 className="px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
               />
-              <button className="px-4 py-2.5 bg-black text-white hover:bg-gray-800 text-sm font-medium rounded-lg transition-all duration-200">
-                Subscribe
+              <button
+                onClick={handleSubscribe}
+                disabled={status === "loading"}
+                className="px-4 py-2.5 bg-black text-white hover:bg-gray-800 text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {status === "loading" ? "Subscribing..." : "Subscribe"}
               </button>
+              {status !== "idle" && status !== "loading" && (
+                <p className={`text-xs ${status === "success" ? "text-green-600" : status === "exists" ? "text-yellow-600" : "text-red-600"}`}>
+                  {message}
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -87,6 +87,7 @@ const signedRoutes = require("./routes/signedRoutes");
 const geminiRoutes = require("./routes/geminiRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const verificationRoutes = require("./routes/verificationRoutes");
+const newsletterRoutes = require("./routes/newsletterRoutes");
 
 // Apply API routes
 app.use("/messages", messageRouter);
@@ -107,6 +108,7 @@ app.use("/", signedRoutes);
 app.use("/ai", geminiRoutes);
 app.use("/analytics", analyticsRoutes);
 app.use("/", verificationRoutes);
+app.use("/", newsletterRoutes);
 
 
 // ------------------------
