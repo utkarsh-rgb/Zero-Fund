@@ -1,58 +1,69 @@
 // ideaController.js
-const { S3Client } = require("@aws-sdk/client-s3");
-const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require("multer");
 const pool = require("../db");
 require("dotenv").config();
 const path = require("path");
+const fs = require("fs");
 
-// --- Configure multer to store files temporarily before upload ---
-const storage = multer.memoryStorage(); // store in memory for SDK v3 upload
-//const upload = multer({ storage });
+const BASE_UPLOAD_PATH = "/var/www/storage/pdfs";
 
+console.log("📁 Base Upload Path:", BASE_UPLOAD_PATH);
+
+if (!fs.existsSync(BASE_UPLOAD_PATH)) {
+  console.log("📁 Base folder does not exist. Creating...");
+  fs.mkdirSync(BASE_UPLOAD_PATH, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+  console.log("📦 Incoming File:", file.originalname);
+
+  const entrepreneurId =
+    req.params.id || req.body.entrepreneur_id || "unknown";
+
+  console.log("📦 entrepreneurId used for folder:", entrepreneurId);
+
+//  const userFolder = path.join(BASE_UPLOAD_PATH, String(entrepreneurId));
+const userFolder = `/var/www/storage/pdfs/${entrepreneurId}`;
+  console.log("📂 Target Folder:", userFolder);
+
+  if (!fs.existsSync(userFolder)) {
+    fs.mkdirSync(userFolder, { recursive: true });
+  }
+
+  cb(null, userFolder);
+},
+
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    console.log("📝 Final File Name:", uniqueName);
+    cb(null, uniqueName);
+  },
+});
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ["image/jpeg", "image/png", "application/pdf"];
-    if (!allowed.includes(file.mimetype)) {
-      cb(new Error("Invalid file type"));
+    const allowedTypes = [
+      "application/pdf",
+      "text/plain",
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+    console.log("🔎 Checking file type:", file.mimetype);
+
+    if (!allowedTypes.includes(file.mimetype)) {
+      console.log("❌ Invalid file type rejected");
+      return cb(new Error("Only PDF, TXT and image files are allowed"));
     }
+
+    console.log("✅ File type accepted");
     cb(null, true);
   },
 });
-
-// --- Configure S3 v3 client ---
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "eu-north-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-// Helper to upload file buffer to S3
-const uploadToS3 = async (fileBuffer, fileName, mimetype, entrepreneur_id) => {
-  if (!entrepreneur_id) {
-    throw new Error("entrepreneur_id missing during S3 upload");
-  }
-
-  const uploadParams = {
-    Bucket: process.env.S3_BUCKET,
-    Key: `ideas/${entrepreneur_id}/${Date.now()}-${fileName}`,
-    Body: fileBuffer,
-    ContentType: mimetype,
-  };
-
-  await new Upload({
-    client: s3Client,
-    params: uploadParams,
-  }).done();
-
-  return `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
-};
-
 
 // --- POST /idea ---
 const postIdeaHandler = async (req, res) => {
@@ -79,17 +90,23 @@ const postIdeaHandler = async (req, res) => {
     const skillsArray =
       typeof requiredSkills === "string" ? JSON.parse(requiredSkills) : requiredSkills || [];
 
-    // Upload all files to S3
-const attachmentsArray = [];
+    // Save files locally
+    const attachmentsArray = [];
 
 if (req.files && req.files.length > 0) {
+  console.log("📎 Files received:", req.files.length);
+
+  const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get("host")}`;
+  console.log("🌍 Base URL:", baseUrl);
+
   for (const file of req.files) {
-    const url = await uploadToS3(
-      file.buffer,
-      file.originalname,
-      file.mimetype,
-      entrepreneur_id
-    );
+    console.log("📄 Processing file:", file.filename);
+    console.log("📄 Full Path Saved:", file.path);
+
+    const relativePath = `/upload_idea_document/${entrepreneur_id}/${file.filename}`;
+    const url = `${baseUrl}${relativePath}`;
+
+    console.log("🔗 Generated URL:", url);
 
     attachmentsArray.push({
       name: file.originalname,
@@ -98,8 +115,9 @@ if (req.files && req.files.length > 0) {
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
     });
   }
+} else {
+  console.log("⚠️ No files received");
 }
-
     const sql = `
       INSERT INTO entrepreneur_idea
       (entrepreneur_id, title, overview, stage, equity_offering, visibility, timeline, budget, additional_requirements, required_skills, attachments)

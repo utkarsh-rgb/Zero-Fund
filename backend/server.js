@@ -67,6 +67,15 @@ if (!fs.existsSync(uploadDir)) {
 app.use("/uploads", express.static(uploadDir));
 
 // ------------------------
+// Idea Documents Upload folder
+// ------------------------
+const ideaUploadDir = path.join(__dirname, "upload_idea_document");
+if (!fs.existsSync(ideaUploadDir)) {
+  fs.mkdirSync(ideaUploadDir, { recursive: true });
+}
+app.use("/upload_idea_document", express.static(ideaUploadDir));
+
+// ------------------------
 // Routes
 // ------------------------
 const { router: messageRouter, setupSocket } = require("./messages/message");

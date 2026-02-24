@@ -282,15 +282,14 @@ const userData = JSON.parse(raw);
 
       // Send FormData to backend using Axios
       const response = await axiosLocal.post(
-        "/post-idea",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
-        
-      );
+  `/post-idea/${entrepreneurId}`,
+  data,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  }
+);
 
       // Log full response
       console.log("Server response details:", response);
