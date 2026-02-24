@@ -24,7 +24,7 @@ export default function IndexHeader() {
 
             <div className="flex flex-col">
               <span className="text-lg md:text-xl font-bold text-slate-900 leading-tight">
-                Zero Fund Venture
+                Zero Fund Ventures
               </span>
               <span className="text-xs text-slate-500 hidden sm:block">
                 Equity Collaboration Platform
