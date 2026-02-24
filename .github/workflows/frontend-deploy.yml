@@ -57,8 +57,7 @@
 #           ssh ec2-user@${{ secrets.EC2_HOST }} \
 #           "sudo nginx -t && sudo systemctl reload nginx"
 
-
-name: Frontend CI/CD (build → rsync dist)
+name: Frontend CI/CD (VPS build → rsync dist)
 
 on:
   push:
@@ -91,23 +90,23 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      # 🔐 SSH setup
+      # 🔐 Setup SSH
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      # 🚀 Rsync dist to EC2 (clean & safe)
-      - name: Deploy dist to EC2
+      # 🚀 Rsync built SPA to VPS
+      - name: Deploy dist/spa to VPS
         run: |
           rsync -avz --delete \
-          frontend/dist/ \
-          ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/project/Zero-Fund/frontend/dist/
+          frontend/dist/spa/ \
+          ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/skill-invest/Zero-Fund/frontend/dist/spa/
 
       # 🔁 Reload nginx
       - name: Reload nginx
         run: |
-          ssh ec2-user@${{ secrets.EC2_HOST }} \
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
           "sudo nginx -t && sudo systemctl reload nginx"
