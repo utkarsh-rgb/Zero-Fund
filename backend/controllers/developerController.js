@@ -8,16 +8,30 @@ const PROFILE_UPLOAD_PATH = "/var/www/storage/profile_pics";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log("🔥 MULTER DESTINATION CALLED");
+    console.log("➡️ Params:", req.params);
+    console.log("➡️ Body:", req.body);
+    console.log("➡️ File received:", file);
+
     const developerId = req.params.id;
-    const userFolder = path.join(PROFILE_UPLOAD_PATH, String(developerId));
+    console.log("➡️ Developer ID:", developerId);
+
+    if (!developerId) {
+      console.log("❌ Developer ID missing in params");
+      return cb(new Error("Developer ID missing"));
+    }
+
+    const userFolder = `/var/www/storage/profile_pics/${developerId}`;
+    console.log("📁 Target Folder:", userFolder);
 
     if (!fs.existsSync(userFolder)) {
+      console.log("📁 Creating folder...");
       fs.mkdirSync(userFolder, { recursive: true });
     } else {
-      // 🔥 DELETE OLD FILES BEFORE SAVING NEW
+      console.log("♻️ Folder exists, deleting old files...");
       const files = fs.readdirSync(userFolder);
-      files.forEach(file => {
-        const filePath = path.join(userFolder, file);
+      files.forEach(f => {
+        const filePath = path.join(userFolder, f);
         if (fs.lstatSync(filePath).isFile()) {
           fs.unlinkSync(filePath);
         }
@@ -28,8 +42,14 @@ const storage = multer.diskStorage({
   },
 
   filename: (req, file, cb) => {
+    console.log("📝 FILENAME FUNCTION CALLED");
+    console.log("➡️ Original name:", file.originalname);
+
     const cleanName = file.originalname.replace(/\s+/g, "-");
     const uniqueName = `${Date.now()}-${cleanName}`;
+
+    console.log("➡️ Final filename:", uniqueName);
+
     cb(null, uniqueName);
   },
 });
@@ -45,28 +65,49 @@ const uploadProfilePic = multer({
   },
 });
 
-// const getDeveloperProfilePic = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const [rows] = await pool.execute(
-//       "SELECT profile_pic, profile_pic_type FROM developers WHERE id = ?",
-//       [id]
-//     );
-
-//     if (!rows.length || !rows[0].profile_pic) return res.status(404).send("No profile picture");
-
-//     const { profile_pic, profile_pic_type } = rows[0];
-
-//     res.setHeader("Content-Type", profile_pic_type);
-//     res.send(profile_pic);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Failed to fetch profile picture");
-//   }
-// };
 
 
-// Get developer profile
+const uploadDeveloperProfile = async (req, res) => {
+  try {
+    console.log("🚀 CONTROLLER HIT");
+    console.log("➡️ req.file:", req.file);
+    console.log("➡️ req.params:", req.params);
+
+    if (!req.file) {
+      console.log("❌ No file received in controller");
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const developerId = req.params.id;
+    console.log("➡️ Developer ID in controller:", developerId);
+
+    const baseUrl =
+      process.env.BACKEND_URL || `${req.protocol}://${req.get("host")}`;
+
+    console.log("➡️ Base URL:", baseUrl);
+
+    const imageUrl = `${baseUrl}/profile_pics/${developerId}/${req.file.filename}`;
+
+    console.log("➡️ Image URL:", imageUrl);
+
+    await pool.execute(
+      "UPDATE developers SET profile_pic = ? WHERE id = ?",
+      [imageUrl, developerId]
+    );
+
+    console.log("✅ Database updated");
+
+    return res.json({
+      success: true,
+      profile_pic: imageUrl,
+    });
+
+  } catch (error) {
+    console.error("❌ Upload error:", error);
+    return res.status(500).json({ message: "Profile upload failed" });
+  }
+};
+
 const getDeveloperProfile = async (req, res) => {
   const { id } = req.params;
 
@@ -174,32 +215,6 @@ const developerDashboardById = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Server error while fetching ideas" });
-  }
-};
-
-const uploadDeveloperProfile = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    const developerId = req.params.id;
-
-    const imageUrl = `/profile_pics/${developerId}/${req.file.filename}`;
-
-    await pool.execute(
-      "UPDATE developers SET profile_pic = ? WHERE id = ?",
-      [imageUrl, developerId]
-    );
-
-    return res.json({
-      success: true,
-      profile_pic: imageUrl,
-    });
-
-  } catch (error) {
-    console.error("Upload error:", error);
-    return res.status(500).json({ message: "Profile upload failed" });
   }
 };
 
