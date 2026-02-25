@@ -1,31 +1,3 @@
-# name: Backend CI/CD (Production Safe)
-
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - backend/**
-#   workflow_dispatch:
-
-# jobs:
-#   deploy-backend:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Deploy backend on EC2
-#         uses: appleboy/ssh-action@v1.0.3
-#         with:
-#           host: ${{ secrets.EC2_HOST }}
-#           username: ${{ secrets.EC2_USER }}
-#           key: ${{ secrets.EC2_SSH_KEY }}
-#           script: |
-#             cd /home/ec2-user/project/backend
-#             git pull origin main
-#             npm install
-#             pm2 restart server
-#             pm2 save
-
 
 name: Backend CI/CD (VPS Production)
 
