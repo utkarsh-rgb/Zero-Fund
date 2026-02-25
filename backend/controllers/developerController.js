@@ -86,8 +86,9 @@ const uploadDeveloperProfile = async (req, res) => {
 
     console.log("➡️ Base URL:", baseUrl);
 
-    const imageUrl = `${baseUrl}/profile_pics/${developerId}/${req.file.filename}`;
+    //const imageUrl = `${baseUrl}/profile_pics/${developerId}/${req.file.filename}`;
 
+    const imageUrl = `https://bd.zerofundventure.com/profile_pics/${developerId}/${req.file.filename}`;
     console.log("➡️ Image URL:", imageUrl);
 
     await pool.execute(
