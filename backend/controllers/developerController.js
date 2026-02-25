@@ -2,15 +2,48 @@ const pool = require("../db");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const storage = multer.memoryStorage();
-const uploadToS3 = require("../utils/uploadToS3");
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) cb(null, true);
-  else cb(new Error("Not an image!"), false);
-};
 
-const upload = multer({ storage, fileFilter });
+const PROFILE_UPLOAD_PATH = "/var/www/storage/profile_pics";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const developerId = req.params.id;
+    const userFolder = path.join(PROFILE_UPLOAD_PATH, String(developerId));
+
+    if (!fs.existsSync(userFolder)) {
+      fs.mkdirSync(userFolder, { recursive: true });
+    } else {
+      // 🔥 DELETE OLD FILES BEFORE SAVING NEW
+      const files = fs.readdirSync(userFolder);
+      files.forEach(file => {
+        const filePath = path.join(userFolder, file);
+        if (fs.lstatSync(filePath).isFile()) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+
+    cb(null, userFolder);
+  },
+
+  filename: (req, file, cb) => {
+    const cleanName = file.originalname.replace(/\s+/g, "-");
+    const uniqueName = `${Date.now()}-${cleanName}`;
+    cb(null, uniqueName);
+  },
+});
+const uploadProfilePic = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error("Only JPG, PNG, WEBP allowed"));
+    }
+    cb(null, true);
+  },
+});
 
 const getDeveloperProfilePic = async (req, res) => {
   try {
@@ -49,8 +82,10 @@ const getDeveloperProfile = async (req, res) => {
 
     const developer = rows[0];
 
-    // ❌ REMOVE base64 conversion (S3 URL now)
-    // developer.profile_pic is already a URL
+    // Convert Buffer to string if DB column is BLOB
+    if (developer.profile_pic && Buffer.isBuffer(developer.profile_pic)) {
+      developer.profile_pic = developer.profile_pic.toString("utf-8");
+    }
 
     const [skills] = await pool.execute(
       "SELECT skill FROM developer_skills WHERE developer_id = ?",
@@ -148,28 +183,25 @@ const uploadDeveloperProfile = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const imageUrl = await uploadToS3(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
-      req.params.id
-    );
+    const developerId = req.params.id;
+
+    const imageUrl = `/profile_pics/${developerId}/${req.file.filename}`;
 
     await pool.execute(
       "UPDATE developers SET profile_pic = ? WHERE id = ?",
-      [imageUrl, req.params.id]
+      [imageUrl, developerId]
     );
 
     return res.json({
       success: true,
       profile_pic: imageUrl,
     });
+
   } catch (error) {
     console.error("Upload error:", error);
     return res.status(500).json({ message: "Profile upload failed" });
   }
 };
-
 
 // Remove profile picture
 const removeProfilePic = async (req, res) => {
@@ -387,5 +419,6 @@ module.exports = {
   developerDashboardById,
   removeProfilePic,
   uploadDeveloperProfile,
-  getDeveloperStats
+  getDeveloperStats,
+  uploadProfilePic,
 };

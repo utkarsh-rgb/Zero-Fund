@@ -8,8 +8,9 @@ const {
   uploadDeveloperProfile,
   removeProfilePic,
   getDeveloperStats,
+  uploadProfilePic,
 } = require("../controllers/developerController");
-const upload = require("../middleware/upload"); // 
+//const upload = require("../middleware/upload"); // 
 
 // Protected routes
 router.get("/developer/:id",  getDeveloperProfile);
@@ -18,7 +19,7 @@ router.put("/developer/:id", updateDeveloperProfile);
 
 router.post(
   "/developer/:id/upload",
-  upload.single("profile_pic"),
+  uploadProfilePic.single("profile_pic"),
   (req, res, next) => {
     console.log("🔥 MULTER REQ.FILE:", req.file);
     console.log("🔥 MULTER REQ.BODY:", req.body);

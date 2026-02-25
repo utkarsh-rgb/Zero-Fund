@@ -76,6 +76,15 @@ if (!fs.existsSync(ideaUploadDir)) {
 app.use("/upload_idea_document", express.static(ideaUploadDir));
 
 // ------------------------
+// Profile Images (VPS: /var/www/storage/images)
+// ------------------------
+const imageStoragePath = "/var/www/storage/images";
+if (!fs.existsSync(imageStoragePath)) {
+  fs.mkdirSync(imageStoragePath, { recursive: true });
+}
+app.use("/images", express.static(imageStoragePath));
+
+// ------------------------
 // Routes
 // ------------------------
 const { router: messageRouter, setupSocket } = require("./messages/message");
