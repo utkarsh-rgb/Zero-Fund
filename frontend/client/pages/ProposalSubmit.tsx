@@ -44,6 +44,7 @@ export default function ProposalSubmit() {
   const query = useQuery();
   const ideaId = query.get("id");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<ProposalForm>({
     scope: "",
     milestones: [
@@ -134,6 +135,7 @@ export default function ProposalSubmit() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
     try {
       const developerData = JSON.parse(
         localStorage.getItem("userData") || "{}",
@@ -148,6 +150,8 @@ export default function ProposalSubmit() {
       setIsSubmitted(true);
     } catch (error) {
       console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -530,11 +534,39 @@ export default function ProposalSubmit() {
             </Link>
             <button
               type="submit"
-              disabled={!isFormValid()}
+              disabled={!isFormValid() || isSubmitting}
               className="px-8 py-3 bg-skyblue text-white rounded-lg hover:bg-navy transition-colors font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center space-x-2"
             >
-              <Send className="w-5 h-5" />
-              <span>Submit Proposal</span>
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="w-5 h-5 animate-spin"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  <span>Submit Proposal</span>
+                </>
+              )}
             </button>
           </div>
         </form>
