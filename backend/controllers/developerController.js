@@ -45,25 +45,25 @@ const uploadProfilePic = multer({
   },
 });
 
-const getDeveloperProfilePic = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [rows] = await pool.execute(
-      "SELECT profile_pic, profile_pic_type FROM developers WHERE id = ?",
-      [id]
-    );
+// const getDeveloperProfilePic = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const [rows] = await pool.execute(
+//       "SELECT profile_pic, profile_pic_type FROM developers WHERE id = ?",
+//       [id]
+//     );
 
-    if (!rows.length || !rows[0].profile_pic) return res.status(404).send("No profile picture");
+//     if (!rows.length || !rows[0].profile_pic) return res.status(404).send("No profile picture");
 
-    const { profile_pic, profile_pic_type } = rows[0];
+//     const { profile_pic, profile_pic_type } = rows[0];
 
-    res.setHeader("Content-Type", profile_pic_type);
-    res.send(profile_pic);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Failed to fetch profile picture");
-  }
-};
+//     res.setHeader("Content-Type", profile_pic_type);
+//     res.send(profile_pic);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send("Failed to fetch profile picture");
+//   }
+// };
 
 
 // Get developer profile
