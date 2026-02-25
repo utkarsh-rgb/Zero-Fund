@@ -76,13 +76,13 @@ if (!fs.existsSync(ideaUploadDir)) {
 app.use("/upload_idea_document", express.static(ideaUploadDir));
 
 // ------------------------
-// Profile Images (VPS: /var/www/storage/images)
+// Profile Images (VPS: /var/www/storage/profile_pics)
 // ------------------------
-const imageStoragePath = "/var/www/storage/images";
-if (!fs.existsSync(imageStoragePath)) {
-  fs.mkdirSync(imageStoragePath, { recursive: true });
+const profilePicStoragePath = "/var/www/storage/profile_pics";
+if (!fs.existsSync(profilePicStoragePath)) {
+  fs.mkdirSync(profilePicStoragePath, { recursive: true });
 }
-app.use("/images", express.static(imageStoragePath));
+app.use("/profile_pics", express.static(profilePicStoragePath));
 
 // ------------------------
 // Routes
