@@ -98,13 +98,12 @@ const submitProposal = async (req, res) => {
     const developerName = developerRows[0].fullName;
 
     // Insert proposal (with default contract status)
-    const [proposalResult] = await connection.execute(
-      `INSERT INTO proposals 
+const [proposalResult] = await connection.execute(
+  `INSERT INTO proposals 
    (idea_id, developer_id, scope, timeline, equity_requested, additional_notes, contract_status)
-   VALUES (?, ?, ?, ?, ?, ?, ''NotGenerated'')`,
-      [ideaId, developerId, scope, timeline, equityRequested, additionalNotes],
-    );
-
+   VALUES (?, ?, ?, ?, ?, ?, 'NotGenerated')`,
+  [ideaId, developerId, scope, timeline, equityRequested, additionalNotes]
+);
     const proposalId = proposalResult.insertId;
 
     // Insert milestones
