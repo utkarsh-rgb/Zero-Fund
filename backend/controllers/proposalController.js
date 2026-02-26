@@ -101,7 +101,7 @@ const submitProposal = async (req, res) => {
     const [proposalResult] = await connection.execute(
       `INSERT INTO proposals 
    (idea_id, developer_id, scope, timeline, equity_requested, additional_notes, contract_status)
-   VALUES (?, ?, ?, ?, ?, ?, 'not_generated')`,
+   VALUES (?, ?, ?, ?, ?, ?, ''NotGenerated'')`,
       [ideaId, developerId, scope, timeline, equityRequested, additionalNotes],
     );
 
